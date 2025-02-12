@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'bookings',
     'testimonials',
     'owners',
+    'payment',
 
     #third party package
     'rest_framework',
