@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from rest_framework.exceptions import ValidationError
+
 from bikes.models import Bike  # Import the Bike model from the Bikes app
 
 User = get_user_model()
@@ -44,3 +46,8 @@ class Issue(models.Model):
         Check if the issue has been resolved.
         """
         return self.status == 'resolved'
+
+    def clean(self):
+        """Ensure that only admins can mark an issue as resolved."""
+        if self.status == 'resolved' and not self.resolved_by.is_staff:
+            raise ValidationError("Only an admin can mark an issue as resolved.")

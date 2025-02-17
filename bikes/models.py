@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.utils.text import slugify
+from django.core.exceptions import ValidationError
+from datetime import datetime
 
 User = get_user_model()
 
@@ -52,3 +54,13 @@ class Bike(models.Model):
 
     def __str__(self):
         return f"{self.brand} {self.name} ({self.model_year})"
+
+    def clean(self):
+        """Custom model validations."""
+        current_year = datetime.now().year
+        if self.model_year < 2000 or self.model_year > current_year:
+            raise ValidationError("Invalid model year.")
+        if self.price_per_day <= 0:
+            raise ValidationError("Price per day must be greater than zero.")
+        if self.mileage is not None and self.mileage < 0:
+            raise ValidationError("Mileage cannot be negative.")

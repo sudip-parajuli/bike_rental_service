@@ -8,12 +8,12 @@ class User(AbstractUser):
     is_owner = models.BooleanField(default=False, help_text="Indicates whether the user is a bike owner.")
     phone_number = models.CharField(
         max_length=15,
-        unique=True,  # Ensuring uniqueness for each user
+        unique=True,
         blank=True,
         null=True,
         validators=[
             RegexValidator(
-                regex=r'^\+977\d{9}$',  # Ensures valid Nepalese phone numbers (e.g., +9779841234567)
+                regex=r'^\+977\d{9}$',
                 message="Phone number must be a valid Nepal number (e.g., '+9779841234567')."
             )
         ],
@@ -44,7 +44,7 @@ class User(AbstractUser):
         return self.is_staff or self.is_superuser
 
     def get_absolute_url(self):
-        """Returns the URL for the user's profile (useful for frontend linking)."""
+        """Returns the URL for the user's profile."""
         return reverse('user_profile', kwargs={'username': self.username})
 
 
@@ -60,8 +60,13 @@ class OwnerProfile(models.Model):
         return f"Owner Profile for {self.user.username}"
 
     def update_earnings(self, amount):
-        """Safely update the owner's earnings and total bookings."""
+        """
+        Safely update the owner's earnings and total bookings using F expressions.
+        """
         if amount > 0:
             self.total_bookings += 1
-            self.total_earnings = round(self.total_earnings + amount, 2)  # Ensuring precise decimal calculation
-            self.save()
+            OwnerProfile.objects.filter(pk=self.pk).update(
+                total_bookings=models.F('total_bookings') + 1,
+                total_earnings=models.F('total_earnings') + amount
+            )
+            self.refresh_from_db()  # Refresh the instance to reflect the updated values

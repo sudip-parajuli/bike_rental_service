@@ -8,6 +8,7 @@ from django.utils.timezone import now
 
 User = get_user_model()
 
+
 class Booking(models.Model):
     # Choices for rental duration
     RENTAL_DURATION_CHOICES = [
@@ -36,36 +37,49 @@ class Booking(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', help_text="Current status of the booking.")
     created_at = models.DateTimeField(auto_now_add=True, help_text="Timestamp for when the booking was created.")
     updated_at = models.DateTimeField(auto_now=True, help_text="Timestamp for the last update.")
+    is_active = models.BooleanField(default=True, help_text="Indicates if the booking is active.")
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(end_date__gt=models.F('start_date')),
+                name='end_date_after_start_date'
+            )
+        ]
 
     def clean(self):
         """Ensure end_date is after start_date and check for overlapping bookings."""
         if self.end_date <= self.start_date:
             raise ValidationError("End date must be later than start date.")
-
         overlapping_bookings = Booking.objects.filter(
             bike=self.bike,
             start_date__lt=self.end_date,
             end_date__gt=self.start_date,
             status__in=['pending', 'confirmed']
         ).exclude(id=self.id)  # Exclude the current booking during updates
-
         if overlapping_bookings.exists():
             raise ValidationError("This bike is already booked for the selected dates.")
 
     def calculate_total_price(self):
-        """Calculate the total price based on rental duration."""
+        """Calculate the total rental price based on the selected rental duration."""
         duration_days = (self.end_date - self.start_date).days + 1
+        if not self.bike or not self.bike.price_per_day:
+            return Decimal(0)
+
+        price_per_day = self.bike.price_per_day
 
         if self.rental_duration == 'hourly':
-            duration_hours = (self.end_date - self.start_date).total_seconds() / 3600
-            return round((self.bike.price_per_day / 24) * Decimal(duration_hours), 2)
+            total_hours = (self.end_date - self.start_date).total_seconds() / 3600
+            return round((price_per_day / 24) * Decimal(total_hours), 2)
 
         elif self.rental_duration == 'daily':
-            return round(self.bike.price_per_day * Decimal(duration_days), 2)
+            return round(price_per_day * Decimal(duration_days), 2)
 
         elif self.rental_duration == 'weekly':
             full_weeks = duration_days // 7
-            return round(self.bike.price_per_day * Decimal(7) * Decimal(full_weeks), 2)
+            extra_days = duration_days % 7
+            weekly_price = price_per_day * Decimal(7)  # Weekly rate
+            return round((weekly_price * Decimal(full_weeks)) + (price_per_day * Decimal(extra_days)), 2)
 
         return Decimal(0)
 
@@ -92,6 +106,16 @@ class Booking(models.Model):
         """Retrieve feedback for the booking if available."""
         return getattr(self, 'feedback', None)
 
+    def soft_delete(self):
+        """Soft delete the booking by setting is_active to False."""
+        self.is_active = False
+        self.save()
+
+    def restore(self):
+        """Restore a soft-deleted booking by setting is_active to True."""
+        self.is_active = True
+        self.save()
+
 
 class Feedback(models.Model):
     """Represents feedback submitted by a user for a specific booking."""
@@ -112,6 +136,14 @@ class Feedback(models.Model):
         help_text="Additional comments from the user."
     )
     created_at = models.DateTimeField(auto_now_add=True, help_text="Timestamp for when the feedback was submitted.")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['booking', 'user'],
+                name='unique_feedback_per_booking_user'
+            )
+        ]
 
     def clean(self):
         """Validate that the rating is between 1 and 5."""
