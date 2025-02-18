@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework.authtoken',
     'django_filters',
+    'paypal.standard.ipn',
 ]
 
 MIDDLEWARE = [
@@ -169,3 +170,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 #static_files
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+#payment gateway Esewa
+# ESEWA_MERCHANT_ID = "EPAYTEST"
+# ESEWA_VERIFY_URL = "https://uat.esewa.com.np/api/epay/transrec"  #use live url instead of uat for production
+# ESEWA_REDIRECT_URL = "https://uat.esewa.com.np/epay/main"
+
+#paypal
+PAYPAL_RECEIVER_EMAIL = 'sb-6imge37854947@business.example.com'
+PAYPAL_TEST = True  # Use True for sandbox testing, False for live transactions

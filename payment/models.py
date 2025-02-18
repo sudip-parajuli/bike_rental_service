@@ -31,7 +31,7 @@ class Payment(models.Model):
     payment_method = models.CharField(
         max_length=50,
         choices=PAYMENT_METHOD_CHOICES,
-        help_text="Payment method used (e.g., PayPal, eSewa)."
+        help_text="Select payment method"
     )
     transaction_id = models.CharField(
         max_length=100,

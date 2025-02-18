@@ -1,7 +1,14 @@
 from django.urls import path
-from .views import PaymentListView, PaymentDetailView
-
+from .views import PaymentListView, PaymentDetailView, payment_process, payment_done, payment_canceled, handle_ipn
+from payment import views
 urlpatterns = [
-    path('payments/', PaymentListView.as_view(), name='payment-list'),
+    path('', PaymentListView.as_view(), name='payment-list'),
     path('payments/<int:pk>/', PaymentDetailView.as_view(), name='payment-detail'),
+
+    path('paypal/', views.payment_process, name='payment_process'),  # Note the name here
+    path('paypal-return/', views.payment_done, name='payment-done'),  # Match the reverse call
+    path('paypal-cancel/', views.payment_canceled, name='payment-canceled'),  # Match the reverse call
+    path('paypal-ipn/', views.handle_ipn, name='paypal-ipn'),
 ]
+
+

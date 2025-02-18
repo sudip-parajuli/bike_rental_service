@@ -21,12 +21,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('bikes.urls')),
-    path('api/', include('bookings.urls')),
-    path('api/', include('testimonials.urls')),
-    path('api/', include('payment.urls')),
-    path('api/auth/', include('users.urls')),
-    path('api/', include('admin_panel.urls')),
+    path('api/bikes/', include('bikes.urls')),
+    path('api/bookings/', include('bookings.urls')),
+    path('api/testimonials/', include('testimonials.urls')),
+    path('api/payments/', include('payment.urls')),
+    path('api/auth/users/', include('users.urls')),
+    path('api/admin_panel/', include('admin_panel.urls')),
     path('api-auth/', include('rest_framework.urls'))
 ]
 
