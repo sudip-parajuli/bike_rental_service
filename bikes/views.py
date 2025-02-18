@@ -2,12 +2,18 @@ from rest_framework import generics, permissions
 from .models import Bike
 from .serializers import BikeSerializer
 from .permissions import IsOwnerOrAdmin  # Custom permission
+from .filters import BikeFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
 
 # Anyone can see the list of bikes
 class BikeListView(generics.ListAPIView):
     queryset = Bike.objects.filter(is_approved=True, availability_status=True)
     serializer_class = BikeSerializer
     permission_classes = [permissions.AllowAny]  # Public access
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = BikeFilter
+    search_fields = ['name', 'model_year', 'type', 'brand',]
 
 # Anyone can view bike details
 class BikeDetailView(generics.RetrieveAPIView):

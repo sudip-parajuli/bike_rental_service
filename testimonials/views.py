@@ -1,4 +1,8 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions
+from rest_framework.filters import SearchFilter
+
+from .filters import TestimonialFilter
 from .models import Testimonial
 from .serializers import TestimonialSerializer
 
@@ -37,6 +41,9 @@ class TestimonialDeleteView(generics.DestroyAPIView):
     """Delete a testimonial (Only the author or an admin)."""
     serializer_class = TestimonialSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = TestimonialFilter
+    search_fields = ['content', 'user__username']
 
     def get_queryset(self):
         user = self.request.user

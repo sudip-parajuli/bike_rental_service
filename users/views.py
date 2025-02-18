@@ -1,9 +1,13 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 from django.contrib.auth import login, logout
+
+from .filters import UserFilter
 from .models import User, OwnerProfile
 from .serializers import UserSerializer, OwnerProfileSerializer, LoginSerializer
 from .permissions import IsUserOrReadOnly, IsOwnerOrAdmin
@@ -14,6 +18,9 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = UserFilter
+    search_fields = ['username', 'email', 'first_name', 'last_name']
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
