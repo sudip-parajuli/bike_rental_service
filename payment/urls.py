@@ -4,10 +4,9 @@ from payment import views
 urlpatterns = [
     path('', PaymentListView.as_view(), name='payment-list'),
     path('payments/<int:pk>/', PaymentDetailView.as_view(), name='payment-detail'),
-
-    path('paypal/', views.payment_process, name='payment_process'),  # Note the name here
-    path('paypal-return/', views.payment_done, name='payment-done'),  # Match the reverse call
-    path('paypal-cancel/', views.payment_canceled, name='payment-canceled'),  # Match the reverse call
+    path('paypal/<int:payment_id>/', views.payment_process, name='payment_process'),
+    path('paypal-return/', views.payment_done, name='payment-done'),
+    path('paypal-cancel/', views.payment_canceled, name='payment-canceled'),
     path('paypal-ipn/', views.handle_ipn, name='paypal-ipn'),
 ]
 

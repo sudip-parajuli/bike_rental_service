@@ -19,3 +19,17 @@ class BikeSerializer(serializers.ModelSerializer):
         if value <= 0:
             raise serializers.ValidationError("Price per day must be greater than zero.")
         return value
+
+    def validate_image(self, value):
+        """Validate image file size and type."""
+        if value:
+            if value.size > 5 * 1024 * 1024:  # 5MB limit
+                raise serializers.ValidationError("Image file size must not exceed 5MB.")
+            if not value.name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                raise serializers.ValidationError("Only PNG, JPG, or JPEG images are allowed.")
+        return value
+
+    def validate_description(self, value):
+        """Sanitize description to prevent basic XSS."""
+        from django.utils.html import escape
+        return escape(value) if value else value

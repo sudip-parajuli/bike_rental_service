@@ -8,7 +8,6 @@ from django.utils.timezone import now
 
 User = get_user_model()
 
-
 class Booking(models.Model):
     # Choices for rental duration
     RENTAL_DURATION_CHOICES = [
@@ -25,6 +24,13 @@ class Booking(models.Model):
         ('completed', 'Completed'),
     ]
 
+    # Choices for payment options
+    PAYMENT_OPTION_CHOICES = [
+        ('full_online', 'Full Payment Online'),
+        ('partial_online', 'Partial Payment Online'),
+        ('cash_on_delivery', 'Cash on Delivery'),
+    ]
+
     # Fields
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings', help_text="User who made the booking.")
     bike = models.ForeignKey(Bike, on_delete=models.CASCADE, related_name='bookings', help_text="Bike being booked.")
@@ -35,6 +41,7 @@ class Booking(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Total rental cost.")
     payment_status = models.BooleanField(default=False, help_text="Indicates whether the payment is completed.")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', help_text="Current status of the booking.")
+    payment_option = models.CharField(max_length=20, choices=PAYMENT_OPTION_CHOICES, default='full_online', help_text="User’s chosen payment method.")
     created_at = models.DateTimeField(auto_now_add=True, help_text="Timestamp for when the booking was created.")
     updated_at = models.DateTimeField(auto_now=True, help_text="Timestamp for the last update.")
     is_active = models.BooleanField(default=True, help_text="Indicates if the booking is active.")

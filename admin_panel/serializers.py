@@ -11,3 +11,11 @@ class AdminPanelSerializer(serializers.ModelSerializer):
         if value not in ['open', 'in_progress', 'resolved']:
             raise serializers.ValidationError("Invalid status choice.")
         return value
+
+    def validate_description(self, value):
+        """Sanitize description and enforce minimum length."""
+        from django.utils.html import escape
+        cleaned_value = escape(value) if value else value
+        if len(cleaned_value.strip()) < 10:
+            raise serializers.ValidationError("Issue description must be at least 10 characters long.")
+        return cleaned_value

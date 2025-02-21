@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     'paypal.standard.ipn',
+    'drf_yasg',  # Added for Swagger documentation
 ]
 
 MIDDLEWARE = [
@@ -158,6 +159,23 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
 
     ],
+
+    # Throttling configuration
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '50/day',  # Limits unauthenticated users to 50 requests/day for browsing
+        'user': '100/day',  # Limits authenticated users to 100 requests/day for general actions
+        'register': '5/hour',  # Limits registration attempts to 5/hour to prevent mass account creation
+        'login': '10/hour',  # Limits login attempts to 10/hour to prevent brute-force
+        'bookings': '10/hour',  # Limits booking creation to 10/hour to prevent spam
+        'payments': '5/minute',  # Limits payment attempts to 5/minute to allow transactions but prevent abuse
+        'testimonials': '5/hour',  # Limits testimonial submissions to 5/hour to prevent spam
+        'admin_issues': '50/day',  # Limits admin issue management to 50/day
+    },
 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,  # Number of items per page
