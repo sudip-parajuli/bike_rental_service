@@ -16,10 +16,10 @@ BASE_DIR = Path(__file__).resolve().parent
 SECRET_KEY = 'django-insecure-az9pgog(mk+kib7o!xsz4xz+ls!nb)jot+ev&r5w829#t0_2u='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 CORS_ALLOW_ALL_ORIGINS = True  # For API access from frontend
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
