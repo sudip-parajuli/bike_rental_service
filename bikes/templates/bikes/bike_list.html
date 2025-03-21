@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Bike List</h2>
+
+    <!-- Filter and Search Controls -->
+    <div class="mb-3">
+        <form class="d-flex" id="bikeListSearchForm" method="GET" action="">
+            <input class="form-control me-2" type="search" placeholder="Search bikes..." aria-label="Search" id="bikeListSearchInput" name="name" value="{{ request.GET.name|default:'' }}" onkeypress="if(event.key === 'Enter') document.getElementById('bikeListSearchForm').submit();">
+            <select class="form-select me-2" id="bikeListFilter" style="max-width: 200px;" name="type">
+                <option value="">All Types</option>
+                <option value="motorcycle" {% if request.GET.type == 'motorcycle' %}selected{% endif %}>Motorcycle</option>
+                <option value="scooter" {% if request.GET.type == 'scooter' %}selected{% endif %}>Scooter</option>
+                <option value="electric" {% if request.GET.type == 'electric' %}selected{% endif %}>Electric Bike</option>
+            </select>
+            <select class="form-select me-2" id="bikeListAvailability" style="max-width: 200px;" name="availability_status">
+                <option value="">All Bikes</option>
+                <option value="true" {% if request.GET.availability_status == 'true' %}selected{% endif %}>Available Only</option>
+            </select>
+            <button class="btn btn-outline-primary me-2" type="submit" name="action" value="search">Search</button>
+            <button class="btn btn-outline-success" type="submit" name="action" value="filter">Filter</button>
+        </form>
+    </div>
+
+    <!-- Bike List -->
+    <div class="row justify-content-center" id="bike-list-container">
+        <!-- Bikes will be loaded dynamically -->
+        <p class="text-center" id="loading-message">Loading bikes...</p>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center" id="bike-list-pagination">
+            <!-- Pagination will be populated dynamically -->
+        </ul>
+    </nav>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        // Function to load bikes via AJAX
+        function loadBikeList(page = 1, search = '', type = '', availability = '') {
+            $('#loading-message').show(); // Show loading message
+            let url = '/api/bike/?page=' + page + '&page_size=6'; // 6 items per page for Bike List
+            if (search) url += '&search=' + encodeURIComponent(search);
+            if (type) url += '&type=' + encodeURIComponent(type);
+            if (availability) url += '&availability_status=' + encodeURIComponent(availability);
+
+            $.ajax({
+                url: url,
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    console.log('Bike List API response:', response);
+                    const bikes = response.results || [];
+                    const container = $('#bike-list-container');
+                    container.empty();
+                    $('#loading-message').hide(); // Hide loading message
+                    if (bikes.length === 0) {
+                        container.html('<p class="text-center">No bikes available. Contact an admin to add bikes.</p>');
+                    } else {
+                        bikes.forEach(bike => {
+                            const bikeDetailUrl = `/bikes/${bike.id}/`; // Adjust based on your URL config
+                            const bookingCreateUrl = `/bookings/create/?bike_id=${bike.id}`;
+                            container.append(`
+                                <div class="col-md-4 mb-3">
+                                    <div class="card" style="width: 18rem;">
+                                        <img src="${bike.image || '/static/images/default-bike.png'}" class="card-img-top" alt="${bike.name}" onerror="this.src='/static/images/default-bike.png';">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">${bike.name}</h5>
+                                            <p class="card-text">Price per day: $${bike.price_per_day}</p>
+                                            <p class="card-text"><strong>Status:</strong> ${bike.availability_status ? 'Available' : 'Booked'}</p>
+                                            <div class="d-flex justify-content-between">
+                                                <a href="${bikeDetailUrl}" class="btn btn-primary">View Details</a>
+                                                <a href="${bookingCreateUrl}" class="btn btn-success ${!bike.availability_status ? 'disabled' : ''}">Book Now</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+                        });
+
+                        // Update pagination
+                        const paginator = response;
+                        const pagination = $('#bike-list-pagination');
+                        pagination.empty();
+                        if (paginator.previous) {
+                            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${paginator.previous_page || (page - 1)}">«</a></li>`);
+                        }
+                        for (let i = 1; i <= (paginator.total_pages || 1); i++) {
+                            pagination.append(`<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`);
+                        }
+                        if (paginator.next) {
+                            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${paginator.next_page || (page + 1)}">»</a></li>`);
+                        }
+                        pagination.find('a').on('click', function(e) {
+                            e.preventDefault();
+                            loadBikeList($(this).data('page'), $('#bikeListSearchInput').val(), $('#bikeListFilter').val(), $('#bikeListAvailability').val());
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching bikes:', error, xhr.responseText);
+                    $('#bike-list-container').html('<p class="text-center">Failed to load bikes. Please try again later.</p>');
+                    $('#loading-message').hide(); // Hide loading message on error
+                }
+            });
+        }
+
+        // Initial load
+        loadBikeList(1, $('#bikeListSearchInput').val(), $('#bikeListFilter').val(), $('#bikeListAvailability').val());
+
+        // Handle search and filter
+        $('#bikeListSearchInput').on('input', function() {
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(function() {
+                loadBikeList(1, $('#bikeListSearchInput').val(), $('#bikeListFilter').val(), $('#bikeListAvailability').val());
+            }, 300); // 300ms debounce
+        });
+
+        $('#bikeListSearchForm').on('submit', function(e) {
+            e.preventDefault();
+            loadBikeList(1, $('#bikeListSearchInput').val(), $('#bikeListFilter').val(), $('#bikeListAvailability').val());
+        });
+
+        // Hide loading message initially if not needed
+        $('#loading-message').hide();
+    });
+</script>
+{% endblock %}

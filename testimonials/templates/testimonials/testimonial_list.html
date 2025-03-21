@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Customer Testimonials</h1>
+<div class="row">
+    {% for testimonial in testimonials %}
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <p class="card-text">{{ testimonial.content }}</p>
+                <footer class="blockquote-footer">By {{ testimonial.user.username }} - {{ testimonial.rating }} stars</footer>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>No testimonials available.</p>
+    {% endfor %}
+</div>
+{% endblock %}

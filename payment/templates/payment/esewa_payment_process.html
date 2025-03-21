@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Redirecting to eSewa...</h1>
+<form id="esewaForm" action="{{ gateway_url }}" method="POST">
+    {% for key, value in esewa_dict.items %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+    <input type="hidden" name="signature" value="{{ signature }}">
+    <button type="submit" class="btn btn-primary">Proceed to eSewa</button>
+</form>
+<script>
+    document.getElementById('esewaForm').submit();
+</script>
+{% endblock %}

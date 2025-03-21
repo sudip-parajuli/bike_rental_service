@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Logged Out Successfully</h1>
+<p>You have been logged out, {{ username }}. See you next time!</p>
+<a href="{% url 'users:login' %}" class="btn btn-primary">Login Again</a>  <!-- Already uses namespace -->
+{% endblock %}

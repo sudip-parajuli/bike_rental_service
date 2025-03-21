@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+{% load static %}
+
+<div class="container mt-5">
+    <h1 class="mb-4">Book a Bike</h1>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    <form method="POST" action="{% url 'bookings:booking-create' %}" id="booking-form">
+        {% csrf_token %}
+        {% if bike %}
+            <div class="mb-3">
+                <label class="form-label">Bike</label>
+                {{ form.bike }}
+                <p class="form-control-plaintext">{{ bike.brand }} {{ bike.name }}</p>
+            </div>
+        {% else %}
+            <p class="text-danger">No bike selected. Please try booking again from a bike card.</p>
+            <a href="{% url 'bikes:bike-list' %}" class="btn btn-primary mt-3">Back to Bikes</a>
+        {% endif %}
+        <div class="mb-3">
+            <label for="id_start_date" class="form-label">Start Date & Time</label>
+            {{ form.start_date }}
+        </div>
+        <div class="mb-3">
+            <label for="id_end_date" class="form-label">End Date & Time</label>
+            {{ form.end_date }}
+        </div>
+        <div class="mb-3">
+            <label for="id_pickup_location" class="form-label">Pickup Location</label>
+            {{ form.pickup_location }}
+        </div>
+        <div class="mb-3">
+            <label for="id_payment_option" class="form-label">Payment Option</label>
+            {{ form.payment_option }}
+        </div>
+        <button type="submit" class="btn btn-primary">Book Now</button>
+    </form>
+</div>
+
+{% block extra_scripts %}
+<!-- Add Flatpickr CSS and JS via CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('booking-form');
+        const startDateInput = document.getElementById('id_start_date');
+        const endDateInput = document.getElementById('id_end_date');
+        const unavailableDates = {{ unavailable_dates|safe }};
+
+        // Convert unavailable dates to Flatpickr's disable format
+        const disabledDates = [];
+        unavailableDates.forEach(range => {
+            // Add the full range
+            disabledDates.push({
+                from: new Date(range.start).toISOString().split('T')[0], // Date only for consistency
+                to: new Date(range.end).toISOString().split('T')[0]
+            });
+            // Explicitly add the start_date as a single day
+            disabledDates.push(new Date(range.start).toISOString().split('T')[0]);
+        });
+
+        // Initialize Flatpickr for start_date
+        flatpickr(startDateInput, {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today",
+            disable: disabledDates,
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    endDateInput._flatpickr.set('minDate', selectedDates[0]);
+                }
+            }
+        });
+
+        // Initialize Flatpickr for end_date
+        flatpickr(endDateInput, {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today",
+            disable: disabledDates,
+            onChange: function(selectedDates, dateStr, instance) {
+                const startDate = new Date(startDateInput.value);
+                const endDate = selectedDates[0];
+                if (endDate && startDate && endDate <= startDate) {
+                    alert('End date must be after the start date.');
+                    instance.clear();
+                }
+            }
+        });
+
+        // Prevent form submission if dates are invalid
+        form.addEventListener('submit', function(event) {
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+
+            if (!startDateInput.value || !endDateInput.value) {
+                alert('Please select both start and end dates.');
+                event.preventDefault();
+                return false;
+            }
+
+            if (endDate <= startDate) {
+                alert('End date must be after the start date.');
+                event.preventDefault();
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-5">Contact Us</h2>
+
+    <!-- Contact Information Section -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-4 text-center">
+            <i class="fas fa-phone fa-3x mb-3 text-primary"></i>
+            <h5>Contact Numbers</h5>
+            <p>+977 9851401903</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <i class="fas fa-envelope fa-3x mb-3 text-primary"></i>
+            <h5>Email</h5>
+            <p><a href="mailto:easymotoservices@gmail.com" class="text-decoration-none">easymotoservices@gmail.com</a></p>
+        </div>
+        <div class="col-md-4 text-center">
+            <i class="fas fa-map-marker-alt fa-3x mb-3 text-primary"></i>
+            <h5>Location</h5>
+            <p>Budhanilkantha, Kathmandu, Nepal</p>
+        </div>
+    </div>
+
+    <!-- Contact Form Section -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <h4 class="text-center mb-4">Send Us a Message</h4>
+            <form method="POST" id="contactForm" action="{% url 'users:contact' %}" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Your Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ user.get_full_name|default:user.username|default:'' }}" {% if user.is_authenticated %}readonly{% endif %} required>
+                    <div class="invalid-feedback">Please enter your name.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Your Email</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email|default:'' }}" {% if user.is_authenticated %}readonly{% endif %} required>
+                    <div class="invalid-feedback">Please enter a valid email.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="contact_number" class="form-label">Your Contact Number</label>
+                    <input type="text" class="form-control" id="contact_number" name="contact_number" value="{{ user.phone_number|default:'' }}" required>
+                    <div class="invalid-feedback">Please enter a valid contact number.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label">Your Message</label>
+                    <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                    <div class="invalid-feedback">Please enter a message.</div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Social Media Links Section -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-6 text-center">
+            <h4 class="mb-4">Follow Us on Social Media</h4>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="https://www.facebook.com/easymoto.np/" target="_blank" class="btn btn-outline-primary">
+                    <i class="fab fa-facebook"></i>
+                </a>
+                <a href="https://instagram.com/easymoto_np" target="_blank" class="btn btn-outline-danger">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="https://wa.me/9779851401903" target="_blank" class="btn btn-outline-success">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+                <a href="viber://chat?number=9779851401903" target="_blank" class="btn btn-outline-info">
+                    <i class="fab fa-viber"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h4 class="text-center mb-4">Our Location</h4>
+            <iframe src="https://www.google.com/maps/embed?pb=!1m23!1m12!1m3!1d10674.512225193854!2d85.34977527822892!3d27.776786111913836!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m8!3e6!4m5!1s0x39eb196b5a63f22b%3A0x29f1711c9b4954d5!2seasymoto!3m2!1d27.773838899999998!2d85.36039749999999!4m0!5e1!3m2!1sen!2snp!4v1740659354085!5m2!1sen!2snp"
+                    width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %}

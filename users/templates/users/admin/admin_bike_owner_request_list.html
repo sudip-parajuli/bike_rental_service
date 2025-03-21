@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Bike Owner Requests</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all"></th>
+                <th>User</th>
+                <th>Bike Make</th>
+                <th>Bike Model</th>
+                <th>Status</th>
+                <th>Requested At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in requests %}
+            <tr>
+                <td><input type="checkbox" name="selected_requests" value="{{ request.id }}"></td>
+                <td>{{ request.user.username }}</td>
+                <td>{{ request.bike_make }}</td>
+                <td>{{ request.bike_model }}</td>
+                <td>{{ request.status }}</td>
+                <td>{{ request.requested_at|date:"M d, Y H:i" }}</td>
+                <td>
+                    {% if request.status == 'pending' %}
+                        <form method="post" action="{% url 'users:admin-bike-owner-request-detail' request.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                        </form>
+                        <form method="post" action="{% url 'users:admin-bike-owner-request-detail' request.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reject">
+                            <input type="text" name="notes" placeholder="Reason for rejection" class="form-control mb-2">
+                            <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                        </form>
+                    {% else %}
+                        <span class="badge bg-secondary">No Action</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <form method="post" action="">
+        {% csrf_token %}
+        <button type="submit" name="action" value="approve_selected" class="btn btn-success">Approve Selected</button>
+        <button type="submit" name="action" value="reject_selected" class="btn btn-danger">Reject Selected</button>
+        <input type="text" name="admin_notes" placeholder="Reason for rejection (for all selected)" class="form-control" style="width: 300px; display: inline-block;">
+    </form>
+</div>
+
+<script>
+    document.getElementById('select-all').addEventListener('change', function() {
+        let checkboxes = document.getElementsByName('selected_requests');
+        for (let checkbox of checkboxes) {
+            checkbox.checked = this.checked;
+        }
+    });
+</script>
+{% endblock %}

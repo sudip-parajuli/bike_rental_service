@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Become a Bike Owner</h2>
+    <p>Fill out the form below to {% if bike_owner_request and bike_owner_request.status == 'rejected' %}update your rejected request{% else %}request to list your bike for rent{% endif %}. An admin will review your submission.</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if errors %}
+        <div class="alert alert-danger">
+            <ul>
+                {% for field, errors in errors.items %}
+                    {% for error in errors %}
+                        <li>{{ field|title }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="bike_make" class="form-label">Bike Make</label>
+            <input type="text" class="form-control" id="bike_make" name="bike_make" value="{% if initial_data.bike_make %}{{ initial_data.bike_make }}{% elif bike_owner_request %}{{ bike_owner_request.bike_make|default:'' }}{% else %}{{ '' }}{% endif %}" required>
+        </div>
+        <div class="mb-3">
+            <label for="bike_model" class="form-label">Bike Model</label>
+            <input type="text" class="form-control" id="bike_model" name="bike_model" value="{% if initial_data.bike_model %}{{ initial_data.bike_model }}{% elif bike_owner_request %}{{ bike_owner_request.bike_model|default:'' }}{% else %}{{ '' }}{% endif %}" required>
+        </div>
+        <div class="mb-3">
+            <label for="bike_year" class="form-label">Bike Year</label>
+            <input type="number" class="form-control" id="bike_year" name="bike_year" value="{% if initial_data.bike_year %}{{ initial_data.bike_year }}{% elif bike_owner_request %}{{ bike_owner_request.bike_year|default:'' }}{% else %}{{ '' }}{% endif %}" min="2015" max="{{ current_year }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="bike_registration_number" class="form-label">Bike Registration Number</label>
+            <input type="text" class="form-control" id="bike_registration_number" name="bike_registration_number" value="{% if initial_data.bike_registration_number %}{{ initial_data.bike_registration_number }}{% elif bike_owner_request %}{{ bike_owner_request.bike_registration_number|default:'' }}{% else %}{{ '' }}{% endif %}" required>
+        </div>
+        <div class="mb-3">
+            <label for="registration_certificate" class="form-label">Registration Certificate</label>
+            <input type="file" class="form-control" id="registration_certificate" name="registration_certificate" accept=".pdf,.jpg,.png">
+            {% if bike_owner_request and bike_owner_request.registration_certificate %}
+                <p>Current file: {{ bike_owner_request.registration_certificate.name }}</p>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="insurance_certificate" class="form-label">Insurance Certificate</label>
+            <input type="file" class="form-control" id="insurance_certificate" name="insurance_certificate" accept=".pdf,.jpg,.png">
+            {% if bike_owner_request and bike_owner_request.insurance_certificate %}
+                <p>Current file: {{ bike_owner_request.insurance_certificate.name }}</p>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="id_proof" class="form-label">ID Proof (e.g., Driver’s License)</label>
+            <input type="file" class="form-control" id="id_proof" name="id_proof" accept=".pdf,.jpg,.png">
+            {% if bike_owner_request and bike_owner_request.id_proof %}
+                <p>Current file: {{ bike_owner_request.id_proof.name }}</p>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="bike_photos" class="form-label">Bike Photos</label>
+            <input type="file" class="form-control" id="bike_photos" name="bike_photos" accept=".jpg,.png">
+            {% if bike_owner_request and bike_owner_request.bike_photos %}
+                <p>Current file: {{ bike_owner_request.bike_photos.name }}</p>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">{% if bike_owner_request and bike_owner_request.status == 'rejected' %}Update Request{% else %}Submit Request{% endif %}</button>
+    </form>
+</div>
+{% endblock %}

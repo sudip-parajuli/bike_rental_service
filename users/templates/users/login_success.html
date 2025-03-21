@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Login Successful!</h1>
+<p>Welcome back, {{ user.username }}!</p>
+<a href="{% url 'bikes:bike-list' %}" class="btn btn-primary">Browse Bikes</a>
+{% endblock %}

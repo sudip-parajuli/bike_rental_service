@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<!-- Fixed Navbar (handled by base.html) -->
+
+<!-- Hero Section -->
+<section class="hero-section text-center text-white py-5 rounded" id="hero" style="background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('{% static 'images/hero-bg.jpg' %}') no-repeat center center; max-width: 1200px; margin: 80px auto 0; background-size: cover;">
+    <div class="container">
+        <h1 class="display-4 fw-bold" data-aos="fade-up">Convenient Rides for Every Adventure</h1>
+        <p class="lead" data-aos="fade-up" data-aos-delay="200">Rent the best bikes at affordable prices and explore Nepal on two wheels.</p>
+        <a href="{% if not user.is_authenticated %}{% url 'users:register' %}{% else %}{% url 'bikes:bike-list' %}?availability_status=true{% endif %}" class="btn btn-primary btn-lg w-50 aos-init aos-animate" data-aos="fade-up" data-aos-delay="400">Book Now</a>
+    </div>
+</section>
+
+<!-- Featured Bikes Section -->
+<section class="featured-bikes py-5" id="bikes">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Bikes</h2>
+        <div id="featured-bikes-container" class="row justify-content-center">
+            <!-- Bikes will be loaded dynamically -->
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'bikes:bike-list' %}" class="btn btn-outline-primary">Explore More Bikes</a>
+        </div>
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center" id="featured-bikes-pagination">
+                <!-- Pagination will be populated dynamically -->
+            </ul>
+        </nav>
+    </div>
+</section>
+
+<!-- Pre-render URLs for JavaScript (ensuring global scope and before home.js) -->
+<script>
+    // Debug: Log the URLs to ensure they are rendered correctly
+    console.log('bikeDetailBaseUrl:', "{% url 'bikes:bike-detail' 1 %}".replace('/1/', '/'));  // Should log "/bikes/"
+    console.log('bookingCreateBaseUrl:', "{% url 'bookings:booking-create' %}");  // Should log "/bookings/create/"
+
+    // Define global variables for JavaScript to use
+    window.bikeDetailBaseUrl = "{% url 'bikes:bike-detail' 1 %}".replace('/1/', '/');  // e.g., /bikes/
+    window.bookingCreateBaseUrl = "{% url 'bookings:booking-create' %}";  // e.g., /bookings/create/
+</script>
+
+<!-- About Section -->
+<section class="about-section py-5" id="about">
+    <div class="container">
+        <h2 class="text-center mb-5" data-aos="fade-up">About Us</h2>
+        <div class="text-center mb-5" data-aos="fade-right">
+            <img src="{% static 'images/brand-logo.png' %}" alt="About EasyMoto" class="img-fluid rounded" style="max-width: 100%;">
+        </div>
+        <div class="row">
+            <div class="col-12 text-center" data-aos="fade-up">
+                <h4 class="fw-bold text-primary">Welcome to EasyMoto – Nepal’s Premier Bike Rental Service!</h4>
+                <p class="lead">At EasyMoto, we believe in making bike rentals simple, affordable, and hassle-free for every traveler, commuter, and adventure enthusiast in Nepal. Whether you need a ride for your daily commute, a weekend getaway, or an exciting road trip, we provide well-maintained motorbikes at competitive rates.</p>
+            </div>
+
+            <div class="row align-items-center mt-4 bg-light rounded" style="width: 100%;">
+                <div class="col-md-6" data-aos="fade-right">
+                    <img src="{% static 'images/bikes.png' %}" alt="About EasyMoto" class="img-fluid rounded" style="max-width: 100%;">
+                </div>
+                <div class="col-md-6" data-aos="fade-left" data-aos-delay="200">
+                    <h5 class="text-center text-primary"><b>Why Choose EASYMOTO?</b></h5></br>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-square text-success"></i> <b>Wide Selection of Bikes</b> – From fuel-efficient scooters to high-performance motorcycles, we have a bike for every journey.</li></br>
+                        <li><i class="fas fa-check-square text-success"></i> <b>Seamless Booking</b> – Our user-friendly platform lets you browse, book, and ride in just a few clicks.</li></br>
+                        <li><i class="fas fa-check-square text-success"></i> <b>Flexible Rental Plans</b> – Rent by the hour, day, or week with transparent pricing and no hidden fees.</li></br>
+                        <li><i class="fas fa-check-square text-success"></i> <b>Verified Owners & Secure Payments</b> – We ensure safety with verified bike owners and secure payment options.</li></br>
+                        <li><i class="fas fa-check-square text-success"></i> <b>24/7 Customer Support</b> – Got questions? We’re here to help anytime, anywhere.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="row align-items-center mt-4 bg-light rounded" style="width: 100%;">
+            <div class="col-md-6" data-aos="fade-right">
+                <h5 class="text-primary fw-bold text-center">Our Mission</h5>
+                <p>To revolutionize bike rentals in Nepal by offering a convenient, reliable, and user-friendly service that caters to both locals and tourists.</p>
+            </div>
+            <div class="col-md-6" data-aos="fade-left" data-aos-delay="200">
+                <h5 class="text-primary fw-bold text-center">Join Us on the Road!</h5>
+                <p>Whether you're a local rider or a traveler exploring Nepal’s breathtaking landscapes, EasyMoto is your perfect riding partner. Book your ride today and experience the freedom of the open road!</p>
+            </div>
+        </div>
+
+        <div class="row align-items-center mt-4 bg-light rounded" style="width: 100%;">
+            <div class="text-center mb-5 text-primary" data-aos="fade-up" data-aos-delay="200">
+                <p class="text-primary"><strong>🚀 Ride. Explore. Repeat.</strong></p>
+                <p><em>📍 Available in Budhanilkantha, Kathmandu & expanding soon!</em></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Our Services Section -->
+<section class="services-section py-5" id="services">
+    <div class="container">
+        <h2 class="text-center mb-5" data-aos="fade-up">Our Services</h2>
+        <div class="row">
+            <div class="col-md-4 text-center" data-aos="fade-up" data-aos-delay="100">
+                <div class="service-item p-4 rounded shadow-sm">
+                    <i class="fas fa-biking fa-3x mb-3 text-primary"></i>
+                    <h4>Wide Range of Bikes</h4>
+                    <p>Choose from a variety of bikes for every type of adventure.</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center" data-aos="fade-up" data-aos-delay="200">
+                <div class="service-item p-4 rounded shadow-sm">
+                    <i class="fas fa-map-marked-alt fa-3x mb-3 text-primary"></i>
+                    <h4>Flexible Pickup Locations</h4>
+                    <p>Pick up and drop off your bike at convenient locations.</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center" data-aos="fade-up" data-aos-delay="300">
+                <div class="service-item p-4 rounded shadow-sm">
+                    <i class="fas fa-headset fa-3x mb-3 text-primary"></i>
+                    <h4>24/7 Support</h4>
+                    <p>Our team is always available to assist you.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 text-center" data-aos="fade-up" data-aos-delay="400">
+                <div class="service-item p-4 rounded shadow-sm">
+                    <i class="fas fa-check-square fa-3x mb-3 text-primary"></i>
+                    <h4>Seamless Booking</h4>
+                    <p>Our user-friendly platform lets you browse, book, and ride in just a few clicks.</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center" data-aos="fade-up" data-aos-delay="500">
+                <div class="service-item p-4 rounded shadow-sm">
+                    <i class="fas fa-calendar aria-hidden='true' fa-3x mb-3 text-primary"></i>
+                    <h4>Flexible Rental Plans</h4>
+                    <p>Rent by the hour, day, or week with transparent pricing and no hidden fees.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials-section py-5" id="testimonials">
+    <div class="container mt-5">
+        <h2 class="text-center my-5">Customer Testimonials</h2>
+        <div id="testimonials-container" class="row justify-content-center">
+            <!-- Testimonials will be loaded dynamically via JavaScript -->
+        </div>
+        <div class="d-flex justify-content-center mt-5">
+            <nav aria-label="Testimonials Pagination">
+                <ul class="pagination" id="testimonials-pagination">
+                    <!-- Pagination will be populated dynamically -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Us Section -->
+<section class="contact-section py-5" id="contact">
+    <div class="container mt-5">
+        <h2 class="text-center mb-5">Contact Us</h2>
+
+        <!-- Contact Information Section -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-4 text-center">
+                <i class="fas fa-phone fa-3x mb-3 text-primary"></i>
+                <h5>Contact Numbers</h5>
+                <a href="https://wa.me/9779851401903" target="_blank" class="btn btn-outline-success">
+                    <i class="fab fa-whatsapp"></i><p>+977 9851401903</p>
+                </a>
+                <p>+977 9860702780</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="fas fa-envelope fa-3x mb-3 text-primary"></i>
+                <h5>Email</h5>
+                <p><a href="mailto:easymotoservices@gmail.com" class="text-decoration-none">easymotoservices@gmail.com</a></p>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="fas fa-map-marker-alt fa-3x mb-3 text-primary"></i>
+                <h5>Location</h5>
+                <p>Budhanilkantha, Kathmandu, Nepal</p>
+                <a href="https://www.google.com/maps?q=27.77388363513989, 85.3604112678733" target="_blank">View on Google Maps</a>
+            </div>
+        </div>
+
+
+    <!-- Contact Form Section -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <h4 class="text-center mb-4">Send Us a Message</h4>
+            <form method="POST" id="contactForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Your Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ user.get_full_name|default:user.username|default:'' }}" {% if user.is_authenticated %}readonly{% endif %} required>
+                    <div class="invalid-feedback">Please enter your name.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Your Email</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email|default:'' }}" {% if user.is_authenticated %}readonly{% endif %} required>
+                    <div class="invalid-feedback">Please enter a valid email.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="contact_number" class="form-label">Your Contact Number</label>
+                    <input type="text" class="form-control" id="contact_number" name="contact_number" value="{{ user.phone_number|default:'' }}" required>
+                    <div class="invalid-feedback">Please enter a valid contact number.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label">Your Message</label>
+                    <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                    <div class="invalid-feedback">Please enter a message.</div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Submit</button>
+            </form>
+        </div>
+    </div>
+
+        <!-- Social Media Links Section -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-6 text-center">
+                <h4 class="mb-4">Follow Us on Social Media</h4>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="https://www.facebook.com/easymoto.np/" target="_blank" class="btn btn-outline-primary">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://instagram.com/easymoto_np" target="_blank" class="btn btn-outline-danger">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://wa.me/9779851401903" target="_blank" class="btn btn-outline-success">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="viber://chat?number=9779851401903" target="_blank" class="btn btn-outline-info">
+                        <i class="fab fa-viber"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Section -->
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <h4 class="text-center mb-4">Our Location</h4>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12778.469667538808!2d85.34134626388554!3d27.77382312881914!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb196b5a63f22b%3A0x29f1711c9b4954d5!2sEasymoto%20Rental%20Service!5e1!3m2!1sen!2snp!4v1742378842544!5m2!1sen!2snp"
+                        width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Include AOS for animations and other scripts -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+
+
+
+<script>
+        // Make CSRF token available to JavaScript
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        AOS.init();
+
+        // Smooth scrolling for navbar links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Basic form validation for contact form
+        (function() {
+            'use strict';
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+</script>
+
+<!-- Load home.js after defining URL variables -->
+<script src="{% static 'js/home.js' %}"></script>
+
+<style>
+    .fixed-top {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1030;
+    }
+    .hero-section {
+        margin-top: 56px; /* Match navbar height to avoid overlap */
+    }
+    .service-item {
+        background-color: #f8f9fa;
+        transition: transform 0.3s ease;
+    }
+    .service-item:hover {
+        transform: scale(1.05);
+    }
+    .payment-option {
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .payment-option:hover, .payment-option:focus {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        outline: none;
+    }
+    .payment-icon {
+        display: block;
+        margin: 0 auto;
+    }
+    .payment-option:focus-visible {
+        outline: 2px solid #0d6efd;
+    }
+    .navbar-nav {
+        margin-left: auto; /* Shift items to the right */
+    }
+    .needs-validation .form-control:invalid {
+        border-color: #dc3545;
+    }
+    .needs-validation .form-control:valid {
+        border-color: #198754;
+    }
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .card-img-top {
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    .disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Dashboard</h2>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Bookings</h5>
+                    <p class="card-text display-4">{{ total_bookings }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Bookings</h5>
+                    <p class="card-text display-4">{{ active_bookings }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Upcoming Bookings</h5>
+                    <p class="card-text display-4">{{ upcoming_bookings }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <h4 class="mb-3">Recent Activity</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Bike Name</th>
+                <th>Rental Dates</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in recent_bookings %}
+            <tr>
+                <td>{{ booking.bike.name }}</td>
+                <td>{{ booking.start_date }} to {{ booking.end_date }}</td>
+                <td>
+                    {% if booking.status == 'Completed' %}
+                        <span class="badge bg-success">{{ booking.status }}</span>
+                    {% elif booking.status == 'Active' %}
+                        <span class="badge bg-primary">{{ booking.status }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ booking.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if booking.status == 'Completed' %}
+                        <a href="{% url 'submit_feedback' booking.id %}"
+                           class="btn btn-sm btn-success"
+                           data-bs-toggle="tooltip"
+                           title="Submit feedback for this booking">
+                            Submit Feedback
+                        </a>
+                    {% else %}
+                        <span class="badge bg-secondary">Not Available</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Recent Feedback -->
+    <h4 class="mb-3">Recent Feedback</h4>
+    <div class="row">
+        {% if recent_feedback %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Bike Name</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for feedback in recent_feedback %}
+                    <tr>
+                        <td>{{ feedback.booking.bike.name }}</td>
+                        <td>
+                            {% for star in "x"|rjust:feedback.rating %}
+                                ⭐
+                            {% endfor %}
+                        </td>
+                        <td>{{ feedback.comment }}</td>
+                        <td>{{ feedback.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No feedback submitted yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Quick Actions -->
+    <h4 class="mb-3">Quick Actions</h4>
+    <div class="d-flex gap-3">
+        <a href="{% url 'bikes:bike-list' %}" class="btn btn-primary" data-bs-toggle="tooltip" title="Browse available bikes">View All Bikes</a>
+        <a href="{% url 'users:user-detail' %}" class="btn btn-secondary" data-bs-toggle="tooltip" title="Update your profile details">View Profile</a>
+        <a href="{% url 'users:contact' %}" class="btn btn-info text-white" data-bs-toggle="tooltip" title="Get in touch with our support team">Contact Support</a>
+        <a href="{% url 'testimonials:testimonial-create' %}" class="btn btn-dark" data-bs-toggle="tooltip" title="Share your experience with EasyMoto!">Share Testimonial</a>
+    </div>
+
+<!-- Bike Owner Request Status -->
+    {% if bike_owner_request %}
+    <div class="mb-4 mt-5">
+        <h4>Bike Owner Request Status</h4>
+        <p>
+            <strong>Status:</strong>
+            <span class="{% if bike_owner_request.status == 'pending' %}text-warning{% elif bike_owner_request.status == 'approved' %}text-success{% else %}text-danger{% endif %}">
+                {{ bike_owner_request.status|title }}
+            </span>
+        </p>
+        {% if bike_owner_request.status == 'rejected' and bike_owner_request.admin_notes %}
+        <p><strong>Reason for Rejection:</strong> {{ bike_owner_request.admin_notes }}</p>
+        {% endif %}
+        {% if bike_owner_request.status == 'rejected' %}
+            <a href="{% url 'users:bike-owner-request' %}" class="btn btn-primary mt-2">Update Request</a>
+        {% endif %}
+    </div>
+    {% elif not user.is_owner %}
+        <div class="mb-4 mt-5 alert alert-info" role="alert">
+            Want to lend your bike for rent? Join our platform as a bike owner and start earning!
+            <a href="{% url 'users:bike-owner-request' %}" class="alert-link">Click here to become a bike owner!</a>
+        </div>
+    {% endif %}
+
+    <!-- Bike Owner Management (for approved owners) -->
+    {% if user.is_owner %}
+    <div class="mb-4 mt-5">
+        <h4>Your Bike Listings</h4>
+        {% if user_bikes and user_bikes.exists %}
+            <p>You have {{ user_bikes.count }} bike(s) listed. <a href="{% url 'users:bike-owner-dashboard' %}" class="btn btn-primary">Manage Your Bike Listings</a></p>
+            <ul>
+                {% for bike in user_bikes %}
+                    <li>{{ bike.name }} ({{ bike.type }}) - {{ bike.availability_status|yesno:"Available,Not Available" }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no bikes listed yet. <a href="{% url 'users:bike-owner-dashboard' %}" class="btn btn-primary">Add a Bike Listing</a></p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Initialize Tooltips -->
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+</script>
+{% endblock %}

@@ -9,13 +9,6 @@ from django.utils.timezone import now
 User = get_user_model()
 
 class Booking(models.Model):
-    # Choices for rental duration
-    RENTAL_DURATION_CHOICES = [
-        ('hourly', 'Hourly'),
-        ('daily', 'Daily'),
-        ('weekly', 'Weekly'),
-    ]
-
     # Choices for booking status
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -31,17 +24,24 @@ class Booking(models.Model):
         ('cash_on_delivery', 'Cash on Delivery'),
     ]
 
+    # Choices for payment methods (eSewa, PayPal, or Cash on Delivery)
+    PAYMENT_METHOD_CHOICES = [
+        ('esewa', 'eSewa'),
+        ('paypal', 'PayPal'),
+        ('cash_on_delivery', 'Cash on Delivery'),
+    ]
+
     # Fields
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings', help_text="User who made the booking.")
     bike = models.ForeignKey(Bike, on_delete=models.CASCADE, related_name='bookings', help_text="Bike being booked.")
     start_date = models.DateTimeField(help_text="Start date of the rental period.")
     end_date = models.DateTimeField(help_text="End date of the rental period.")
     pickup_location = models.CharField(max_length=200, help_text="Location where the bike will be picked up.")
-    rental_duration = models.CharField(max_length=10, choices=RENTAL_DURATION_CHOICES, default='daily', help_text="Rental duration.")
     total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Total rental cost.")
     payment_status = models.BooleanField(default=False, help_text="Indicates whether the payment is completed.")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', help_text="Current status of the booking.")
     payment_option = models.CharField(max_length=20, choices=PAYMENT_OPTION_CHOICES, default='full_online', help_text="User’s chosen payment method.")
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, null=True, blank=True, help_text="Selected payment method (eSewa, PayPal, or Cash on Delivery).")
     created_at = models.DateTimeField(auto_now_add=True, help_text="Timestamp for when the booking was created.")
     updated_at = models.DateTimeField(auto_now=True, help_text="Timestamp for the last update.")
     is_active = models.BooleanField(default=True, help_text="Indicates if the booking is active.")
@@ -55,40 +55,43 @@ class Booking(models.Model):
         ]
 
     def clean(self):
-        """Ensure end_date is after start_date and check for overlapping bookings."""
+        """Ensure end_date is after start_date and check for overlapping confirmed bookings."""
         if self.end_date <= self.start_date:
             raise ValidationError("End date must be later than start date.")
+
+        # Check for overlapping confirmed bookings with payment
         overlapping_bookings = Booking.objects.filter(
             bike=self.bike,
             start_date__lt=self.end_date,
             end_date__gt=self.start_date,
-            status__in=['pending', 'confirmed']
+            status='confirmed',
+            payment_status=True
         ).exclude(id=self.id)  # Exclude the current booking during updates
+
         if overlapping_bookings.exists():
-            raise ValidationError("This bike is already booked for the selected dates.")
+            raise ValidationError("This bike is already booked and paid for during the selected dates.")
 
     def calculate_total_price(self):
-        """Calculate the total rental price based on the selected rental duration."""
+        """Calculate the total rental price based on the duration with discounts."""
         duration_days = (self.end_date - self.start_date).days + 1
         if not self.bike or not self.bike.price_per_day:
             return Decimal(0)
 
-        price_per_day = self.bike.price_per_day
+        base_price = self.bike.price_per_day * Decimal(duration_days)
 
-        if self.rental_duration == 'hourly':
-            total_hours = (self.end_date - self.start_date).total_seconds() / 3600
-            return round((price_per_day / 24) * Decimal(total_hours), 2)
+        # Apply discounts based on duration in days
+        if duration_days >= 28:
+            discount = base_price * Decimal('0.20')  # 20% discount for 28+ days
+        elif duration_days >= 21:
+            discount = base_price * Decimal('0.15')  # 15% discount for 21-27 days
+        elif duration_days >= 14:
+            discount = base_price * Decimal('0.10')  # 10% discount for 14-20 days
+        elif duration_days >= 7:
+            discount = base_price * Decimal('0.05')  # 5% discount for 7-13 days
+        else:
+            discount = Decimal('0')  # No discount for 0-6 days
 
-        elif self.rental_duration == 'daily':
-            return round(price_per_day * Decimal(duration_days), 2)
-
-        elif self.rental_duration == 'weekly':
-            full_weeks = duration_days // 7
-            extra_days = duration_days % 7
-            weekly_price = price_per_day * Decimal(7)  # Weekly rate
-            return round((weekly_price * Decimal(full_weeks)) + (price_per_day * Decimal(extra_days)), 2)
-
-        return Decimal(0)
+        return round(base_price - discount, 2)
 
     def save(self, *args, **kwargs):
         """Automatically calculate the total price if not provided."""

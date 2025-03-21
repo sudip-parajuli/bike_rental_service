@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container" style="padding-top: 56px;">
+    <h2 class="text-center mb-5">Login</h2>
+    <form method="POST" action="{% url 'users:login' %}" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+            <div class="invalid-feedback">Please enter a username.</div>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+            <div class="invalid-feedback">Please enter a password.</div>
+        </div>
+        {% if errors %}
+            <div class="alert alert-danger">
+                {{ errors }}
+            </div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+    </form>
+    <div class="text-center mt-3">
+        <a href="{% url 'users:register' %}" class="text-decoration-none"><u>Don't have an account? Register here.</u></a>
+    </div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %}

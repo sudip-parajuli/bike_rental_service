@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Select Payment Method for Booking #{{ booking.id }}</h1>
+    {% if error %}
+        <div class="alert alert-danger">
+            {% if error.items %}  <!-- Check if error behaves like a dictionary (has .items) -->
+                {% for field, errors in error.items %}
+                    {% for error in errors %}
+                        {{ error }}<br>
+                    {% endfor %}
+                {% endfor %}
+            {% else %}
+                {{ error }}
+            {% endif %}
+        </div>
+    {% endif %}
+    <form method="POST" action="{% url 'bookings:booking-payment-select' pk=booking.id %}" id="paymentMethodForm">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Booking Details</label>
+            <p class="form-control-plaintext">Bike: {{ booking.bike.brand }} {{ booking.bike.name }}</p>
+            <p class="form-control-plaintext">Period: {{ booking.start_date }} to {{ booking.end_date }}</p>
+            <p class="form-control-plaintext">Total Price: ${{ booking.total_price }}</p>
+            <p class="form-control-plaintext">Payment Option: {{ booking.payment_option }}</p>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card payment-option" data-payment-method="paypal" role="button" tabindex="0">
+                    <div class="card-body text-center">
+                        <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" class="payment-icon mb-2" style="max-width: 100px;">
+                        <h5 class="card-title">Pay with PayPal</h5>
+                        <p class="card-text">Secure online payment via PayPal.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card payment-option" data-payment-method="esewa" role="button" tabindex="0">
+                    <div class="card-body text-center">
+                        <img src="{% static 'images/esewa-logo.jpg' %}" alt="eSewa" class="payment-icon mb-2" style="max-height: 100px;">
+                        <h5 class="card-title">Pay with eSewa</h5>
+                        <p class="card-text">Fast and secure payment via eSewa.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input type="hidden" name="payment_method" id="selectedPaymentMethod" value="">
+        <button type="submit" class="btn btn-primary mt-3 d-none" id="submitButton">Proceed to Payment</button>
+        <a href="{% url 'bookings:booking-list' %}" class="btn btn-secondary mt-3">Cancel</a>
+    </form>
+</div>
+
+<script>
+    document.querySelectorAll('.payment-option').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.type === 'click' || (e.type === 'keypress' && (e.key === 'Enter' || e.key === ' '))) {
+                e.preventDefault();
+                const paymentMethod = this.getAttribute('data-payment-method');
+                document.getElementById('selectedPaymentMethod').value = paymentMethod;
+                document.getElementById('submitButton').click();  // Trigger form submission via the hidden button
+            }
+        });
+        // Add keyboard focus styling for better accessibility
+        card.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                this.focus();
+            }
+        });
+        // Add focus styling for keyboard navigation
+        card.addEventListener('focus', function() {
+            this.classList.add('focus');
+        });
+        card.addEventListener('blur', function() {
+            this.classList.remove('focus');
+        });
+    });
+</script>
+
+<style>
+    .payment-option {
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .payment-option:hover, .payment-option:focus, .payment-option.focus {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        outline: none; /* Remove default outline for custom focus styling */
+    }
+    .payment-icon {
+        display: block;
+        margin: 0 auto;
+    }
+    /* Ensure focus-visible works for accessibility */
+    .payment-option:focus-visible {
+        outline: 2px solid #0d6efd; /* Bootstrap primary color for focus */
+    }
+    /* Hide the submit button visually but keep it accessible */
+    #submitButton {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+    }
+</style>
+{% endblock %}

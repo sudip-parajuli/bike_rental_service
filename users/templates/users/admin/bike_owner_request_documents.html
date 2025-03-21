@@ -1,0 +1,81 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    <p><strong>User:</strong> {{ bike_owner_request.user.username }}</p>
+    <p><strong>Bike Make:</strong> {{ bike_owner_request.bike_make }}</p>
+    <p><strong>Bike Model:</strong> {{ bike_owner_request.bike_model }}</p>
+    <p><strong>Status:</strong> {{ bike_owner_request.status }}</p>
+    <p><strong>Requested At:</strong> {{ bike_owner_request.requested_at|date:"M d, Y H:i" }}</p>
+
+    <h2>Uploaded Documents</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Document Type</th>
+                <th>Preview</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Registration Certificate</td>
+                <td>
+                    {% if bike_owner_request.registration_certificate %}
+                        {% if bike_owner_request.registration_certificate.url|slice:"-4:"|lower in ".jpg,.jpeg,.png" %}
+                            <img src="{{ bike_owner_request.registration_certificate.url }}" alt="Registration Certificate" style="max-width: 300px; max-height: 300px; display: block;">
+                        {% else %}
+                            <a href="{{ bike_owner_request.registration_certificate.url }}" target="_blank">View File</a>
+                        {% endif %}
+                    {% else %}
+                        Not Uploaded
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Insurance Certificate</td>
+                <td>
+                    {% if bike_owner_request.insurance_certificate %}
+                        {% if bike_owner_request.insurance_certificate.url|slice:"-4:"|lower in ".jpg,.jpeg,.png" %}
+                            <img src="{{ bike_owner_request.insurance_certificate.url }}" alt="Insurance Certificate" style="max-width: 300px; max-height: 300px; display: block;">
+                        {% else %}
+                            <a href="{{ bike_owner_request.insurance_certificate.url }}" target="_blank">View File</a>
+                        {% endif %}
+                    {% else %}
+                        Not Uploaded
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>ID Proof</td>
+                <td>
+                    {% if bike_owner_request.id_proof %}
+                        {% if bike_owner_request.id_proof.url|slice:"-4:"|lower in ".jpg,.jpeg,.png" %}
+                            <img src="{{ bike_owner_request.id_proof.url }}" alt="ID Proof" style="max-width: 300px; max-height: 300px; display: block;">
+                        {% else %}
+                            <a href="{{ bike_owner_request.id_proof.url }}" target="_blank">View File</a>
+                        {% endif %}
+                    {% else %}
+                        Not Uploaded
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Bike Photos</td>
+                <td>
+                    {% if bike_owner_request.bike_photos %}
+                        {% if bike_owner_request.bike_photos.url|slice:"-4:"|lower in ".jpg,.jpeg,.png" %}
+                            <img src="{{ bike_owner_request.bike_photos.url }}" alt="Bike Photos" style="max-width: 300px; max-height: 300px; display: block;">
+                        {% else %}
+                            <a href="{{ bike_owner_request.bike_photos.url }}" target="_blank">View File</a>
+                        {% endif %}
+                    {% else %}
+                        Not Uploaded
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <a href="{% url 'admin:users_bikeownerrequest_change' bike_owner_request.id %}" class="button">Back to Request</a>
+</div>
+{% endblock %}

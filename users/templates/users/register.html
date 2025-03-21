@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container" style="padding-top: 56px;">
+    <h2 class="text-center mb-5">Register</h2>
+    <form method="POST" action="{% url 'users:register' %}" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+            <div class="invalid-feedback">Please enter a username.</div>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+            <div class="invalid-feedback">Please enter a valid email.</div>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+            <div class="invalid-feedback">Please enter a password (at least 8 characters).</div>
+        </div>
+        <div class="mb-3">
+            <label for="password_confirm" class="form-label">Confirm Password</label>
+            <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
+            <div class="invalid-feedback">Passwords must match.</div>
+        </div>
+        {% if errors %}
+            <div class="alert alert-danger">
+                {{ errors }}
+            </div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary w-100">Register</button>
+    </form>
+    <div class="text-center mt-3">
+        <a href="{% url 'users:login' %}" class="text-decoration-none">Already have an account? <u>Login here.</u></a>
+    </div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %}

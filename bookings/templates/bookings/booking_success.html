@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Booking Confirmed!</h1>
+<p>Booking #{{ booking.id }} for {{ booking.bike.name }} has been created successfully.</p>
+{% if booking.payment_option in 'full_online,partial_online' %}
+<p>Please <a href="{% url 'bookings:booking_payment_select' booking.id %}">select a payment method</a> to complete your payment.</p>
+{% else %}
+<a href="{% url 'bookings:booking-list' %}" class="btn btn-primary">View Your Bookings</a>
+{% endif %}
+{% endblock %}

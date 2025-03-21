@@ -5,7 +5,7 @@ __pycache__/
 .env
 
 # Static Files
-staticfiles/
+bike_rental_service/staticfiles/
 
 # IDE Files
 .idea/
