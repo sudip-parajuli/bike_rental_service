@@ -91,16 +91,16 @@ WSGI_APPLICATION = 'bike_rental_service.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bike_rental_service',
-        'USER': 'sudip',
-        'PASSWORD': 'sudip@123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME', 'bike_rental_service'),
+        'USER': os.getenv('DB_USER', 'sudip'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'sudip@123'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
-# Override with Render database settings if 'RENDER' environment variable is present
-if 'RENDER' in os.environ or 'DATABASE_URL' in os.environ:
+# Check and override with DATABASE_URL if set
+if 'DATABASE_URL' in os.environ:
     DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 
