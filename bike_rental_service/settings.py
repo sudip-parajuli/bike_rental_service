@@ -89,8 +89,20 @@ WSGI_APPLICATION = 'bike_rental_service.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.parse('postgresql://sudip:tRLI1KykmnP5kEJSzuHzJsEb64v96Ppr@dpg-cven2i56l47c73afrk60-a/bike_rental_service')
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'bike_rental_service',
+        'USER': 'sudip',
+        'PASSWORD': 'sudip@123',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
+
+
+# For deployment, override DATABASES with dj_database_url
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 
 
