@@ -91,17 +91,14 @@ WSGI_APPLICATION = 'bike_rental_service.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'bike_rental_service'),
-        'USER': os.getenv('DB_USER', 'sudip'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'sudip@123'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+        'NAME': 'bike_rental_service',  # Replace with the database name provided by Render
+        'USER': 'sudip',  # Replace with the database user provided by Render
+        'PASSWORD': 'tRLI1KykmnP5kEJSzuHzJsEb64v96Ppr',  # Replace with the password provided by Render
+        'HOST': 'dpg-cven2i56l47c73afrk60-a',  # Replace with the host provided by Render
+        'PORT': '5432',  # Default port for PostgreSQL
     }
 }
 
-# Check and override with DATABASE_URL if set
-if 'DATABASE_URL' in os.environ:
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 
 # Password validation
