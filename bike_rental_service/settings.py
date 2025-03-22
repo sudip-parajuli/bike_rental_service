@@ -94,13 +94,12 @@ DATABASES = {
         'NAME': 'bike_rental_service',
         'USER': 'sudip',
         'PASSWORD': 'sudip@123',
-        'HOST': 'localhost',
+        'HOST': 'localhost',  # Will be overwritten in production
         'PORT': '5432',
     }
 }
 
-
-# For deployment, override DATABASES with dj_database_url
+# Override DATABASES setting in production with DATABASE_URL
 if 'DATABASE_URL' in os.environ:
     DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
