@@ -4,7 +4,6 @@ Django settings for bike_rental_service project.
 """
 from pathlib import Path
 import os
-
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -99,7 +98,9 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-if 'DATABASE_URL' in os.environ:
+
+# Override with Render database settings if 'RENDER' environment variable is present
+if 'RENDER' in os.environ or 'DATABASE_URL' in os.environ:
     DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 
