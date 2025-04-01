@@ -212,12 +212,19 @@ REST_FRAMEWORK = {
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # print("MEDIA_ROOT:", MEDIA_ROOT)
 
+# Static files
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Collect static files here
 
+# "static" folder for local development
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # Add if you have local static files
+]
+
+# Whitenoise for static files handling in production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
+# Media files (uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
