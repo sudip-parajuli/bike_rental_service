@@ -88,22 +88,29 @@ WSGI_APPLICATION = 'bike_rental_service.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'bike_rental_service',
+#         'USER': 'sudip',
+#         'PASSWORD': 'sudip@123',
+#         'HOST': 'localhost',  # Default for local
+#         'PORT': '5432',
+#     }
+# }
+
+# Use Render's database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'bike_rental_service',
         'USER': 'sudip',
-        'PASSWORD': 'sudip@123',
-        'HOST': 'localhost',  # Default for local
+        'PASSWORD': 'tRLI1KykmnP5kEJSzuHzJsEb64v96Ppr',
+        'HOST': 'dpg-cven2i56l47c73afrk60-a.singapore-postgres.render.com',
         'PORT': '5432',
     }
 }
 
-# Use Render's database if DATABASE_URL is available
-DATABASE_URL = os.getenv('DATABASE_URL')
-
-if DATABASE_URL:
-    DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=True)
 
 
 
