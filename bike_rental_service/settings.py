@@ -212,12 +212,10 @@ REST_FRAMEWORK = {
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # print("MEDIA_ROOT:", MEDIA_ROOT)
 
-# Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# WhiteNoise settings for Render deployment
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
