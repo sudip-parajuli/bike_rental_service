@@ -94,14 +94,16 @@ DATABASES = {
         'NAME': 'bike_rental_service',
         'USER': 'sudip',
         'PASSWORD': 'sudip@123',
-        'HOST': 'localhost',  # Will be overwritten in production
+        'HOST': 'localhost',  # Default for local
         'PORT': '5432',
     }
 }
 
-# Override DATABASES setting in production with DATABASE_URL
-if 'DATABASE_URL' in os.environ:
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+# Use Render's database if DATABASE_URL is available
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=True)
 
 
 
