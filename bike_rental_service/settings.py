@@ -212,17 +212,16 @@ REST_FRAMEWORK = {
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # print("MEDIA_ROOT:", MEDIA_ROOT)
 
-# Static files (CSS, JS, Images)
+# Static files
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Collect static files here
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Media files (Uploaded files)
+# WhiteNoise settings for Render deployment
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Ensure Django serves static files in production
-if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # payment-related settings at the bottom of settings.py
 
