@@ -1,18 +1,296 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Customer Testimonials</h1>
-<div class="row">
-    {% for testimonial in testimonials %}
-    <div class="col-md-4">
-        <div class="card mb-3">
-            <div class="card-body">
-                <p class="card-text">{{ testimonial.content }}</p>
-                <footer class="blockquote-footer">By {{ testimonial.user.username }} - {{ testimonial.rating }} stars</footer>
+
+<style>
+    /* Testimonial List Styles - Matching home.html aesthetic */
+    .testimonial-list-section {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        position: relative;
+        padding: 8rem 0 4rem;
+    }
+
+    .testimonial-list-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .testimonial-list-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 3rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .testimonials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .testimonial-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        padding: 2rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        height: 100%;
+    }
+
+    .testimonial-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .testimonial-card:hover::before {
+        left: 100%;
+    }
+
+    .testimonial-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .testimonial-content {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        font-style: italic;
+        position: relative;
+    }
+
+    .testimonial-content::before {
+        content: '"';
+        font-size: 4rem;
+        color: rgba(59, 130, 246, 0.3);
+        position: absolute;
+        top: -1rem;
+        left: -0.5rem;
+        font-family: serif;
+    }
+
+    .testimonial-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .testimonial-author {
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .testimonial-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .star-rating {
+        color: #fbbf24;
+        font-size: 1.2rem;
+    }
+
+    .rating-text {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: rgba(255, 255, 255, 0.7);
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.3);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: white;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .empty-state p {
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+
+    .modern-btn {
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        text-decoration: none;
+        color: white;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .testimonial-list-section {
+            padding: 6rem 0 2rem;
+        }
+
+        .testimonial-list-container {
+            padding: 0 1rem;
+        }
+
+        .testimonials-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .testimonial-card {
+            padding: 1.5rem;
+        }
+
+        .testimonial-footer {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+
+    /* Animation classes */
+    .fade-in {
+        animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="testimonial-list-section">
+    <div class="testimonial-list-container">
+        <h1 class="testimonial-list-title fade-in">Customer Testimonials</h1>
+
+        {% if testimonials %}
+            <div class="testimonials-grid">
+                {% for testimonial in testimonials %}
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-content">
+                        {{ testimonial.content }}
+                    </div>
+                    <div class="testimonial-footer">
+                        <div class="testimonial-author">
+                            <i class="fas fa-user-circle me-2"></i>
+                            {{ testimonial.user.username }}
+                        </div>
+                        <div class="testimonial-rating">
+                            <div class="star-rating">
+                                {% for star in "x"|rjust:testimonial.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="rating-text">{{ testimonial.rating }} star{{ testimonial.rating|pluralize }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-        </div>
+        {% else %}
+            <div class="empty-state fade-in">
+                <i class="fas fa-comments"></i>
+                <h3>No Testimonials Yet</h3>
+                <p>Be the first to share your experience with EasyMoto!</p>
+                <a href="{% url 'testimonials:testimonial-create' %}" class="modern-btn">
+                    <i class="fas fa-heart"></i>
+                    Share Your Experience
+                </a>
+            </div>
+        {% endif %}
     </div>
-    {% empty %}
-    <p>No testimonials available.</p>
-    {% endfor %}
 </div>
+
+<script>
+    // Add fade-in animation to elements as they come into view
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Apply initial styles and observe elements
+    document.querySelectorAll('.fade-in').forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        element.style.transitionDelay = `${index * 0.1}s`;
+        observer.observe(element);
+    });
+
+    // Animate testimonial cards on hover
+    document.querySelectorAll('.testimonial-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+</script>
+
 {% endblock %}

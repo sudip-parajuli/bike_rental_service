@@ -1,101 +1,228 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">Select Payment Method for Booking #{{ booking.id }}</h1>
-    {% if error %}
-        <div class="alert alert-danger">
-            {% if error.items %}  <!-- Check if error behaves like a dictionary (has .items) -->
-                {% for field, errors in error.items %}
-                    {% for error in errors %}
-                        {{ error }}<br>
-                    {% endfor %}
-                {% endfor %}
-            {% else %}
-                {{ error }}
-            {% endif %}
-        </div>
-    {% endif %}
-    <form method="POST" action="{% url 'bookings:booking-payment-select' pk=booking.id %}" id="paymentMethodForm">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label class="form-label">Booking Details</label>
-            <p class="form-control-plaintext">Bike: {{ booking.bike.brand }} {{ booking.bike.name }}</p>
-            <p class="form-control-plaintext">Period: {{ booking.start_date }} to {{ booking.end_date }}</p>
-            <p class="form-control-plaintext">Total Price: ${{ booking.total_price }}</p>
-            <p class="form-control-plaintext">Payment Option: {{ booking.payment_option }}</p>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <div class="card payment-option" data-payment-method="paypal" role="button" tabindex="0">
-                    <div class="card-body text-center">
-                        <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" class="payment-icon mb-2" style="max-width: 100px;">
-                        <h5 class="card-title">Pay with PayPal</h5>
-                        <p class="card-text">Secure online payment via PayPal.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 mb-3">
-                <div class="card payment-option" data-payment-method="esewa" role="button" tabindex="0">
-                    <div class="card-body text-center">
-                        <img src="{% static 'images/esewa-logo.jpg' %}" alt="eSewa" class="payment-icon mb-2" style="max-height: 100px;">
-                        <h5 class="card-title">Pay with eSewa</h5>
-                        <p class="card-text">Fast and secure payment via eSewa.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <input type="hidden" name="payment_method" id="selectedPaymentMethod" value="">
-        <button type="submit" class="btn btn-primary mt-3 d-none" id="submitButton">Proceed to Payment</button>
-        <a href="{% url 'bookings:booking-list' %}" class="btn btn-secondary mt-3">Cancel</a>
-    </form>
-</div>
-
-<script>
-    document.querySelectorAll('.payment-option').forEach(card => {
-        card.addEventListener('click', function(e) {
-            if (e.type === 'click' || (e.type === 'keypress' && (e.key === 'Enter' || e.key === ' '))) {
-                e.preventDefault();
-                const paymentMethod = this.getAttribute('data-payment-method');
-                document.getElementById('selectedPaymentMethod').value = paymentMethod;
-                document.getElementById('submitButton').click();  // Trigger form submission via the hidden button
-            }
-        });
-        // Add keyboard focus styling for better accessibility
-        card.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                this.focus();
-            }
-        });
-        // Add focus styling for keyboard navigation
-        card.addEventListener('focus', function() {
-            this.classList.add('focus');
-        });
-        card.addEventListener('blur', function() {
-            this.classList.remove('focus');
-        });
-    });
-</script>
 
 <style>
-    .payment-option {
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
+    /* Payment Select Styles - Matching home.html aesthetic */
+    .payment-select-section {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        position: relative;
+        padding: 8rem 0 4rem;
     }
-    .payment-option:hover, .payment-option:focus, .payment-option.focus {
-        transform: scale(1.05);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        outline: none; /* Remove default outline for custom focus styling */
-    }
-    .payment-icon {
-        display: block;
+
+    .payment-select-container {
+        max-width: 900px;
         margin: 0 auto;
+        padding: 0 2rem;
     }
-    /* Ensure focus-visible works for accessibility */
+
+    .payment-select-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 3rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .payment-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 3rem;
+        margin-bottom: 3rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .payment-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .modern-alert {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        color: #ef4444;
+        backdrop-filter: blur(10px);
+    }
+
+    .booking-details {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .booking-details h5 {
+        color: white;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .detail-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 500;
+    }
+
+    .detail-value {
+        color: white;
+        font-weight: 600;
+    }
+
+    .price-value {
+        background: linear-gradient(135deg, #10b981, #059669);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+
+    .payment-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .payment-option {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .payment-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .payment-option:hover::before {
+        left: 100%;
+    }
+
+    .payment-option:hover,
+    .payment-option:focus,
+    .payment-option.focus {
+        transform: translateY(-10px) scale(1.05);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        border-color: rgba(59, 130, 246, 0.5);
+        outline: none;
+    }
+
     .payment-option:focus-visible {
-        outline: 2px solid #0d6efd; /* Bootstrap primary color for focus */
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
     }
-    /* Hide the submit button visually but keep it accessible */
+
+    .payment-icon {
+        max-width: 120px;
+        max-height: 80px;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .payment-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 1rem;
+    }
+
+    .payment-description {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    .modern-btn {
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+        margin: 0.5rem;
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        text-decoration: none;
+    }
+
+    .modern-btn.primary {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .modern-btn.primary:hover {
+        box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        color: white;
+    }
+
+    .modern-btn.secondary {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .modern-btn.secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: white;
+    }
+
+    .action-buttons {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    /* Hidden submit button */
     #submitButton {
         position: absolute;
         width: 1px;
@@ -106,5 +233,195 @@
         clip: rect(0, 0, 0, 0);
         border: 0;
     }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .payment-select-section {
+            padding: 6rem 0 2rem;
+        }
+
+        .payment-select-container {
+            padding: 0 1rem;
+        }
+
+        .payment-card {
+            padding: 2rem;
+        }
+
+        .payment-options {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .modern-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Animation classes */
+    .fade-in {
+        animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
+
+<div class="payment-select-section">
+    <div class="payment-select-container">
+        <h1 class="payment-select-title fade-in">Select Payment Method</h1>
+
+        {% if error %}
+            <div class="modern-alert fade-in">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {% if error.items %}
+                    {% for field, errors in error.items %}
+                        {% for error in errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    {{ error }}
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div class="payment-card fade-in">
+            <!-- Booking Details -->
+            <div class="booking-details">
+                <h5>
+                    <i class="fas fa-receipt me-2"></i>Booking Details - #{{ booking.id }}
+                </h5>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-motorcycle me-2"></i>Bike
+                    </span>
+                    <span class="detail-value">{{ booking.bike.brand }} {{ booking.bike.name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-calendar me-2"></i>Period
+                    </span>
+                    <span class="detail-value">{{ booking.start_date }} to {{ booking.end_date }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-dollar-sign me-2"></i>Total Price
+                    </span>
+                    <span class="detail-value price-value">Rs. {{ booking.total_price }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">
+                        <i class="fas fa-credit-card me-2"></i>Payment Option
+                    </span>
+                    <span class="detail-value">{{ booking.payment_option }}</span>
+                </div>
+            </div>
+
+            <!-- Payment Options -->
+            <form method="POST" action="{% url 'bookings:booking-payment-select' pk=booking.id %}" id="paymentMethodForm">
+                {% csrf_token %}
+
+                <div class="payment-options">
+                    <div class="payment-option" data-payment-method="paypal" role="button" tabindex="0">
+                        <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png"
+                             alt="PayPal"
+                             class="payment-icon">
+                        <h5 class="payment-title">Pay with PayPal</h5>
+                        <p class="payment-description">
+                            Secure online payment via PayPal. Fast, safe, and trusted worldwide.
+                        </p>
+                    </div>
+
+                    <div class="payment-option" data-payment-method="esewa" role="button" tabindex="0">
+                        <img src="{% static 'images/esewa-logo.jpg' %}"
+                             alt="eSewa"
+                             class="payment-icon">
+                        <h5 class="payment-title">Pay with eSewa</h5>
+                        <p class="payment-description">
+                            Fast and secure payment via eSewa. Nepal's most trusted digital wallet.
+                        </p>
+                    </div>
+                </div>
+
+                <input type="hidden" name="payment_method" id="selectedPaymentMethod" value="">
+                <button type="submit" class="btn btn-primary mt-3 d-none" id="submitButton">Proceed to Payment</button>
+
+                <div class="action-buttons">
+                    <a href="{% url 'bookings:booking-list' %}" class="modern-btn secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add fade-in animation to elements as they come into view
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Apply initial styles and observe elements
+    document.querySelectorAll('.fade-in').forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        element.style.transitionDelay = `${index * 0.1}s`;
+        observer.observe(element);
+    });
+
+    // Payment option selection
+    document.querySelectorAll('.payment-option').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.type === 'click' || (e.type === 'keypress' && (e.key === 'Enter' || e.key === ' '))) {
+                e.preventDefault();
+                const paymentMethod = this.getAttribute('data-payment-method');
+                document.getElementById('selectedPaymentMethod').value = paymentMethod;
+                document.getElementById('submitButton').click();
+            }
+        });
+
+        card.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                this.focus();
+            }
+        });
+
+        card.addEventListener('focus', function() {
+            this.classList.add('focus');
+        });
+
+        card.addEventListener('blur', function() {
+            this.classList.remove('focus');
+        });
+    });
+</script>
+
 {% endblock %}

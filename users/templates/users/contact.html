@@ -1,91 +1,533 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center mb-5">Contact Us</h2>
 
-    <!-- Contact Information Section -->
-    <div class="row justify-content-center mb-5">
-        <div class="col-md-4 text-center">
-            <i class="fas fa-phone fa-3x mb-3 text-primary"></i>
-            <h5>Contact Numbers</h5>
-            <p>+977 9851401903</p>
-        </div>
-        <div class="col-md-4 text-center">
-            <i class="fas fa-envelope fa-3x mb-3 text-primary"></i>
-            <h5>Email</h5>
-            <p><a href="mailto:easymotoservices@gmail.com" class="text-decoration-none">easymotoservices@gmail.com</a></p>
-        </div>
-        <div class="col-md-4 text-center">
-            <i class="fas fa-map-marker-alt fa-3x mb-3 text-primary"></i>
-            <h5>Location</h5>
-            <p>Budhanilkantha, Kathmandu, Nepal</p>
-        </div>
-    </div>
+<style>
+    /* Contact Page Styles - Premium Light Theme */
+    .contact-section {
+        min-height: 100vh;
+        background: transparent;
+        position: relative;
+        padding: 8rem 0 4rem;
+    }
 
-    <!-- Contact Form Section -->
-    <div class="row justify-content-center mb-5">
-        <div class="col-md-8">
-            <h4 class="text-center mb-4">Send Us a Message</h4>
+    .contact-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .contact-title {
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 3rem;
+        background: linear-gradient(135deg, #1e293b, #475569);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .contact-subtitle {
+        text-align: center;
+        color: #64748b;
+        font-size: 1.2rem;
+        margin-bottom: 4rem;
+        line-height: 1.6;
+    }
+
+    .contact-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+    }
+
+    .contact-info-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .contact-info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
+    }
+
+    .contact-icon {
+        font-size: 3rem;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.5rem;
+    }
+
+    .contact-info-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+
+    .contact-info-text {
+        color: #64748b;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    .contact-info-text p {
+        margin-bottom: 0.5rem;
+        color: #475569;
+    }
+
+    .contact-info-text a {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+
+    .contact-info-text a:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+    }
+
+    .contact-form-section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 3rem;
+        margin-bottom: 4rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .contact-form-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
+    }
+
+    .form-title {
+        font-size: 2rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, #1e293b, #475569);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .modern-form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .modern-form-label {
+        display: block;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .modern-form-control {
+        width: 100%;
+        padding: 0.875rem 1.25rem;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        color: #1e293b;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .modern-form-control:focus {
+        outline: none;
+        background: #ffffff;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        color: #1e293b;
+        transform: translateY(-1px);
+    }
+
+    .modern-form-control::placeholder {
+        color: #94a3b8;
+    }
+    
+    .modern-form-control.is-invalid {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    .invalid-feedback {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+
+    .modern-form-control.is-invalid + .invalid-feedback {
+        display: block;
+    }
+
+    .modern-textarea {
+        resize: vertical;
+        min-height: 150px;
+    }
+
+    .modern-btn {
+        width: 100%;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+        cursor: pointer;
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+        color: white;
+    }
+
+    .social-section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 3rem;
+        text-align: center;
+        margin-bottom: 4rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .social-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
+    }
+
+    .social-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 2rem;
+    }
+
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .social-link {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+
+    .social-link:hover {
+        transform: translateY(-5px) scale(1.1);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .social-facebook {
+        background: white;
+        color: #1877f2;
+        border-color: #e2e8f0;
+    }
+    .social-facebook:hover {
+        background: #1877f2;
+        color: white;
+        border-color: #1877f2;
+    }
+
+    .social-instagram {
+        background: white;
+        color: #e4405f;
+        border-color: #e2e8f0;
+    }
+    .social-instagram:hover {
+        background: linear-gradient(135deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+        color: white;
+        border-color: transparent;
+    }
+
+    .social-whatsapp {
+        background: white;
+        color: #25d366;
+        border-color: #e2e8f0;
+    }
+    .social-whatsapp:hover {
+        background: #25d366;
+        color: white;
+        border-color: #25d366;
+    }
+
+    .social-viber {
+        background: white;
+        color: #665cac;
+        border-color: #e2e8f0;
+    }
+    .social-viber:hover {
+        background: #665cac;
+        color: white;
+        border-color: #665cac;
+    }
+
+    .map-section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 3rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .map-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
+    }
+
+    .map-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #1e293b;
+    }
+
+    .map-container iframe {
+        border-radius: 16px;
+        /* filter: grayscale(100%) invert(92%) contrast(83%); REMOVED DARK MAP FILTER */
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .contact-section {
+            padding: 6rem 0 2rem;
+        }
+
+        .contact-container {
+            padding: 0 1rem;
+        }
+
+        .contact-info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-form-section,
+        .social-section,
+        .map-section {
+            padding: 1.5rem;
+        }
+
+        .contact-info-card {
+            padding: 1.5rem;
+        }
+
+        .social-links {
+            gap: 1rem;
+        }
+    }
+
+    /* Animation classes */
+    .fade-in {
+        animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="contact-section">
+    <div class="contact-container">
+        <h2 class="contact-title fade-in">Get In Touch</h2>
+        <p class="contact-subtitle fade-in">
+            Ready to start your adventure? Contact us today and let's make your journey unforgettable!
+        </p>
+
+        <!-- Contact Information Section -->
+        <div class="contact-info-grid fade-in">
+            <div class="contact-info-card">
+                <div class="contact-icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <h5 class="contact-info-title">Contact Numbers</h5>
+                <div class="contact-info-text">
+                    <p><strong>+977 9851401903</strong></p>
+                    <p>+977 9860702780</p>
+                </div>
+            </div>
+
+            <div class="contact-info-card">
+                <div class="contact-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h5 class="contact-info-title">Email</h5>
+                <div class="contact-info-text">
+                    <a href="mailto:easymotoservices@gmail.com">easymotoservices@gmail.com</a>
+                </div>
+            </div>
+
+            <div class="contact-info-card">
+                <div class="contact-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <h5 class="contact-info-title">Location</h5>
+                <div class="contact-info-text">
+                    <p>Budhanilkantha, Kathmandu, Nepal</p>
+                    <a href="https://www.google.com/maps?q=27.77388363513989, 85.3604112678733" target="_blank">
+                        View on Google Maps
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form Section -->
+        <div class="contact-form-section fade-in">
+            <h4 class="form-title">
+                <i class="fas fa-paper-plane me-2"></i>Send Us a Message
+            </h4>
             <form method="POST" id="contactForm" action="{% url 'users:contact' %}" class="needs-validation" novalidate>
                 {% csrf_token %}
-                <div class="mb-3">
-                    <label for="name" class="form-label">Your Name</label>
-                    <input type="text" class="form-control" id="name" name="name" value="{{ user.get_full_name|default:user.username|default:'' }}" {% if user.is_authenticated %}readonly{% endif %} required>
+                <div class="modern-form-group">
+                    <label for="name" class="modern-form-label">
+                        <i class="fas fa-user me-2"></i>Your Name
+                    </label>
+                    <input type="text"
+                           class="modern-form-control"
+                           id="name"
+                           name="name"
+                           value="{{ user.get_full_name|default:user.username|default:'' }}"
+                           {% if user.is_authenticated %}readonly{% endif %}
+                           required>
                     <div class="invalid-feedback">Please enter your name.</div>
                 </div>
-                <div class="mb-3">
-                    <label for="email" class="form-label">Your Email</label>
-                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email|default:'' }}" {% if user.is_authenticated %}readonly{% endif %} required>
+
+                <div class="modern-form-group">
+                    <label for="email" class="modern-form-label">
+                        <i class="fas fa-envelope me-2"></i>Your Email
+                    </label>
+                    <input type="email"
+                           class="modern-form-control"
+                           id="email"
+                           name="email"
+                           value="{{ user.email|default:'' }}"
+                           {% if user.is_authenticated %}readonly{% endif %}
+                           required>
                     <div class="invalid-feedback">Please enter a valid email.</div>
                 </div>
-                <div class="mb-3">
-                    <label for="contact_number" class="form-label">Your Contact Number</label>
-                    <input type="text" class="form-control" id="contact_number" name="contact_number" value="{{ user.phone_number|default:'' }}" required>
+
+                <div class="modern-form-group">
+                    <label for="contact_number" class="modern-form-label">
+                        <i class="fas fa-phone me-2"></i>Your Contact Number
+                    </label>
+                    <input type="text"
+                           class="modern-form-control"
+                           id="contact_number"
+                           name="contact_number"
+                           value="{{ user.phone_number|default:'' }}"
+                           placeholder="+977 98XXXXXXXX"
+                           required>
                     <div class="invalid-feedback">Please enter a valid contact number.</div>
                 </div>
-                <div class="mb-3">
-                    <label for="message" class="form-label">Your Message</label>
-                    <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+
+                <div class="modern-form-group">
+                    <label for="message" class="modern-form-label">
+                        <i class="fas fa-comment me-2"></i>Your Message
+                    </label>
+                    <textarea class="modern-form-control modern-textarea"
+                              id="message"
+                              name="message"
+                              placeholder="Tell us how we can help you..."
+                              required></textarea>
                     <div class="invalid-feedback">Please enter a message.</div>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Submit</button>
+
+                <button type="submit" class="modern-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Message
+                </button>
             </form>
         </div>
-    </div>
 
-    <!-- Social Media Links Section -->
-    <div class="row justify-content-center mb-5">
-        <div class="col-md-6 text-center">
-            <h4 class="mb-4">Follow Us on Social Media</h4>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="https://www.facebook.com/easymoto.np/" target="_blank" class="btn btn-outline-primary">
+        <!-- Social Media Links Section -->
+        <div class="social-section fade-in">
+            <h4 class="social-title">Follow Us on Social Media</h4>
+            <div class="social-links">
+                <a href="https://www.facebook.com/easymoto.np/" target="_blank" class="social-link social-facebook">
                     <i class="fab fa-facebook"></i>
                 </a>
-                <a href="https://instagram.com/easymoto_np" target="_blank" class="btn btn-outline-danger">
+                <a href="https://instagram.com/easymoto_np" target="_blank" class="social-link social-instagram">
                     <i class="fab fa-instagram"></i>
                 </a>
-                <a href="https://wa.me/9779851401903" target="_blank" class="btn btn-outline-success">
+                <a href="https://wa.me/9779851401903" target="_blank" class="social-link social-whatsapp">
                     <i class="fab fa-whatsapp"></i>
                 </a>
-                <a href="viber://chat?number=9779851401903" target="_blank" class="btn btn-outline-info">
+                <a href="viber://chat?number=9779851401903" target="_blank" class="social-link social-viber">
                     <i class="fab fa-viber"></i>
                 </a>
             </div>
         </div>
-    </div>
 
-    <!-- Map Section -->
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <h4 class="text-center mb-4">Our Location</h4>
-            <iframe src="https://www.google.com/maps/embed?pb=!1m23!1m12!1m3!1d10674.512225193854!2d85.34977527822892!3d27.776786111913836!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m8!3e6!4m5!1s0x39eb196b5a63f22b%3A0x29f1711c9b4954d5!2seasymoto!3m2!1d27.773838899999998!2d85.36039749999999!4m0!5e1!3m2!1sen!2snp!4v1740659354085!5m2!1sen!2snp"
-                    width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <!-- Map Section -->
+        <div class="map-section fade-in">
+            <h4 class="map-title">Our Location</h4>
+            <div class="map-container">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m23!1m12!1m3!1d10674.512225193854!2d85.34977527822892!3d27.776786111913836!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m8!3e6!4m5!1s0x39eb196b5a63f22b%3A0x29f1711c9b4954d5!2seasymoto!3m2!1d27.773838899999998!2d85.36039749999999!4m0!5e1!3m2!1sen!2snp!4v1740659354085!5m2!1sen!2snp"
+                        width="100%"
+                        height="450"
+                        style="border:0;"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    // Form validation
     (function() {
         'use strict';
         const forms = document.querySelectorAll('.needs-validation');
@@ -99,5 +541,31 @@
             }, false);
         });
     })();
+
+    // Add fade-in animation to elements as they come into view
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Apply initial styles and observe elements
+    document.querySelectorAll('.fade-in').forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+        element.style.transitionDelay = `${index * 0.1}s`;
+        observer.observe(element);
+    });
+
 </script>
+
 {% endblock %}

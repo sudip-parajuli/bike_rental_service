@@ -2,14 +2,14 @@ from datetime import datetime
 from rest_framework import serializers
 from .models import Bike
 
-class BikeOwnerCreateSerializer(serializers.ModelSerializer):
+class BikehostCreateSerializer(serializers.ModelSerializer):
     """
-    Serializer for bike creation by owners, excluding admin-controlled fields.
+    Serializer for bike creation by hosts, excluding admin-controlled fields.
     """
     class Meta:
         model = Bike
         exclude = ['is_approved', 'is_featured', 'availability_status']
-        read_only_fields = ['owner', 'created_at', 'updated_at', 'average_rating', 'slug']
+        read_only_fields = ['host', 'created_at', 'updated_at', 'average_rating', 'slug']
 
     def validate_model_year(self, value):
         """Ensure the bike's model year is reasonable."""
@@ -45,7 +45,7 @@ class BikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bike
         fields = '__all__'
-        read_only_fields = ['owner', 'created_at', 'updated_at', 'average_rating', 'slug']
+        read_only_fields = ['host', 'created_at', 'updated_at', 'average_rating', 'slug']
 
     def validate_model_year(self, value):
         """Ensure the bike's model year is reasonable."""
@@ -73,3 +73,21 @@ class BikeSerializer(serializers.ModelSerializer):
         """Sanitize description to prevent basic XSS."""
         from django.utils.html import escape
         return escape(value) if value else value
+
+class BikeRecommendationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for bike recommendations with score and reason.
+    """
+    recommendation_score = serializers.FloatField(read_only=True, required=False)
+    recommendation_reason = serializers.CharField(read_only=True, required=False)
+    host_name = serializers.CharField(source='host.username', read_only=True)
+    
+    class Meta:
+        model = Bike
+        fields = [
+            'id', 'name', 'type', 'brand', 'model_year', 'price_per_day',
+            'average_rating', 'image', 'description', 'mileage',
+            'engine_type', 'displacement', 'slug',
+            'recommendation_score', 'recommendation_reason', 'host_name'
+        ]
+        read_only_fields = ['id', 'slug', 'average_rating']

@@ -1,0 +1,352 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EasyMoto Admin{% endblock %}</title>
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary-bg: #f8fafc;
+            --secondary-bg: #ffffff;
+            --accent-color: #2563eb;
+            --text-main: #1e293b;
+            --text-dim: #64748b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --gradient-primary: linear-gradient(135deg, #2563eb, #7c3aed);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--secondary-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 3rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+        }
+
+        .menu-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1.25rem;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .menu-link:hover, .menu-link.active {
+            color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .menu-link i {
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .menu-link.active i {
+            color: var(--accent-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem 3rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .welcome-msg h1 {
+            font-size: 1.875rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .welcome-msg p {
+            color: var(--text-dim);
+            margin: 0.25rem 0 0;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--card-bg);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .admin-profile img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .admin-info span {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Utility Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: #cbd5e1;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .icon-blue { background: #eff6ff; color: #2563eb; }
+        .icon-purple { background: #f5f3ff; color: #7c3aed; }
+        .icon-green { background: #ecfdf5; color: #10b981; }
+        .icon-orange { background: #fff7ed; color: #f97316; }
+
+        .stat-info h3 {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .stat-info div {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-top: 0.25rem;
+            color: var(--text-main);
+        }
+
+        /* Tables & Lists */
+        .content-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        /* Status Pills */
+        .status-pill {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-active, .status-available, .status-approved { 
+            background: #ecfdf5; color: #059669; 
+        }
+        .status-inactive, .status-unavailable, .status-pending, .status-rejected { 
+            background: #fef2f2; color: #dc2626; 
+        }
+        .status-confirmed, .status-completed {
+            background: #eff6ff; color: #2563eb;
+        }
+        .status-warning {
+            background: #fffbeb; color: #d97706;
+        }
+
+        .btn-action {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-action:hover {
+            background: #f1f5f9;
+            color: #2563eb;
+        }
+        .btn-danger:hover { color: #ef4444; }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+                padding: 2rem 0.75rem;
+            }
+            .sidebar .logo span, .sidebar .menu-item span {
+                display: none;
+            }
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="fas fa-motorcycle"></i>
+            <span>EasyMoto Admin</span>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item">
+                <a href="{% url 'admin_panel:dashboard' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="{% url 'admin_panel:user-list' %}" class="menu-link {% if 'user' in request.path %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    <span>User Management</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="{% url 'admin_panel:bike-list' %}" class="menu-link {% if 'bike' in request.path %}active{% endif %}">
+                    <i class="fas fa-motorcycle"></i>
+                    <span>Bike Listings</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="{% url 'admin_panel:booking-list' %}" class="menu-link {% if 'booking' in request.path %}active{% endif %}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Bookings</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="{% url 'admin_panel:payment-list' %}" class="menu-link {% if 'payment' in request.path %}active{% endif %}">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Payments</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="{% url 'admin_panel:contract-list' %}" class="menu-link {% if 'invoices' in request.path or 'contract' in request.path %}active{% endif %}">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Invoices</span>
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="{% url 'users:logout' %}" class="menu-link">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="welcome-msg">
+                {% block breadcrumb %}{% endblock %}
+                <h1>{% block page_title %}Dashboard Overview{% endblock %}</h1>
+                <p>{% block page_subtitle %}Welcome back, {{ request.user.first_name|default:request.user.username }}{% endblock %}</p>
+            </div>
+            <div class="admin-profile">
+                <div class="admin-info">
+                    <span>{{ request.user.username }}</span>
+                </div>
+                <!-- Default admin icon if no profile picture -->
+                <i class="fas fa-user-circle fa-2x"></i>
+            </div>
+        </header>
+
+        {% block admin_content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

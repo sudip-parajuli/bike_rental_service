@@ -1,6 +1,133 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Testimonial Submitted!</h1>
-<p>Your testimonial has been submitted and is awaiting approval.</p>
-<a href="{% url 'testimonial-list' %}" class="btn btn-primary">View Testimonials</a>
+
+<style>
+    /* Testimonial Success Page Styles - Matching home.html aesthetic */
+    .testimonial-success-section {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .testimonial-success-container {
+        max-width: 600px;
+        text-align: center;
+    }
+
+    .testimonial-success-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 4rem 3rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .testimonial-success-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .testimonial-success-icon {
+        font-size: 5rem;
+        background: linear-gradient(135deg, #10b981, #059669);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 2rem;
+        animation: bounce 2s infinite;
+    }
+
+    .testimonial-success-title {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.5rem;
+    }
+
+    .testimonial-success-message {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 3rem;
+        line-height: 1.6;
+    }
+
+    .modern-btn {
+        padding: 1rem 3rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        border: none;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4);
+        text-decoration: none;
+        color: white;
+    }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .testimonial-success-card {
+            padding: 3rem 2rem;
+        }
+
+        .modern-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="testimonial-success-section">
+    <div class="testimonial-success-container">
+        <div class="testimonial-success-card">
+            <div class="testimonial-success-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+            <h1 class="testimonial-success-title">Testimonial Submitted!</h1>
+            <p class="testimonial-success-message">
+                Thank you for sharing your experience with EasyMoto! Your testimonial has been submitted
+                and is awaiting approval. We appreciate your feedback and will review it shortly.
+            </p>
+            <a href="{% url 'testimonial-list' %}" class="modern-btn">
+                <i class="fas fa-comments"></i>
+                View Testimonials
+            </a>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

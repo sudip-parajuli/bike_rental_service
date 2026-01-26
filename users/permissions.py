@@ -16,7 +16,7 @@ class IsUserOrReadOnly(BasePermission):
         return request.user and request.user == obj
 
 
-class IsOwnerOrAdmin(BasePermission):
-    """Only bike owners or admins can modify owner profiles."""
+class IshostOrAdmin(BasePermission):
+    """Only bike hosts or admins can modify host profiles."""
     def has_object_permission(self, request, view, obj):
         return request.user.is_staff or obj.user == request.user

@@ -1,9 +1,307 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Booking Details</h1>
-<p>Bike: {{ booking.bike.name }}</p>
-<p>Start Date: {{ booking.start_date }}</p>
-<p>End Date: {{ booking.end_date }}</p>
-<p>Total Price: ${{ booking.total_price }}</p>
-<p>Status: {{ booking.status }}</p>
+
+<style>
+    /* Booking Detail Styles - Premium Light Theme */
+    .booking-detail-section {
+        min-height: 100vh;
+        background: transparent;
+        position: relative;
+        padding: 8rem 0 4rem;
+    }
+
+    .booking-detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .booking-detail-title {
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 3rem;
+        background: linear-gradient(135deg, #1e293b, #475569);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .booking-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 3rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .booking-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .detail-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .detail-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border-color: #cbd5e1;
+        background: #ffffff;
+    }
+
+    .detail-icon {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+    }
+
+    .detail-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .status-confirmed {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+    }
+
+    .status-pending {
+        background: #fffbeb;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+
+    .status-completed {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+    }
+
+    .status-cancelled {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    .price-highlight {
+        color: #2563eb;
+        font-size: 1.8rem;
+        font-weight: 800;
+    }
+
+    .modern-btn {
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .modern-btn.primary {
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+    }
+
+    .modern-btn.primary:hover {
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+        color: white;
+    }
+
+    .actions-section {
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .booking-detail-section {
+            padding: 6rem 0 2rem;
+        }
+
+        .booking-detail-container {
+            padding: 0 1rem;
+        }
+
+        .booking-card {
+            padding: 2rem;
+        }
+
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modern-btn {
+            width: 100%;
+            max-width: 300px;
+            justify-content: center;
+        }
+    }
+
+    /* Animation classes */
+    .fade-in {
+        animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="booking-detail-section">
+    <div class="booking-detail-container">
+        <h1 class="booking-detail-title fade-in">Booking Details</h1>
+
+        <div class="booking-card fade-in">
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-motorcycle"></i>
+                    </div>
+                    <div class="detail-label">Bike</div>
+                    <div class="detail-value">{{ booking.bike.name }}</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div class="detail-label">Start Date</div>
+                    <div class="detail-value">{{ booking.start_date|date:"M d, Y H:i" }}</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-calendar-minus"></i>
+                    </div>
+                    <div class="detail-label">End Date</div>
+                    <div class="detail-value">{{ booking.end_date|date:"M d, Y H:i" }}</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="detail-label">Total Price</div>
+                    <div class="detail-value price-highlight">Rs. {{ booking.total_price }}</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value">
+                        {% if booking.status == 'confirmed' %}
+                            <span class="status-badge status-confirmed">{{ booking.status|title }}</span>
+                        {% elif booking.status == 'pending' %}
+                            <span class="status-badge status-pending">{{ booking.status|title }}</span>
+                        {% elif booking.status == 'completed' %}
+                            <span class="status-badge status-completed">{{ booking.status|title }}</span>
+                        {% elif booking.status == 'cancelled' %}
+                            <span class="status-badge status-cancelled">{{ booking.status|title }}</span>
+                        {% else %}
+                            <span class="status-badge status-pending">{{ booking.status|title }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-section">
+                <a href="{% url 'users:dashboard' %}" class="modern-btn primary">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add fade-in animation to elements as they come into view
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Apply initial styles and observe elements
+    document.querySelectorAll('.fade-in').forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        element.style.transitionDelay = `${index * 0.1}s`;
+        observer.observe(element);
+    });
+</script>
+
 {% endblock %}

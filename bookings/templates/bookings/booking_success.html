@@ -1,10 +1,171 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Booking Confirmed!</h1>
-<p>Booking #{{ booking.id }} for {{ booking.bike.name }} has been created successfully.</p>
-{% if booking.payment_option in 'full_online,partial_online' %}
-<p>Please <a href="{% url 'bookings:booking_payment_select' booking.id %}">select a payment method</a> to complete your payment.</p>
-{% else %}
-<a href="{% url 'bookings:booking-list' %}" class="btn btn-primary">View Your Bookings</a>
-{% endif %}
+
+<style>
+    /* Booking Success Page Styles - Matching home.html aesthetic */
+    .booking-success-section {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .booking-success-container {
+        max-width: 700px;
+        text-align: center;
+    }
+
+    .booking-success-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 4rem 3rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .booking-success-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .booking-success-icon {
+        font-size: 5rem;
+        background: linear-gradient(135deg, #10b981, #059669);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 2rem;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    .booking-success-title {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.5rem;
+    }
+
+    .booking-success-message {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 3rem;
+        line-height: 1.6;
+    }
+
+    .booking-id {
+        color: #3b82f6;
+        font-weight: 700;
+    }
+
+    .bike-name {
+        color: #10b981;
+        font-weight: 600;
+    }
+
+    .modern-btn {
+        padding: 1rem 3rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        border: none;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        margin: 0.5rem;
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4);
+        text-decoration: none;
+        color: white;
+    }
+
+    .modern-btn.secondary {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .modern-btn.secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: white;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .booking-success-card {
+            padding: 3rem 2rem;
+        }
+
+        .modern-btn {
+            width: 100%;
+            justify-content: center;
+            margin: 0.5rem 0;
+        }
+    }
+</style>
+
+<div class="booking-success-section">
+    <div class="booking-success-container">
+        <div class="booking-success-card">
+            <div class="booking-success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h1 class="booking-success-title">Booking Confirmed!</h1>
+            <p class="booking-success-message">
+                Booking <span class="booking-id">#{{ booking.id }}</span> for
+                <span class="bike-name">{{ booking.bike.name }}</span> has been created successfully.
+            </p>
+
+            {% if booking.payment_option in 'full_online,partial_online' %}
+                <p class="booking-success-message">
+                    Please complete your payment to finalize your booking.
+                </p>
+                <a href="{% url 'bookings:booking_payment_select' booking.id %}" class="modern-btn">
+                    <i class="fas fa-credit-card"></i>
+                    Complete Payment
+                </a>
+            {% else %}
+                <a href="{% url 'bookings:booking-list' %}" class="modern-btn">
+                    <i class="fas fa-list"></i>
+                    View Your Bookings
+                </a>
+            {% endif %}
+
+            <a href="{% url 'bikes:bike-list' %}" class="modern-btn secondary">
+                <i class="fas fa-motorcycle"></i>
+                Browse More Bikes
+            </a>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

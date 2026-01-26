@@ -1,10 +1,45 @@
 from django import forms
-from .models import BikeOwnerRequest
+from .models import BikehostRequest, User
 from django.utils import timezone
+from django.contrib.auth.forms import UserCreationForm
 
-class BikeOwnerRequestForm(forms.ModelForm):
+class RegisterForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'modern-form-control', 'placeholder': 'Create a strong password'}))
+    password_confirm = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'modern-form-control', 'placeholder': 'Confirm your password'}))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'modern-form-control', 'placeholder': 'Enter your email'}))
+
     class Meta:
-        model = BikeOwnerRequest
+        model = User
+        fields = ['username', 'email', 'password']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'modern-form-control', 'placeholder': 'Choose a username'}),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Email is already registered.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        password_confirm = cleaned_data.get("password_confirm")
+
+        if password and password_confirm and password != password_confirm:
+            self.add_error('password_confirm', "Passwords do not match")
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])
+        if commit:
+            user.save()
+        return user
+
+class BikehostRequestForm(forms.ModelForm):
+    class Meta:
+        model = BikehostRequest
         fields = [
             'bike_make', 'bike_model', 'bike_year', 'bike_registration_number',
             'registration_certificate', 'insurance_certificate', 'id_proof', 'bike_photos'
@@ -64,3 +99,18 @@ class BikeOwnerRequestForm(forms.ModelForm):
             if not file.name.lower().endswith(('.jpg', '.jpeg', '.png')):
                 raise forms.ValidationError("Only JPG, JPEG, or PNG images are allowed.")
         return file
+
+class PhoneNumberForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['nationality', 'phone_number']
+        widgets = {
+            'nationality': forms.TextInput(attrs={'class': 'modern-form-control', 'placeholder': 'Select your nationality', 'id': 'nationalityInput'}),
+            'phone_number': forms.TextInput(attrs={'class': 'modern-form-control', 'placeholder': 'Phone number', 'id': 'phoneNumberInput'})
+        }
+
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get('phone_number')
+        if not phone:
+            raise forms.ValidationError("Phone number is required.")
+        return phone

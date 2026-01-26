@@ -1,0 +1,490 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<style>
+    /* Document Viewer Styles - Modern Admin Design */
+    #content-main {
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        min-height: 100vh;
+        padding: 2rem;
+        color: white;
+    }
+
+    .document-header {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .document-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 2rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-item {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 1rem;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #3b82f6;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-value {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+    }
+
+    .documents-section {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .modern-table {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 15px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background-color: transparent !important;
+
+    }
+
+    .modern-table thead {
+        background: rgba(59, 130, 246, 0.2);
+    }
+
+    .modern-table th {
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 1.5rem 1rem;
+        background: transparent;
+    }
+
+    .modern-table td {
+        color: rgba(255, 255, 255, 0.9);
+        border: none;
+        padding: 1.5rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        vertical-align: middle;
+    }
+
+    .document-preview {
+        max-width: 300px;
+        max-height: 300px;
+        border-radius: 15px;
+        border: 2px solid rgba(59, 130, 246, 0.3);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .document-preview:hover {
+        transform: scale(1.05);
+        border-color: rgba(59, 130, 246, 0.6);
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    }
+
+    .file-link {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .file-link:hover {
+        background: rgba(59, 130, 246, 0.2);
+        border-color: rgba(59, 130, 246, 0.5);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+    .not-uploaded {
+        color: rgba(255, 255, 255, 0.5);
+        font-style: italic;
+        padding: 1rem;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 10px;
+    }
+
+    .back-button {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .back-button:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+    }
+
+    .status-pending {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+
+    .status-approved {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .status-rejected {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    /* Modal for image preview */
+    .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(10px);
+    }
+
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        max-width: 700px;
+        max-height: 80%;
+        border-radius: 15px;
+        animation: zoom 0.3s;
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close-modal:hover {
+        color: #3b82f6;
+    }
+
+    @keyframes zoom {
+        from {
+            transform: scale(0)
+        }
+
+        to {
+            transform: scale(1)
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        #content-main {
+            padding: 1rem;
+        }
+
+        .document-header,
+        .documents-section {
+            padding: 1.5rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 1rem 0.5rem;
+        }
+
+        .document-preview {
+            max-width: 200px;
+            max-height: 200px;
+        }
+    }
+</style>
+
+<div id="content-main">
+    <div class="document-header">
+        <h1 class="document-title">
+            <i class="fas fa-file-alt me-2"></i>{{ title }}
+        </h1>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">
+                    <i class="fas fa-user me-2"></i>User
+                </div>
+                <div class="info-value">{{ bike_host_request.user.username }}</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">
+                    <i class="fas fa-industry me-2"></i>Bike Make
+                </div>
+                <div class="info-value">{{ bike_host_request.bike_make }}</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">
+                    <i class="fas fa-tag me-2"></i>Bike Model
+                </div>
+                <div class="info-value">{{ bike_host_request.bike_model }}</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">
+                    <i class="fas fa-info-circle me-2"></i>Status
+                </div>
+                <div class="info-value">
+                    {% if bike_host_request.status == 'pending' %}
+                    <span class="status-badge status-pending">{{ bike_host_request.status|title }}</span>
+                    {% elif bike_host_request.status == 'approved' %}
+                    <span class="status-badge status-approved">{{ bike_host_request.status|title }}</span>
+                    {% elif bike_host_request.status == 'rejected' %}
+                    <span class="status-badge status-rejected">{{ bike_host_request.status|title }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">
+                    <i class="fas fa-calendar me-2"></i>Requested At
+                </div>
+                <div class="info-value">{{ bike_host_request.requested_at|date:"M d, Y H:i" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="documents-section">
+        <h2 class="section-title">
+            <i class="fas fa-folder-open me-2"></i>Uploaded Documents
+        </h2>
+
+        <div class="table-responsive">
+            <table class="table modern-table bg-transparent">
+                <thead>
+                    <tr>
+                        <th>
+                            <i class="fas fa-file me-2"></i>Document Type
+                        </th>
+                        <th>
+                            <i class="fas fa-eye me-2"></i>Preview
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>
+                                <i class="fas fa-certificate me-2"></i>Registration Certificate
+                            </strong>
+                        </td>
+                        <td>
+                            {% if bike_host_request.registration_certificate %}
+                            {% if bike_host_request.registration_certificate.url|slice:"-4:"|lower in ".jpg,.jpeg,.png"
+                            %}
+                            <img src="{{ bike_host_request.registration_certificate.url }}"
+                                alt="Registration Certificate" class="document-preview" onclick="openModal(this.src)">
+                            {% else %}
+                            <a href="{{ bike_host_request.registration_certificate.url }}" target="_blank"
+                                class="file-link">
+                                <i class="fas fa-download"></i>
+                                View File
+                            </a>
+                            {% endif %}
+                            {% else %}
+                            <div class="not-uploaded">
+                                <i class="fas fa-times-circle me-2"></i>Not Uploaded
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>
+                                <i class="fas fa-shield-alt me-2"></i>Insurance Certificate
+                            </strong>
+                        </td>
+                        <td>
+                            {% if bike_host_request.insurance_certificate %}
+                            {% if bike_host_request.insurance_certificate.url|slice:"-4:"|lower in ".jpg,.jpeg,.png" %}
+                            <img src="{{ bike_host_request.insurance_certificate.url }}" alt="Insurance Certificate"
+                                class="document-preview" onclick="openModal(this.src)">
+                            {% else %}
+                            <a href="{{ bike_host_request.insurance_certificate.url }}" target="_blank"
+                                class="file-link">
+                                <i class="fas fa-download"></i>
+                                View File
+                            </a>
+                            {% endif %}
+                            {% else %}
+                            <div class="not-uploaded">
+                                <i class="fas fa-times-circle me-2"></i>Not Uploaded
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>
+                                <i class="fas fa-id-badge me-2"></i>ID Proof
+                            </strong>
+                        </td>
+                        <td>
+                            {% if bike_host_request.id_proof %}
+                            {% if bike_host_request.id_proof.url|slice:"-4:"|lower in ".jpg,.jpeg,.png" %}
+                            <img src="{{ bike_host_request.id_proof.url }}" alt="ID Proof" class="document-preview"
+                                onclick="openModal(this.src)">
+                            {% else %}
+                            <a href="{{ bike_host_request.id_proof.url }}" target="_blank" class="file-link">
+                                <i class="fas fa-download"></i>
+                                View File
+                            </a>
+                            {% endif %}
+                            {% else %}
+                            <div class="not-uploaded">
+                                <i class="fas fa-times-circle me-2"></i>Not Uploaded
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>
+                                <i class="fas fa-camera me-2"></i>Bike Photos
+                            </strong>
+                        </td>
+                        <td>
+                            {% if bike_host_request.bike_photos %}
+                            {% if bike_host_request.bike_photos.url|slice:"-4:"|lower in ".jpg,.jpeg,.png" %}
+                            <img src="{{ bike_host_request.bike_photos.url }}" alt="Bike Photos"
+                                class="document-preview" onclick="openModal(this.src)">
+                            {% else %}
+                            <a href="{{ bike_host_request.bike_photos.url }}" target="_blank" class="file-link">
+                                <i class="fas fa-download"></i>
+                                View File
+                            </a>
+                            {% endif %}
+                            {% else %}
+                            <div class="not-uploaded">
+                                <i class="fas fa-times-circle me-2"></i>Not Uploaded
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{% url 'admin:users_bikehostrequest_change' bike_host_request.id %}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Back to Request
+        </a>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="image-modal">
+    <span class="close-modal" onclick="closeModal()">&times;</span>
+    <img class="modal-content" id="modalImage">
+</div>
+
+<script>
+    function openModal(src) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        modal.style.display = 'block';
+        modalImg.src = src;
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('imageModal');
+        modal.style.display = 'none';
+    }
+
+    // Close modal when clicking outside the image
+    window.onclick = function (event) {
+        const modal = document.getElementById('imageModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,6 +1,138 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Logged Out Successfully</h1>
-<p>You have been logged out, {{ username }}. See you next time!</p>
-<a href="{% url 'users:login' %}" class="btn btn-primary">Login Again</a>  <!-- Already uses namespace -->
+
+<style>
+    /* Logout Success Page Styles - Matching home.html aesthetic */
+    .logout-section {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .logout-container {
+        max-width: 600px;
+        text-align: center;
+    }
+
+    .logout-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 4rem 3rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .logout-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .logout-icon {
+        font-size: 5rem;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 2rem;
+        animation: wave 2s ease-in-out infinite;
+    }
+
+    .logout-title {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.5rem;
+    }
+
+    .logout-message {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 3rem;
+        line-height: 1.6;
+    }
+
+    .logout-username {
+        color: #3b82f6;
+        font-weight: 600;
+    }
+
+    .modern-btn {
+        padding: 1rem 3rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        border: none;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 20px 40px rgba(59, 130, 246, 0.4);
+        text-decoration: none;
+        color: white;
+    }
+
+    @keyframes wave {
+        0%, 100% {
+            transform: rotate(0deg);
+        }
+        25% {
+            transform: rotate(-10deg);
+        }
+        75% {
+            transform: rotate(10deg);
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .logout-card {
+            padding: 3rem 2rem;
+        }
+
+        .modern-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="logout-section">
+    <div class="logout-container">
+        <div class="logout-card">
+            <div class="logout-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h1 class="logout-title">Logged Out Successfully</h1>
+            <p class="logout-message">
+                You have been logged out, <span class="logout-username">{{ username }}</span>.
+                Thank you for using EasyMoto. We hope to see you again soon!
+            </p>
+            <a href="{% url 'users:login' %}" class="modern-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                Login Again
+            </a>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

@@ -1,95 +1,507 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bike Rental Service</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/modern_ui.css' %}?v=2">
 </head>
-<body>
-    <!-- Fixed Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
+<body class="light-theme" style="background-color: #f8fafc; min-height: 100vh; color: #1e293b;">
+    <div class="fluid-bg-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+    <!-- Modern Transparent Navbar -->
+    <nav class="navbar navbar-expand-lg modern-transparent-nav">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <img src="{% static 'images/brand-logo.png' %}" alt="Bike Rental Logo" style="height: 60px; width: 100%; object-fit: contain;" onerror="this.onerror=null; this.src='{% static 'images/default-logo.png' %}';">
+            <a class="navbar-brand" href="{% url 'public-home' %}">
+                <img src="{% static 'images/brand-logo.png' %}" alt="Bike Rental Logo"
+                    style="height: 60px; width: auto; object-fit: contain;"
+                    onerror="this.onerror=null; this.src='{% static 'images/default-logo.png' %}';">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}#about">About</a>
+                        <a class="nav-link modern-nav-item" href="{% url 'public-home' %}#about">About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}#contact">Contact Us</a>
+                        <a class="nav-link modern-nav-item" href="{% url 'public-home' %}#contact">Contact Us</a>
                     </li>
 
                     {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users:dashboard' %}">Dashboard</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="{{ user.profile_picture.url|default_if_none:'/static/images/default-user.jpg' }}" alt="{{ user.username }}" class="rounded-circle me-1" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.onerror=null; this.src='{% static 'images/default-user.jpg' %}';">
-                                <span>{{ user.username }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="{% url 'users:user-detail' %}">Profile</a></li>
-                                <li>
-                                    <form method="POST" action="{% url 'users:logout' %}" style="display: inline;" id="logoutForm">
-                                        {% csrf_token %}
-                                        <button type="submit" class="dropdown-item">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-item" href="{% url 'users:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle modern-nav-item" href="#" id="userDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{{ user.profile_picture.url|default_if_none:'/static/images/default-user.jpg' }}"
+                                alt="{{ user.username }}" class="rounded-circle me-1"
+                                style="width: 40px; height: 40px; object-fit: cover;"
+                                onerror="this.onerror=null; this.src='{% static 'images/default-user.jpg' %}';">
+                            <span>{{ user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                            {% if user.is_superuser %}
+                            <li><a class="dropdown-item" href="{% url 'bikes:evaluation-dashboard' %}">Analytics</a>
+                            </li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{% url 'users:user-detail' %}">Profile</a></li>
+                            <li>
+                                <form method="POST" action="{% url 'users:logout' %}" style="display: inline;"
+                                    id="logoutForm">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'bikes:bike-list' %}">Bikes</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users:login' %}">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users:register' %}">Register</a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-item" href="{% url 'bikes:bike-list' %}">Bikes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-item" href="{% url 'users:login' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-item" href="{% url 'users:login' %}">Join Now</a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
         </div>
     </nav>
 
+    <!-- Main Content -->
     {% block content %}{% endblock %}
 
     <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script>
         AOS.init();
 
         // Smooth scrolling for navbar links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
+            anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
             });
         });
 
         // Debug dropdown toggle
-        document.getElementById('userDropdown')?.addEventListener('click', function() {
+        document.getElementById('userDropdown')?.addEventListener('click', function () {
             console.log('Dropdown clicked');
         });
     </script>
 
+    <!-- Advanced Gooey Nav -->
+    <div class="gooey-nav-container" id="gooey-nav-container">
+        <nav>
+            <ul id="gooey-nav-list">
+                <li class="active">
+                    <a href="{% url 'public-home' %}">
+                        <i class="fas fa-home"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#bikes">
+                        <i class="fas fa-motorcycle"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% if user.is_authenticated %}{% url 'users:dashboard' %}{% else %}{% url 'users:login' %}{% endif %}">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <span class="effect filter"></span>
+        <span class="effect text"></span>
+    </div>
+
+    <!-- Chatbot Widget -->
+    <div class="chatbot-container">
+        <div class="chatbot-window" id="chatbotWindow">
+            <div class="chatbot-header">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-robot me-2"></i>
+                    <span>EasyMoto Assistant</span>
+                </div>
+                <button class="btn-close btn-close-white" id="closeChatBtn"></button>
+            </div>
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="message bot-message">
+                    Hello! I'm your EasyMoto assistant. How can I help you today?
+                </div>
+            </div>
+            <div class="chatbot-input-area">
+                <form id="chatbotForm" class="d-flex gap-2">
+                    <input type="text" id="chatbotInput" class="form-control" placeholder="Type your message..."
+                        required>
+                    <button type="submit" class="btn btn-primary rounded-circle">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <button class="chatbot-toggle" id="chatbotToggle">
+            <i class="fas fa-comment-dots"></i>
+        </button>
+    </div>
+
+    <style>
+        /* Navigation Circle Styles - Light Theme Optimized */
+        .nav-circle-container {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 1050;
+        }
+
+        .nav-circle-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            /* Clearer Blue */
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .nav-circle-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .nav-circle-menu {
+            position: absolute;
+            bottom: 70px;
+            left: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .nav-circle-menu.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0);
+        }
+
+        .nav-circle-item {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            /* Opaque white for visibility */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-circle-item:hover {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            transform: scale(1.1);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Chatbot Styles - Light Theme Optimized */
+        .chatbot-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1050;
+        }
+
+        .chatbot-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .chatbot-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            /* White background */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            /* Softer shadow */
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px) scale(0.9);
+            transition: all 0.3s ease;
+            transform-origin: bottom right;
+        }
+
+        .chatbot-window.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0) scale(1);
+        }
+
+        .chatbot-header {
+            padding: 1rem;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 0.8rem 1rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .bot-message {
+            background: #f1f5f9;
+            /* Light gray */
+            color: #334155;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .chatbot-input-area {
+            padding: 1rem;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .chatbot-input-area input {
+            background: white;
+            border: 1px solid #cbd5e1;
+            color: #333;
+            border-radius: 20px;
+        }
+
+        .chatbot-input-area input:focus {
+            background: white;
+            color: #333;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+
+        .chatbot-input-area input::placeholder {
+            color: #94a3b8;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Gooey Nav Logic
+            const gooeyItems = document.querySelectorAll('.gooey-item');
+            const indicator = document.querySelector('.gooey-indicator');
+            
+            function moveIndicator(el) {
+                const width = el.offsetWidth;
+                const left = el.offsetLeft;
+                indicator.style.width = width + 'px';
+                indicator.style.transform = `translateX(${left}px)`;
+            }
+
+            gooeyItems.forEach(item => {
+                item.addEventListener('mouseenter', (e) => {
+                    moveIndicator(e.currentTarget);
+                });
+                
+                item.addEventListener('click', function() {
+                    gooeyItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Init indicator pos
+            const activeItem = document.querySelector('.gooey-item.active');
+            if(activeItem) moveIndicator(activeItem);
+
+            document.querySelector('.gooey-nav').addEventListener('mouseleave', () => {
+                const active = document.querySelector('.gooey-item.active');
+                if(active) moveIndicator(active);
+            });
+
+            // Chatbot Logic
+            const chatToggle = document.getElementById('chatbotToggle');
+            const chatWindow = document.getElementById('chatbotWindow');
+            const closeChat = document.getElementById('closeChatBtn');
+            const chatForm = document.getElementById('chatbotForm');
+            const chatInput = document.getElementById('chatbotInput');
+            const chatMessages = document.getElementById('chatbotMessages');
+
+            function toggleChat() {
+                chatWindow.classList.toggle('active');
+            }
+
+            chatToggle?.addEventListener('click', toggleChat);
+            closeChat?.addEventListener('click', toggleChat);
+
+            function addMessage(text, isUser) {
+                const div = document.createElement('div');
+                div.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+                div.textContent = text;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            chatForm?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const message = chatInput.value.trim();
+                if (!message) return;
+
+                // Add user message
+                addMessage(message, true);
+                chatInput.value = '';
+
+                // Show loading indicator (optional)
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'message bot-message';
+                loadingDiv.innerHTML = '<i class="fas fa-ellipsis-h fa-fade"></i>';
+                chatMessages.appendChild(loadingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                try {
+                    const response = await fetch('/api/chatbot/chat/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({ message: message })
+                    });
+
+                    const data = await response.json();
+
+                    // Remove loading indicator
+                    chatMessages.removeChild(loadingDiv);
+
+                    if (data.response) {
+                        addMessage(data.response, false);
+                    } else {
+                        addMessage("Sorry, I couldn't process that request.", false);
+                    }
+                } catch (error) {
+                    console.error('Chatbot error:', error);
+                    try {
+                        chatMessages.removeChild(loadingDiv);
+                    } catch (e) { }
+                    addMessage("Sorry, something went wrong. Please try again.", false);
+                }
+            });
+
+            // Helper to get CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        });
+    </script>
+
+    <!-- SVG Filter for Gooey Effect -->
+    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" style="display:none;">
+        <defs>
+            <filter id="goo">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+                <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+            </filter>
+        </defs>
+    </svg>
+
     {% block extra_scripts %}{% endblock %}
 </body>
+
 </html>

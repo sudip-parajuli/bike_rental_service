@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rental Contract & Invoice</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #000;
+            background: #fff;
+            font-size: 14px;
+        }
+
+        .page-container {
+            max-width: 850px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 40px;
+            background: #fff;
+            margin-bottom: 20px;
+        }
+
+        @media print {
+            body { margin: 0; padding: 0; }
+            .page-container { border: none; margin: 0; padding: 0; width: 100%; max-width: 100%; }
+            .no-print { display: none; }
+            .page-break { page-break-after: always; }
+        }
+
+        /* Common Header */
+        .company-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .company-name {
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        .company-sub {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+        .company-address {
+            font-size: 12px;
+        }
+
+        /* Layout Helpers */
+        .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .col { flex: 1; }
+        .line-item { margin-bottom: 5px; }
+        .label { font-weight: bold; margin-right: 5px; }
+        .value { border-bottom: 1px dotted #333; padding: 0 5px; flex-grow: 1; display: inline-block; min-width: 50px; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+        th { background-color: #f0f0f0; text-align: center; }
+        
+        /* Checkboxes */
+        .checkbox-item { display: inline-block; margin-right: 15px; }
+        .box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 5px; vertical-align: middle; }
+        .box.checked { background: #000; }
+
+        /* Signatures */
+        .signature-section { margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .sig-box { text-align: center; width: 200px; border-top: 1px solid #000; padding-top: 5px; }
+
+        /* Terms */
+        .terms-list { font-size: 11px; padding-left: 15px; text-align: justify; }
+        .terms-list li { margin-bottom: 3px; }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 100px;
+            color: rgba(0,0,0,0.03);
+            z-index: 0;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align: center; padding: 20px; background: #f0f0f0; margin-bottom: 20px; border-bottom: 1px solid #ccc;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+            Print Contract
+        </button>
+        <a href="javascript:history.back()" style="margin-left: 20px; color: #666; text-decoration: none;">Back to Dashboard</a>
+    </div>
+
+    <!-- PAGE 1: BILL -->
+    <div class="page-container page-break">
+        <div class="watermark">EASYMOTO</div>
+        
+        <div class="company-header">
+            <div class="company-name" style="letter-spacing: 2px;">EASYMOTO</div>
+            <div class="company-sub">EASYMOTO RENTAL SERVICE PVT. LTD.</div>
+            <div class="company-address">Budhanilkantha-03, Kathmandu, Nepal<br>Ph: 9860702780</div>
+        </div>
+
+        <div class="row">
+            <div><span class="label">PAN No.:</span> 622522502</div>
+            <div style="text-align: right;">
+                <div class="line-item"><span class="label">Bill No.:</span> {{ contract.contract_number }}</div>
+                <div class="line-item"><span class="label">Date:</span> {{ contract.created_at|date:"Y-m-d" }}</div>
+            </div>
+        </div>
+
+        <div class="line-item" style="display: flex;">
+            <span class="label">Customer's Name:</span>
+            <span class="value">{{ contract.customer_name }}</span>
+        </div>
+        <div class="row">
+            <div style="flex: 2; display: flex; margin-right: 20px;">
+                <span class="label">Address:</span>
+                <span class="value">{{ contract.customer_address }}</span>
+            </div>
+            <div style="flex: 1; display: flex;">
+                <span class="label">Vehicle No.:</span>
+                <span class="value">{{ contract.vehicle_number }}</span>
+            </div>
+        </div>
+        <div class="line-item" style="display: flex;">
+            <span class="label">Vehicle Name:</span>
+            <span class="value">{{ contract.vehicle_model }}</span>
+        </div>
+
+        <div style="margin-top: 15px; margin-bottom: 10px;">
+            <span class="label">Mode of Payment:</span>
+            <b>Cash / QR Payment / Credit / Others</b>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50px;">S.No.</th>
+                    <th>PARTICULARS</th>
+                    <th style="width: 60px;">QTY</th>
+                    <th style="width: 100px;">RATE</th>
+                    <th style="width: 120px;">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="height: 300px; vertical-align: top;">
+                    <td style="text-align: center;">1</td>
+                    <td>
+                        Bike Rental - {{ contract.vehicle_model }}
+                        <br>
+                        ({{ contract.booking.start_date|date:"Y-m-d" }} to {{ contract.booking.end_date|date:"Y-m-d" }})
+                    </td>
+                    <td style="text-align: center;">{{ contract.booking.duration_days }}</td>
+                    <td style="text-align: right;">{{ contract.rate_per_day }}</td>
+                    <!-- Calculate Subtotal (Rate * Quantity) manually since Django templates prevent math. We assume view passes it or we do basic math if possible, but simplest is to assume rate * days -->
+                    <!-- Since we can't do math in templates easily without custom tags, we'll use Javascript to fill this or rely on a property. 
+                         HOWEVER, let's look at what we have. contract.total_amount is the FINAL price.
+                         Let's assume Subtotal = Rate * Days. 
+                         Discount = Subtotal - Total. -->
+                     <!-- Since we don't have math filters, let's use a small script at the bottom or rely on the view context update. -->
+                    <td style="text-align: right;" id="subtotal"></td>
+                </tr>
+                <tr>
+                    <td colspan="3" rowspan="3" style="vertical-align: top;">
+                        <span class="label">In words:</span>
+                        {{ contract.total_amount }} Rupees Only
+                        <br><br>
+                        <span class="label">Remarks:</span> {{ contract.remarks }}
+                    </td>
+                    <td style="text-align: right; font-weight: bold;">Sub Total</td>
+                    <td style="text-align: right;" id="subtotal_display"></td>
+                </tr>
+                <tr>
+                    <td style="text-align: right;">Discount</td>
+                    <td style="text-align: right;" id="discount_display">0.00</td>
+                </tr>
+                <tr>
+                    <td style="text-align: right; font-weight: bold;">Grand Total</td>
+                    <td style="text-align: right; font-weight: bold;">{{ contract.total_amount }}</td>
+                </tr>
+            </tbody>
+            
+            <script>
+                // Simple inline script to calculate subtotal and discount for display since logic is missing in backend
+                (function() {
+                     var rate = parseFloat("{{ contract.rate_per_day }}" || "0");
+                     var days = parseFloat("{{ contract.booking.duration_days }}" || "1"); // Ensure at least 1
+                     var total = parseFloat("{{ contract.total_amount }}" || "0");
+                     
+                     var subtotal = rate * days;
+                     var discount = subtotal - total;
+                     
+                     document.getElementById('subtotal').innerText = subtotal.toFixed(2);
+                     document.getElementById('subtotal_display').innerText = subtotal.toFixed(2);
+                     document.getElementById('discount_display').innerText = discount.toFixed(2);
+                })();
+            </script>
+        </table>
+
+        <div class="signature-section">
+            <div class="sig-box">Customer Sign.</div>
+            <div class="sig-box">
+                Signature<br>
+                <span style="font-size: 10px;">EASYMOTO Rental Service Pvt. Ltd.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: CONTRACT -->
+    <div class="page-container" style="position: relative;">
+        <div class="watermark">AGREEMENT</div>
+        
+        <div class="company-header">
+            <div class="company-sub" style="font-size: 20px;">Easymoto Rental Service Pvt. Ltd.</div>
+            <div style="font-size: 18px; font-weight: bold;">MOTORBIKE RENTAL SERVICE</div>
+            <div class="company-address">Budhanilkantha-03, Kathmandu, Nepal<br>Contact No.: +977 9851401903, 9860702780<br>PAN No.: 622522502</div>
+        </div>
+
+        <div style="font-size: 10px; margin-bottom: 15px; font-style: italic; color: #555;">
+            Easymoto Rental Service Pvt. Ltd. offers a diverse range of motorbikes from top manufacturers at competitive prices, providing you with the freedom and flexibility to explore new destinations at your own pace.
+        </div>
+
+        <div class="row" style="gap: 20px;">
+            <!-- Left Column -->
+            <div style="flex: 1;">
+                <h4 style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px;">Customer Details:</h4>
+                <div class="line-item"><span class="label">Name:</span> {{ contract.customer_name }}</div>
+                <div class="line-item"><span class="label">Address:</span> {{ contract.customer_address }}</div>
+                <div class="line-item"><span class="label">Nationality:</span> {{ contract.nationality }}</div>
+                <div class="line-item"><span class="label">Phone No.:</span> {{ contract.customer_phone }}</div>
+                <div class="line-item"><span class="label">Driving License No.:</span> {{ contract.driving_license_no }}</div>
+                <div class="line-item"><span class="label">Passport No.:</span> {{ contract.passport_no }}</div>
+
+                <h4 style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin: 15px 0 10px;">Vehicle Details:</h4>
+                <div class="line-item"><span class="label">Vehicle Model:</span> {{ contract.vehicle_model }}</div>
+                <div class="line-item"><span class="label">Vehicle Number:</span> {{ contract.vehicle_number }}</div>
+                <div class="line-item"><span class="label">Vehicle Color:</span> {{ contract.vehicle_color }}</div>
+                <div class="line-item"><span class="label">Chassis No.:</span> {{ contract.chassis_no }}</div>
+                <div class="line-item"><span class="label">Engine No.:</span> {{ contract.engine_no }}</div>
+
+                <h4 style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin: 15px 0 10px;">Special Equipment:</h4>
+                <div>
+                    <span class="checkbox-item"><span class="box">{% if contract.helmet %}✓{% endif %}</span> Helmet</span>
+                    <span class="checkbox-item"><span class="box">{% if contract.bungy_cord %}✓{% endif %}</span> Bungy cord</span>
+                    <span class="checkbox-item"><span class="box">{% if contract.maps %}✓{% endif %}</span> Maps</span>
+                </div>
+                <div class="line-item" style="margin-top: 5px;"><span class="label">Miscellaneous:</span> .........................</div>
+
+                <h4 style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin: 15px 0 10px;">Security Deposit:</h4>
+                <div>
+                    <span class="checkbox-item"><span class="box">{% if contract.deposit_passport %}✓{% endif %}</span> Passport</span>
+                    <span class="checkbox-item"><span class="box">{% if contract.deposit_citizenship %}✓{% endif %}</span> Citizenship</span>
+                    <span class="checkbox-item"><span class="box">{% if contract.deposit_id_card %}✓{% endif %}</span> National ID</span>
+                </div>
+                <div class="line-item" style="margin-top: 5px;"><span class="label">Other:</span> {{ contract.deposit_other }}</div>
+
+                <h4 style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin: 15px 0 10px;">Guarantor Details:</h4>
+                <div class="line-item"><span class="label">Name:</span> {{ contract.guarantor_name }}</div>
+                <div class="line-item"><span class="label">Address:</span> {{ contract.guarantor_address }}</div>
+                <div class="line-item"><span class="label">Phone No.:</span> {{ contract.guarantor_phone }}</div>
+            </div>
+
+            <!-- Right Column -->
+            <div style="flex: 1;">
+                <h4 style="border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 10px;">Terms and Conditions:</h4>
+                <ul class="terms-list">
+                    <li>The vehicle must be used in compliance with all motor vehicle laws and regulations.</li>
+                    <li>The vehicle must be returned latest by 7:30 PM, else penalty applies.</li>
+                    <li>Vehicles does not have any insurance.</li>
+                    <li>Any damage to the vehicle must be reported immediately.</li>
+                    <li>The lessee is responsible for any fines or penalties.</li>
+                    <li>In case of accident, the lessee must provide a written statement. Lessee is liable for loss of rental income during repair.</li>
+                    <li>Any additional charges for damages or late returns will be billed separately.</li>
+                    <li>The booking charge is non-refundable.</li>
+                    <li>There is no guarantee provided for the tires and tubes.</li>
+                    <li>Once agreed upon, the bike rental rates are non-negotiable.</li>
+                    <li>In case of loss of the bill book or vehicle papers, the lessee will be charged.</li>
+                    <li>Regular maintenance is responsibility of Easymoto. However, lessee must ensure good condition during rental.</li>
+                </ul>
+                
+                <div style="font-weight: bold; font-size: 11px; margin-top: 10px;">
+                    I hereby agree all terms and conditions mentioned above and all detail provided are true.
+                </div>
+
+                <div style="border: 1px solid #000; padding: 5px; margin-top: 10px;">
+                    <div style="text-align: center; font-weight: bold; border-bottom: 1px solid #000; margin-bottom: 5px;">Fingerprint</div>
+                    <div style="display: flex; height: 60px;">
+                        <div style="flex: 1; border-right: 1px solid #000; display: flex; align-items: flex-end; justify-content: center;">Right</div>
+                        <div style="flex: 1; display: flex; align-items: flex-end; justify-content: center;">Left</div>
+                    </div>
+                </div>
+
+                <div style="border: 1px solid #000; padding: 10px; margin-top: 20px;">
+                    <h4 style="margin: 0 0 10px;">Booking Details:</h4>
+                    <div class="line-item"><span class="label">Booking Date:</span> {{ contract.created_at|date:"Y-m-d" }}</div>
+                    <div class="row">
+                        <div class="line-item"><span class="label">Hiring Date:</span> {{ contract.booking.start_date|date:"Y-m-d" }}</div>
+                        <div class="line-item"><span class="label">Time:</span> .......</div>
+                    </div>
+                    <div class="row">
+                        <div class="line-item"><span class="label">Arrival Date:</span> {{ contract.booking.end_date|date:"Y-m-d" }}</div>
+                        <div class="line-item"><span class="label">Time:</span> .......</div>
+                    </div>
+
+                    <table style="margin-top: 10px; font-size: 12px;">
+                        <tr>
+                            <th>No. of Days</th>
+                            <th>Rate</th>
+                            <th>Total</th>
+                        </tr>
+                        <tr>
+                            <td height="30">{{ contract.booking.duration_days }}</td>
+                            <td>{{ contract.rate_per_day }}</td>
+                            <td>{{ contract.total_amount }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="text-align: right;">Advance</td>
+                            <td>{{ contract.advance_amount }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="text-align: right;">Balance</td>
+                            <td>{{ contract.balance_amount }}</td>
+                        </tr>
+                    </table>
+                    <div class="line-item" style="margin-top: 5px;"><span class="label">Remarks:</span> {{ contract.remarks }}</div>
+                </div>
+
+                <div class="signature-section" style="margin-top: 40px;">
+                    <div class="sig-box" style="border-top: 1px dotted #000;">
+                        Wait for Signature<br>
+                        Easymoto Rental Service Pvt. Ltd.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; font-weight: bold; font-style: italic; margin-top: 20px; font-size: 14px;">
+            Adventure awaits on two wheels. Embrace the journey with Easymoto Rental Service.
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,479 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    /* Admin Bike host Request List Styles - Matching home.html aesthetic */
+    .admin-request-section {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        position: relative;
+        padding: 8rem 0 4rem;
+    }
+
+    .admin-request-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .admin-request-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 3rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .request-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        padding: 3rem;
+        margin-bottom: 3rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .request-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .modern-alert {
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid;
+    }
+
+    .modern-alert.success {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #10b981;
+    }
+
+    .modern-alert.warning {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #f59e0b;
+    }
+
+    .modern-alert.danger {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    .modern-alert.info {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: #3b82f6;
+    }
+
+    .modern-table {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 15px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 2rem;
+        background-color: transparent !important;
+
+    }
+
+    .modern-table thead {
+        background: rgba(59, 130, 246, 0.2);
+    }
+
+    .modern-table th {
+        color: white;
+        font-weight: 600;
+        border: none;
+        padding: 1.5rem 1rem;
+        background: transparent;
+    }
+
+    .modern-table td {
+        color: rgba(255, 255, 255, 0.9);
+        border: none;
+        padding: 1.5rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        vertical-align: middle;
+    }
+
+    .modern-table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .modern-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: scale(1.01);
+    }
+
+    .modern-checkbox {
+        width: 20px;
+        height: 20px;
+        accent-color: #3b82f6;
+        cursor: pointer;
+    }
+
+    .modern-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+
+    .modern-badge.pending {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+
+    .modern-badge.approved {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .modern-badge.rejected {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .modern-badge.secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .modern-btn {
+        padding: 0.6rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+        margin: 0.2rem;
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-2px) scale(1.05);
+        text-decoration: none;
+    }
+
+    .modern-btn.success {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
+
+    .modern-btn.success:hover {
+        box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+        color: white;
+    }
+
+    .modern-btn.danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+    }
+
+    .modern-btn.danger:hover {
+        box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
+        color: white;
+    }
+
+    .modern-btn.primary {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .modern-btn.primary:hover {
+        box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        color: white;
+    }
+
+    .modern-btn.sm {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .modern-form-control {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        color: white;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        margin: 0.2rem 0;
+    }
+
+    .modern-form-control:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.15);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        color: white;
+    }
+
+    .modern-form-control::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .action-forms {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .bulk-actions {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .bulk-actions-title {
+        color: white;
+        font-weight: 600;
+        margin-right: 1rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .admin-request-section {
+            padding: 6rem 0 2rem;
+        }
+
+        .admin-request-container {
+            padding: 0 1rem;
+        }
+
+        .request-card {
+            padding: 2rem;
+        }
+
+        .modern-table {
+            font-size: 0.9rem;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 1rem 0.5rem;
+        }
+
+        .bulk-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .action-forms {
+            align-items: stretch;
+        }
+
+        .modern-btn {
+            justify-content: center;
+        }
+    }
+
+    /* Animation classes */
+    .fade-in {
+        animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="admin-request-section">
+    <div class="admin-request-container">
+        <h2 class="admin-request-title fade-in">Bike host Requests</h2>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="fade-in">
+            {% for message in messages %}
+            <div class="modern-alert {{ message.tags }}">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Requests Table -->
+        <div class="request-card fade-in">
+            <div class="table-responsive">
+                <table class="table modern-table bg-transparent">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="select-all" class="modern-checkbox">
+                            </th>
+                            <th>
+                                <i class="fas fa-user me-2"></i>User
+                            </th>
+                            <th>
+                                <i class="fas fa-industry me-2"></i>Bike Make
+                            </th>
+                            <th>
+                                <i class="fas fa-tag me-2"></i>Bike Model
+                            </th>
+                            <th>
+                                <i class="fas fa-info-circle me-2"></i>Status
+                            </th>
+                            <th>
+                                <i class="fas fa-calendar me-2"></i>Requested At
+                            </th>
+                            <th>
+                                <i class="fas fa-cog me-2"></i>Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="selected_requests" value="{{ request.id }}"
+                                    class="modern-checkbox">
+                            </td>
+                            <td>
+                                <strong>{{ request.user.username }}</strong>
+                            </td>
+                            <td>{{ request.bike_make }}</td>
+                            <td>{{ request.bike_model }}</td>
+                            <td>
+                                {% if request.status == 'pending' %}
+                                <span class="modern-badge pending">{{ request.status|title }}</span>
+                                {% elif request.status == 'approved' %}
+                                <span class="modern-badge approved">{{ request.status|title }}</span>
+                                {% elif request.status == 'rejected' %}
+                                <span class="modern-badge rejected">{{ request.status|title }}</span>
+                                {% else %}
+                                <span class="modern-badge secondary">{{ request.status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ request.requested_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if request.status == 'pending' %}
+                                <div class="action-forms">
+                                    <form method="post"
+                                        action="{% url 'users:admin-bike-host-request-detail' request.id %}"
+                                        style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="approve">
+                                        <button type="submit" class="modern-btn success sm">
+                                            <i class="fas fa-check"></i>
+                                            Approve
+                                        </button>
+                                    </form>
+                                    <form method="post"
+                                        action="{% url 'users:admin-bike-host-request-detail' request.id %}"
+                                        style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="reject">
+                                        <input type="text" name="notes" placeholder="Reason for rejection"
+                                            class="modern-form-control" style="width: 200px;">
+                                        <button type="submit" class="modern-btn danger sm">
+                                            <i class="fas fa-times"></i>
+                                            Reject
+                                        </button>
+                                    </form>
+                                </div>
+                                {% else %}
+                                <span class="modern-badge secondary">No Action</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div class="bulk-actions">
+                <div class="bulk-actions-title">
+                    <i class="fas fa-tasks me-2"></i>Bulk Actions:
+                </div>
+                <form method="post" action="" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="approve_selected" class="modern-btn success">
+                        <i class="fas fa-check-circle"></i>
+                        Approve Selected
+                    </button>
+                    <button type="submit" name="action" value="reject_selected" class="modern-btn danger">
+                        <i class="fas fa-times-circle"></i>
+                        Reject Selected
+                    </button>
+                    <input type="text" name="admin_notes" placeholder="Reason for rejection (for all selected)"
+                        class="modern-form-control" style="width: 300px;">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Select all functionality
+    document.getElementById('select-all').addEventListener('change', function () {
+        let checkboxes = document.getElementsByName('selected_requests');
+        for (let checkbox of checkboxes) {
+            checkbox.checked = this.checked;
+        }
+    });
+
+    // Add fade-in animation to elements as they come into view
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Apply initial styles and observe elements
+    document.querySelectorAll('.fade-in').forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        element.style.transitionDelay = `${index * 0.1}s`;
+        observer.observe(element);
+    });
+</script>
+
+{% endblock %}

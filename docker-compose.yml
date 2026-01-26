@@ -1,0 +1,30 @@
+
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: gunicorn --bind 0.0.0.0:8000 bike_rental_service.wsgi:application
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_ENV=local
+      - DATABASE_URL=postgres://sudip:sudip@123@db:5432/bike_rental_service
+      - SECRET_KEY=django-insecure-docker-dev-key
+      - DEBUG=True
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=bike_rental_service
+      - POSTGRES_USER=sudip
+      - POSTGRES_PASSWORD=sudip@123
+
+volumes:
+  postgres_data:

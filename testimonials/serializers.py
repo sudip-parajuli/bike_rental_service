@@ -2,9 +2,11 @@ from rest_framework import serializers
 from .models import Testimonial
 
 class TestimonialSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
     class Meta:
         model = Testimonial
-        fields = '__all__'
+        fields = ['id', 'user', 'content', 'rating', 'created_at']
 
     def validate_content(self, value):
         """Sanitize content to prevent XSS and enforce minimum length."""

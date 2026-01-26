@@ -12,21 +12,37 @@ from rest_framework.views import APIView
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from django.conf import settings
-from django.core.files.storage import default_storage  # Import default_storage for debugging
+from django.core.files.storage import default_storage
+from django.db.models import Sum
+from django.views import View
 
 from bikes.models import Bike
 from bookings.models import Booking
 from testimonials.models import Testimonial
-from admin_panel.models import ContactMessage  # Import the new ContactMessage model
+from admin_panel.models import ContactMessage
+from payment.models import Payment
 from .filters import UserFilter
-from .models import User, OwnerProfile, BikeOwnerRequest
-from .serializers import UserSerializer, OwnerProfileSerializer, LoginSerializer, BikeOwnerRequestSerializer
-from .permissions import IsUserOrReadOnly, IsOwnerOrAdmin
+from .models import User, hostProfile, BikehostRequest
+from .serializers import UserSerializer, hostProfileSerializer, LoginSerializer, BikehostRequestSerializer
+from .permissions import IsUserOrReadOnly, IshostOrAdmin
+from bikes.recommendations import get_recommendations_for_user
+from .forms import RegisterForm
+
+
+class HomeView(View):
+    """
+    Custom home view that redirects authenticated users to dashboard
+    and shows homepage to anonymous users.
+    """
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('users:dashboard')
+        return render(request, 'home.html')
 
 
 class DashboardView(APIView):
     """
-    Display the user dashboard with metrics, recent activity, feedback, and bike owner options.
+    Display the user dashboard with metrics, recent activity, feedback, and bike host options.
 
     * Requires: Authentication
     * Returns: Renders the dashboard template for non-API requests
@@ -36,89 +52,120 @@ class DashboardView(APIView):
     def get(self, request):
         if request.path.startswith('/api/'):
             return Response({"detail": "Method not allowed for API"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        
         user = request.user
-        total_bookings = Booking.objects.filter(user=user).count()
+        
+        # Metrics
         active_bookings = Booking.objects.filter(user=user, status='confirmed').count()
-        upcoming_bookings = Booking.objects.filter(user=user, start_date__gt=timezone.now()).count()
-        recent_bookings = Booking.objects.filter(user=user).order_by('-created_at')[:5]
-        recent_feedback = Testimonial.objects.filter(user=user).order_by('-created_at')[:5]
-
-        bike_owner_request = BikeOwnerRequest.objects.filter(user=user).order_by('-requested_at').first()
+        total_bookings = Booking.objects.filter(user=user).count()
+        upcoming_bookings = Booking.objects.filter(user=user, status='confirmed', start_date__gt=timezone.now()).count()
+        
+        # Payments
+        pending_payments_count = Payment.objects.filter(booking__user=user, status='pending').count()
+        outstanding_payment_amount = Payment.objects.filter(booking__user=user, status='pending').aggregate(Sum('amount'))['amount__sum'] or 0
+        last_payment = Payment.objects.filter(booking__user=user, status='completed').order_by('-created_at').first()
+        
+        # Next Pickup
+        next_pickup = Booking.objects.filter(user=user, status='confirmed', start_date__gt=timezone.now()).order_by('start_date').first()
+        
+        # History
+        booking_history = Booking.objects.filter(user=user).order_by('-created_at')
+        
+        # Recommendations
+        recommended_bikes = get_recommendations_for_user(user, limit=4)
+        
+        # Host Request Status
+        bike_host_request = BikehostRequest.objects.filter(user=user).order_by('-requested_at').first()
+        
+        # Special Offer Logic
+        completed_rentals_count = Booking.objects.filter(user=user, status='completed').count()
+        show_special_offer = completed_rentals_count > 0 and completed_rentals_count % 5 == 0
 
         context = {
-            'total_bookings': total_bookings,
+            'user': user,
             'active_bookings': active_bookings,
+            'total_bookings': total_bookings,
             'upcoming_bookings': upcoming_bookings,
-            'recent_bookings': recent_bookings,
-            'recent_feedback': recent_feedback,
-            'bike_owner_request': bike_owner_request,
-            'user_bikes': Bike.objects.filter(owner=user) if user.is_owner else None,
+            'pending_payments_count': pending_payments_count,
+            'outstanding_payment_amount': outstanding_payment_amount,
+            'last_payment': last_payment,
+            'next_pickup': next_pickup,
+            'booking_history': booking_history,
+            'recommended_bikes': recommended_bikes,
+            'bike_host_request': bike_host_request,
+            'show_special_offer': show_special_offer,
         }
         return render(request, 'users/dashboard.html', context)
 
 
-class BikeOwnerDashboardView(APIView):
+class BikehostDashboardView(APIView):
     """
-    Display the bike owner dashboard with detailed metrics, bike listings, pending bookings, and booking history.
+    Display the bike host dashboard.
 
-    * Requires: Authentication and is_owner = True
-    * Returns: Renders the owner dashboard template for non-API requests
+    * Requires: Authentication and Host/Admin permissions
+    * Returns: Renders the host dashboard template
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IshostOrAdmin]
 
     def get(self, request):
         if request.path.startswith('/api/'):
-            return Response({"detail": "Method not allowed for API"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        if not request.user.is_owner:
-            messages.error(request, "You are not authorized to access the owner dashboard.")
-            return redirect('users:dashboard')
-
-        user = request.user
-        user_bikes = Bike.objects.filter(owner=user)
-        owner_profile = OwnerProfile.objects.get_or_create(user=user)[0]
-
-        # Pending booking requests for the owner's bikes
-        pending_bookings = Booking.objects.filter(
-            bike__owner=user,
-            status='pending'
-        ).order_by('-created_at')[:5]
-
-        # Recent confirmed or completed bookings for the owner's bikes
-        recent_bookings = Booking.objects.filter(
-            bike__owner=user,
-            status__in=['confirmed', 'completed']
-        ).order_by('-created_at')[:5]
-
-        # Calculate active listings (bikes that are available and approved)
-        active_listings = user_bikes.filter(availability_status=True, is_approved=True).count()
-
+             return Response({"detail": "Method not allowed for API"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        
+        # Add host specific logic here
+        user_bikes = Bike.objects.filter(host=request.user)
+        
+        # Fetch bookings for the host's bikes
+        host_bookings = Booking.objects.filter(bike__in=user_bikes).order_by('-created_at')
+        
+        # Pending bookings (requests)
+        pending_bookings = host_bookings.filter(status='pending')
+        
+        # Recent bookings (confirmed, completed, cancelled)
+        recent_bookings = host_bookings.exclude(status='pending')
+        
+        # Calculate total earnings from completed and paid bookings
+        total_earnings = host_bookings.filter(
+            status='completed', 
+            payment_status='paid'
+        ).aggregate(Sum('total_price'))['total_price__sum'] or 0
+        
+        # Active listings count
+        active_listings = user_bikes.filter(availability_status=True).count()
+        
         context = {
+            'user': request.user,
             'user_bikes': user_bikes,
-            'total_earnings': owner_profile.total_earnings,
-            'total_bookings': owner_profile.total_bookings,
             'pending_bookings': pending_bookings,
             'recent_bookings': recent_bookings,
+            'total_earnings': total_earnings,
             'active_listings': active_listings,
+            'total_bookings': host_bookings.count(),
         }
-        return render(request, 'users/bike_owner_dashboard.html', context)
+        return render(request, 'users/bike_host_dashboard.html', context)
 
 
-class BikeOwnerRequestView(APIView):
+class BikehostRequestView(APIView):
+    """
+    Handle requests to become a bike host.
+
+    * Requires: Authentication
+    * Returns: Renders the bike host request form
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         if request.path.startswith('/api/'):
             return Response({"detail": "Method not allowed for API"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        if request.user.is_owner:
-            messages.info(request, "You are already a bike owner.")
+        if request.user.is_host:
+            messages.info(request, "You are already a bike host.")
             return redirect('users:dashboard')
 
-        bike_owner_request = BikeOwnerRequest.objects.filter(user=request.user).order_by('-requested_at').first()
-        if bike_owner_request and bike_owner_request.status == 'approved':
+        bike_host_request = BikehostRequest.objects.filter(user=request.user).order_by('-requested_at').first()
+        if bike_host_request and bike_host_request.status == 'approved':
             messages.info(request,
                           "Your request has been approved. You can now list your bike (dashboard to be implemented).")
             return redirect('users:dashboard')
-        elif bike_owner_request and bike_owner_request.status == 'pending':
+        elif bike_host_request and bike_host_request.status == 'pending':
             messages.info(request, "You already have a pending request. Please wait for admin review.")
             return redirect('users:dashboard')
 
@@ -128,63 +175,62 @@ class BikeOwnerRequestView(APIView):
             'bike_year': '',
             'bike_registration_number': '',
         }
-        if bike_owner_request and bike_owner_request.status == 'rejected':
+        if bike_host_request and bike_host_request.status == 'rejected':
             initial_data.update({
-                'bike_make': bike_owner_request.bike_make or '',
-                'bike_model': bike_owner_request.bike_model or '',
-                'bike_year': bike_owner_request.bike_year or '',
-                'bike_registration_number': bike_owner_request.bike_registration_number or '',
+                'bike_make': bike_host_request.bike_make or '',
+                'bike_model': bike_host_request.bike_model or '',
+                'bike_year': bike_host_request.bike_year or '',
+                'bike_registration_number': bike_host_request.bike_registration_number or '',
             })
         context = {
             'initial_data': initial_data,
             'current_year': timezone.now().year,
-            'bike_owner_request': bike_owner_request
+            'bike_host_request': bike_host_request
         }
-        print("Context for bike_owner_request.html:", context)
-        return render(request, 'users/bike_owner_request.html', context)
+        return render(request, 'users/bike_host_request.html', context)
 
     def post(self, request):
         if request.path.startswith('/api/'):
             return Response({"detail": "Method not allowed for API"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        if request.user.is_owner:
-            messages.info(request, "You are already a bike owner.")
+        if request.user.is_host:
+            messages.info(request, "You are already a bike host.")
             return redirect('users:dashboard')
 
-        bike_owner_request = BikeOwnerRequest.objects.filter(user=request.user).order_by('-requested_at').first()
-        if bike_owner_request and bike_owner_request.status == 'approved':
+        bike_host_request = BikehostRequest.objects.filter(user=request.user).order_by('-requested_at').first()
+        if bike_host_request and bike_host_request.status == 'approved':
             messages.info(request,
                           "Your request has been approved. You can now list your bike (dashboard to be implemented).")
             return redirect('users:dashboard')
-        elif bike_owner_request and bike_owner_request.status == 'pending':
+        elif bike_host_request and bike_host_request.status == 'pending':
             messages.info(request, "You already have a pending request. Please wait for admin review.")
             return redirect('users:dashboard')
 
         serializer_data = request.POST.copy()
         serializer_data.update(request.FILES)
-        serializer = BikeOwnerRequestSerializer(data=serializer_data, context={'request': request})
+        serializer = BikehostRequestSerializer(data=serializer_data, context={'request': request})
         if serializer.is_valid():
-            if bike_owner_request and bike_owner_request.status == 'rejected':
-                bike_owner_request.bike_make = serializer.validated_data['bike_make']
-                bike_owner_request.bike_model = serializer.validated_data['bike_model']
-                bike_owner_request.bike_year = serializer.validated_data['bike_year']
-                bike_owner_request.bike_registration_number = serializer.validated_data['bike_registration_number']
+            if bike_host_request and bike_host_request.status == 'rejected':
+                bike_host_request.bike_make = serializer.validated_data['bike_make']
+                bike_host_request.bike_model = serializer.validated_data['bike_model']
+                bike_host_request.bike_year = serializer.validated_data['bike_year']
+                bike_host_request.bike_registration_number = serializer.validated_data['bike_registration_number']
                 if 'registration_certificate' in request.FILES:
-                    bike_owner_request.registration_certificate = request.FILES['registration_certificate']
+                    bike_host_request.registration_certificate = request.FILES['registration_certificate']
                 if 'insurance_certificate' in request.FILES:
-                    bike_owner_request.insurance_certificate = request.FILES['insurance_certificate']
+                    bike_host_request.insurance_certificate = request.FILES['insurance_certificate']
                 if 'id_proof' in request.FILES:
-                    bike_owner_request.id_proof = request.FILES['id_proof']
+                    bike_host_request.id_proof = request.FILES['id_proof']
                 if 'bike_photos' in request.FILES:
-                    bike_owner_request.bike_photos = request.FILES['bike_photos']
-                bike_owner_request.status = 'pending'
-                bike_owner_request.requested_at = timezone.now()
-                bike_owner_request.reviewed_at = None
-                bike_owner_request.admin_notes = None
-                bike_owner_request.save()
+                    bike_host_request.bike_photos = request.FILES['bike_photos']
+                bike_host_request.status = 'pending'
+                bike_host_request.requested_at = timezone.now()
+                bike_host_request.reviewed_at = None
+                bike_host_request.admin_notes = None
+                bike_host_request.save()
                 messages.success(request, "Your request has been updated and resubmitted for review.")
             else:
                 validated_data = serializer.validated_data
-                request_instance = BikeOwnerRequest(
+                request_instance = BikehostRequest(
                     user=request.user,
                     bike_make=validated_data['bike_make'],
                     bike_model=validated_data['bike_model'],
@@ -195,19 +241,11 @@ class BikeOwnerRequestView(APIView):
                     id_proof=validated_data['id_proof'],
                     bike_photos=validated_data['bike_photos'],
                 )
-                # Debug: Print MEDIA_ROOT and storage location before saving
-                print("MEDIA_ROOT before saving:", settings.MEDIA_ROOT)
-                print("Default Storage Location:", default_storage.location)
                 request_instance.save()
-                # Debug: Print the absolute file paths after saving
-                print("Saved Registration Certificate Path:", request_instance.registration_certificate.path)
-                print("Saved Insurance Certificate Path:", request_instance.insurance_certificate.path)
-                print("Saved ID Proof Path:", request_instance.id_proof.path)
-                print("Saved Bike Photos Path:", request_instance.bike_photos.path)
-                admin_email = 'admin@example.com'
+                admin_email = 'sparajuli802@gmail.com'
                 send_mail(
-                    'New Bike Owner Request',
-                    f'A new bike owner request has been submitted by {request.user.username}. Review it at /admin/users/bikeownerrequest/{request_instance.id}/change/.',
+                    'New Bike host Request',
+                    f'A new bike host request has been submitted by {request.user.username}. Review it at /admin/users/bikehostrequest/{request_instance.id}/change/.',
                     'from@example.com',
                     [admin_email],
                     fail_silently=True,
@@ -219,16 +257,14 @@ class BikeOwnerRequestView(APIView):
             'initial_data': request.POST if request.POST else {'bike_make': '', 'bike_model': '', 'bike_year': '',
                                                                'bike_registration_number': ''},
             'current_year': timezone.now().year,
-            'bike_owner_request': bike_owner_request
+            'bike_host_request': bike_host_request
         }
-        print("Context for bike_owner_request.html (POST error):", context)
-        print("Serializer errors:", serializer.errors)
-        return render(request, 'users/bike_owner_request.html', context)
+        return render(request, 'users/bike_host_request.html', context)
 
 
-class AdminBikeOwnerRequestListView(generics.ListAPIView):
-    queryset = BikeOwnerRequest.objects.all()
-    serializer_class = BikeOwnerRequestSerializer
+class AdminBikehostRequestListView(generics.ListAPIView):
+    queryset = BikehostRequest.objects.all()
+    serializer_class = BikehostRequestSerializer
     permission_classes = [IsAdminUser]
     pagination_class = PageNumberPagination
 
@@ -236,17 +272,17 @@ class AdminBikeOwnerRequestListView(generics.ListAPIView):
         if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
             return super().get(request, *args, **kwargs)
         requests = self.get_queryset()
-        return render(request, 'users/admin_bike_owner_request_list.html', {'requests': requests})
+        return render(request, 'users/admin_bike_host_request_list.html', {'requests': requests})
 
     def post(self, request, pk):
-        request_instance = get_object_or_404(BikeOwnerRequest, pk=pk)
+        request_instance = get_object_or_404(BikehostRequest, pk=pk)
         action = request.POST.get('action')
         notes = request.POST.get('notes', '')
         if action == 'approve':
             request_instance.approve()
             send_mail(
-                'Bike Owner Request Approved',
-                f'Your request to become a bike owner has been approved. You can now list your bike (dashboard to be implemented).',
+                'Bike host Request Approved',
+                f'Your request to become a bike host has been approved. You can now list your bike (dashboard to be implemented).',
                 'from@example.com',
                 [request_instance.user.email],
                 fail_silently=True,
@@ -255,14 +291,14 @@ class AdminBikeOwnerRequestListView(generics.ListAPIView):
         elif action == 'reject':
             request_instance.reject(notes)
             send_mail(
-                'Bike Owner Request Rejected',
-                f'Your request to become a bike owner has been rejected. Reason: {notes}. You can update and resubmit your request.',
+                'Bike host Request Rejected',
+                f'Your request to become a bike host has been rejected. Reason: {notes}. You can update and resubmit your request.',
                 'from@example.com',
                 [request_instance.user.email],
                 fail_silently=True,
             )
             messages.success(request, f"Request for {request_instance.user.username} rejected.")
-        return redirect('users:admin-bike-owner-request-list')
+        return redirect('users:admin-bike-host-request-list')
 
 
 class UserListView(generics.ListAPIView):
@@ -337,43 +373,37 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
         return redirect('users:user-detail')
 
 
-class RegisterUserView(APIView):
+
+class RegisterView(APIView):
     """
     Register a new user.
-
-    * Requires: None (public access) for API, template rendering for non-API
-    * Returns: JSON with token and user data for API, renders registration form or redirects for non-API
     """
     permission_classes = [AllowAny]
     throttle_scope = 'register'
 
-    def post(self, request):
-        serializer = UserSerializer(data=request.data if request.content_type == 'application/json' else request.POST)
-
-        if serializer.is_valid():
-            user = serializer.save()
-            token, created = Token.objects.get_or_create(user=user)
-            if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
-                # Return JSON for API requests (e.g., /api/user/register/)
-                return Response({"token": token.key, "user": serializer.data}, status=status.HTTP_201_CREATED)
-            else:
-                # Handle non-API POST (e.g., form submission to /register/)
-                login(request, user)
-                messages.success(request, f"Welcome, {user.username}! Registration successful.")
-                return redirect('home')  # Redirect to homepage after successful registration
-        else:
-            if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
-                # Return JSON errors for API requests
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                # Render template with errors for non-API requests
-                return render(request, 'users/register.html', {'errors': serializer.errors}, status=400)
-
     def get(self, request):
-        if request.path.startswith('/api/'):
-            return Response({"detail": "Method not allowed for API"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        # Render template for non-API GET requests (e.g., /register/)
-        return render(request, 'users/register.html')
+        if request.user.is_authenticated:
+            return redirect('home')
+        return render(request, 'users/register.html', {'form': RegisterForm()})
+
+    def post(self, request):
+        if request.user.is_authenticated:
+            return redirect('home')
+
+        # Check for API request
+        if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
+             # For API, we'd typically use a serializer, keeping simple for inconsistencies
+             return Response({"detail": "Use /api/auth/registration/ for API registration."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            messages.success(request, f"Account created successfully! Welcome, {user.username}.")
+            return redirect('home')
+        
+        return render(request, 'users/register.html', {'form': form, 'errors': form.errors})
+
 
 
 class LoginView(APIView):
@@ -393,13 +423,14 @@ class LoginView(APIView):
                                 password=request.data.get('password') or request.POST.get('password'))
             if user:
                 login(request, user)
-                token, created = Token.objects.get_or_create(user=user)
                 if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
-                    # Return JSON for API requests (e.g., /api/user/login/)
-                    return Response({"token": token.key, "user": UserSerializer(user).data}, status=status.HTTP_200_OK)
+                    # API consumers should use /api/auth/login/ for JWT
+                    return Response({"detail": "Please use /api/auth/login/ for API authentication."}, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     # Handle non-API POST (e.g., form submission to /login/)
                     messages.success(request, f"Welcome back, {user.username}!")
+                    if user.is_staff or user.is_superuser:
+                        return redirect('admin_panel:dashboard')
                     return redirect('home')  # Redirect to homepage after successful login
             if request.path.startswith('/api/'):
                 return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -429,18 +460,6 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Check if a token exists before attempting to delete
-        try:
-            if hasattr(request.user, 'auth_token'):
-                request.user.auth_token.delete()
-            else:
-                # Create a new token if none exists (optional, for robustness)
-                token, created = Token.objects.get_or_create(user=request.user)
-                if not created:
-                    token.delete()
-        except Token.DoesNotExist:
-            print("No token found for user, proceeding with logout.")
-
         logout(request)
 
         if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
@@ -458,15 +477,15 @@ class LogoutView(APIView):
         return render(request, 'users/logout.html', {'username': request.user.username})
 
 
-class OwnerProfileListView(generics.ListCreateAPIView):
+class hostProfileListView(generics.ListCreateAPIView):
     """
-    List all owner profiles or create a new one.
+    List all host profiles or create a new one.
 
     * Requires: Authentication (admin for listing, user for creation) for API, template rendering for non-API
-    * Returns: JSON list of owner profiles or new profile data for API, renders template for non-API
+    * Returns: JSON list of host profiles or new profile data for API, renders template for non-API
     """
-    queryset = OwnerProfile.objects.all()
-    serializer_class = OwnerProfileSerializer
+    queryset = hostProfile.objects.all()
+    serializer_class = hostProfileSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = PageNumberPagination
 
@@ -474,26 +493,26 @@ class OwnerProfileListView(generics.ListCreateAPIView):
         if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
             return super().get(request, *args, **kwargs)
         profiles = self.get_queryset()
-        return render(request, 'users/owner_profile_list.html', {'profiles': profiles})
+        return render(request, 'users/host_profile_list.html', {'profiles': profiles})
 
 
-class OwnerProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
+class hostProfileDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
-    Retrieve, update, or delete an owner profile.
+    Retrieve, update, or delete an host profile.
 
-    * Requires: Authentication (only owner or admin can view/modify) for API, template rendering for non-API
-    * Returns: JSON owner profile data for API, renders template for non-API
+    * Requires: Authentication (only host or admin can view/modify) for API, template rendering for non-API
+    * Returns: JSON host profile data for API, renders template for non-API
     """
-    queryset = OwnerProfile.objects.all()
-    serializer_class = OwnerProfileSerializer
-    permission_classes = [IsOwnerOrAdmin]
+    queryset = hostProfile.objects.all()
+    serializer_class = hostProfileSerializer
+    permission_classes = [IshostOrAdmin]
     pagination_class = PageNumberPagination
 
     def get(self, request, *args, **kwargs):
         if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
             return super().get(request, *args, **kwargs)
         profile = self.get_object()
-        return render(request, 'users/owner_profile_detail.html', {'profile': profile})
+        return render(request, 'users/host_profile_detail.html', {'profile': profile})
 
 
 class ContactView(APIView):
@@ -592,3 +611,29 @@ class ContactView(APIView):
                 return Response({"detail": error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             messages.error(request, error_message)
             return render(request, 'users/contact.html', {'form_data': request.POST})
+
+from .forms import PhoneNumberForm
+
+class AddPhoneNumberView(APIView):
+    """
+    View to enforce mobile number collection.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.phone_number:
+            return redirect('users:dashboard')
+        form = PhoneNumberForm(instance=request.user)
+        return render(request, 'users/add_phone_number.html', {'form': form})
+
+    def post(self, request):
+        if request.user.phone_number:
+            return redirect('users:dashboard')
+        
+        form = PhoneNumberForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Phone number added successfully.")
+            return redirect('users:dashboard')
+        
+        return render(request, 'users/add_phone_number.html', {'form': form})

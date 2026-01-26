@@ -2,44 +2,461 @@
 {% block content %}
 {% load static %}
 
-<div class="container mt-5">
-    <h1 class="mb-4">Book a Bike</h1>
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-    <form method="POST" action="{% url 'bookings:booking-create' %}" id="booking-form">
-        {% csrf_token %}
+<style>
+    /* Booking Create Styles - Premium Light Theme */
+    .booking-section {
+        min-height: 100vh;
+        background: transparent;
+        position: relative;
+        padding: 8rem 0 4rem;
+    }
+
+    .booking-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .booking-title {
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, #1e293b, #475569);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .booking-subtitle {
+        text-align: center;
+        color: #64748b;
+        font-size: 1.1rem;
+        margin-bottom: 3rem;
+        line-height: 1.6;
+    }
+
+    .booking-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 3rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .booking-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
+    }
+
+    .modern-alert {
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid;
+    }
+
+    .modern-alert.success {
+        background: #ecfdf5;
+        border-color: #a7f3d0;
+        color: #059669;
+    }
+
+    .modern-alert.warning {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #d97706;
+    }
+
+    .modern-alert.danger {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #dc2626;
+    }
+
+    .modern-alert.info {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: #2563eb;
+    }
+
+    .modern-form-group {
+        margin-bottom: 2rem;
+    }
+
+    .modern-form-label {
+        display: block;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .modern-form-control {
+        width: 100%;
+        padding: 0.875rem 1.25rem;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        color: #1e293b;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .modern-form-control:focus {
+        outline: none;
+        background: #ffffff;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        color: #1e293b;
+        transform: translateY(-1px);
+    }
+
+    .modern-form-control::placeholder {
+        color: #94a3b8;
+    }
+
+    .modern-form-control option {
+        background: #ffffff;
+        color: #1e293b;
+    }
+
+    .bike-info {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        color: #2563eb;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .modern-btn {
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .modern-btn.primary {
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+    }
+
+    .modern-btn.primary:hover {
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+        color: white;
+    }
+
+    .modern-btn.secondary {
+        background: #ffffff;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .modern-btn.secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #1e293b;
+    }
+
+    .error-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #64748b;
+    }
+
+    .error-state i {
+        font-size: 4rem;
+        color: #fda4af;
+        margin-bottom: 1rem;
+    }
+
+    .error-state h3 {
+        color: #1e293b;
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+
+    .error-state p {
+        margin-bottom: 2rem;
+        color: #64748b;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 3rem;
+        flex-wrap: wrap;
+    }
+
+    /* Custom styling for datetime inputs */
+    .datetime-input {
+        position: relative;
+    }
+    
+    .datetime-input input {
+        padding-right: 2.5rem; /* Make space for icon */
+    }
+
+    .datetime-input::before {
+        content: '\f073';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .booking-section {
+            padding: 6rem 0 2rem;
+        }
+
+        .booking-container {
+            padding: 0 1rem;
+        }
+
+        .booking-card {
+            padding: 1.5rem;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modern-btn {
+            width: 100%;
+            max-width: 300px;
+            justify-content: center;
+        }
+    }
+
+    /* Animation classes */
+    .fade-in {
+        animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Flatpickr custom styling for Light Theme */
+    .flatpickr-calendar {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+    
+    .flatpickr-months {
+        background: #f8fafc !important;
+        border-radius: 16px 16px 0 0 !important;
+        padding-top: 10px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+    
+    .flatpickr-current-month .flatpickr-monthDropdown-months,
+    .flatpickr-current-month input.cur-year {
+        color: #1e293b !important;
+        font-weight: 600 !important;
+    }
+    
+    .flatpickr-months .flatpickr-prev-month svg, 
+    .flatpickr-months .flatpickr-next-month svg {
+        fill: #64748b !important;
+    }
+
+    .flatpickr-day {
+        color: #475569 !important;
+        border-radius: 8px !important;
+    }
+    
+    .flatpickr-day.today {
+        border-color: #cbd5e1 !important;
+    }
+
+    .flatpickr-day:hover {
+        background: #eff6ff !important;
+        border-color: #bfdbfe !important;
+    }
+
+    .flatpickr-day.selected,
+    .flatpickr-day.startRange,
+    .flatpickr-day.endRange {
+        background: #2563eb !important;
+        color: white !important;
+        border-color: #2563eb !important;
+    }
+    
+    .flatpickr-weekday {
+        color: #94a3b8 !important;
+        font-weight: 600 !important;
+    }
+
+    .flatpickr-time input {
+        color: #1e293b !important;
+    }
+    
+    .flatpickr-time .flatpickr-time-separator,
+    .flatpickr-time .flatpickr-am-pm {
+        color: #64748b !important;
+    }
+
+</style>
+
+<div class="booking-section">
+    <div class="booking-container">
+        <h1 class="booking-title fade-in">Book Your Ride</h1>
+        <p class="booking-subtitle fade-in">
+            Ready for your next adventure? Fill out the details below to book your perfect bike.
+        </p>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="fade-in">
+                {% for message in messages %}
+                    <div class="modern-alert {{ message.tags }}">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         {% if bike %}
-            <div class="mb-3">
-                <label class="form-label">Bike</label>
-                {{ form.bike }}
-                <p class="form-control-plaintext">{{ bike.brand }} {{ bike.name }}</p>
+            <div class="booking-card fade-in">
+                <form method="POST" action="{% url 'bookings:booking-create' %}" id="booking-form">
+                    {% csrf_token %}
+
+                    <div class="modern-form-group">
+                        <label class="modern-form-label">
+                            <i class="fas fa-motorcycle me-2"></i>Selected Bike
+                        </label>
+                        {{ form.bike }}
+                        <div class="bike-info">
+                            <i class="fas fa-check-circle me-2"></i>
+                            {{ bike.brand }} {{ bike.name }}
+                        </div>
+                    </div>
+
+                    <div class="modern-form-group">
+                        <label for="id_start_date" class="modern-form-label">
+                            <i class="fas fa-calendar-plus me-2"></i>Start Date & Time
+                        </label>
+                        <div class="datetime-input">
+                            {{ form.start_date }}
+                        </div>
+                    </div>
+
+                    <div class="modern-form-group">
+                        <label for="id_end_date" class="modern-form-label">
+                            <i class="fas fa-calendar-minus me-2"></i>End Date & Time
+                        </label>
+                        <div class="datetime-input">
+                            {{ form.end_date }}
+                        </div>
+                    </div>
+
+                    <div class="modern-form-group">
+                        <label for="id_pickup_location" class="modern-form-label">
+                            <i class="fas fa-map-marker-alt me-2"></i>Pickup Location
+                        </label>
+                        {{ form.pickup_location }}
+                    </div>
+
+                    <div class="modern-form-group">
+                        <label for="id_payment_option" class="modern-form-label">
+                            <i class="fas fa-credit-card me-2"></i>Payment Option
+                        </label>
+                        {{ form.payment_option }}
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="modern-btn primary">
+                            <i class="fas fa-calendar-check"></i>
+                            Book Now
+                        </button>
+                        <a href="{% url 'bikes:bike-list' %}" class="modern-btn secondary">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Bikes
+                        </a>
+                    </div>
+                </form>
             </div>
         {% else %}
-            <p class="text-danger">No bike selected. Please try booking again from a bike card.</p>
-            <a href="{% url 'bikes:bike-list' %}" class="btn btn-primary mt-3">Back to Bikes</a>
+            <div class="booking-card fade-in">
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>No Bike Selected</h3>
+                    <p>Please select a bike from our collection to proceed with booking.</p>
+                    <a href="{% url 'bikes:bike-list' %}" class="modern-btn primary">
+                        <i class="fas fa-motorcycle"></i>
+                        Browse Bikes
+                    </a>
+                </div>
+            </div>
         {% endif %}
-        <div class="mb-3">
-            <label for="id_start_date" class="form-label">Start Date & Time</label>
-            {{ form.start_date }}
-        </div>
-        <div class="mb-3">
-            <label for="id_end_date" class="form-label">End Date & Time</label>
-            {{ form.end_date }}
-        </div>
-        <div class="mb-3">
-            <label for="id_pickup_location" class="form-label">Pickup Location</label>
-            {{ form.pickup_location }}
-        </div>
-        <div class="mb-3">
-            <label for="id_payment_option" class="form-label">Payment Option</label>
-            {{ form.payment_option }}
-        </div>
-        <button type="submit" class="btn btn-primary">Book Now</button>
-    </form>
+    </div>
 </div>
+
+<script>
+    // Add fade-in animation to elements as they come into view
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Apply initial styles and observe elements
+    document.querySelectorAll('.fade-in').forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        element.style.transitionDelay = `${index * 0.1}s`;
+        observer.observe(element);
+    });
+</script>
 
 {% block extra_scripts %}
 <!-- Add Flatpickr CSS and JS via CDN -->
@@ -48,6 +465,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('booking-form');
+        if (!form) return;  // Skip if form doesn't exist
         const startDateInput = document.getElementById('id_start_date');
         const endDateInput = document.getElementById('id_end_date');
         const unavailableDates = {{ unavailable_dates|safe }};
@@ -55,12 +473,10 @@
         // Convert unavailable dates to Flatpickr's disable format
         const disabledDates = [];
         unavailableDates.forEach(range => {
-            // Add the full range
             disabledDates.push({
-                from: new Date(range.start).toISOString().split('T')[0], // Date only for consistency
+                from: new Date(range.start).toISOString().split('T')[0],
                 to: new Date(range.end).toISOString().split('T')[0]
             });
-            // Explicitly add the start_date as a single day
             disabledDates.push(new Date(range.start).toISOString().split('T')[0]);
         });
 
@@ -109,6 +525,12 @@
                 event.preventDefault();
                 return false;
             }
+        });
+
+        // Style form controls
+        const formControls = document.querySelectorAll('#booking-form input, #booking-form select, #booking-form textarea');
+        formControls.forEach(control => {
+            control.classList.add('modern-form-control');
         });
     });
 </script>

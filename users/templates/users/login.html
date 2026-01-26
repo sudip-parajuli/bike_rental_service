@@ -1,33 +1,397 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load socialaccount %}
 {% block content %}
-<div class="container" style="padding-top: 56px;">
-    <h2 class="text-center mb-5">Login</h2>
-    <form method="POST" action="{% url 'users:login' %}" class="needs-validation" novalidate>
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="username" name="username" required>
-            <div class="invalid-feedback">Please enter a username.</div>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" required>
-            <div class="invalid-feedback">Please enter a password.</div>
-        </div>
-        {% if errors %}
-            <div class="alert alert-danger">
-                {{ errors }}
+
+<style>
+    /* Login Page Styles - Light Theme */
+    .login-section {
+        min-height: 100vh;
+        background: transparent;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8rem 2rem 4rem;
+    }
+
+    .login-container {
+        max-width: 450px;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+    }
+
+    .login-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 2.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .login-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
+    }
+
+    .login-title {
+        font-size: clamp(2rem, 5vw, 2.5rem);
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .login-icon {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .login-icon i {
+        font-size: 3rem;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .modern-form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .modern-form-label {
+        display: block;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .modern-form-control {
+        width: 100%;
+        padding: 0.875rem 1.25rem;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        color: #1e293b;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .modern-form-control:focus {
+        outline: none;
+        background: #ffffff;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        color: #1e293b;
+        transform: translateY(-1px);
+    }
+
+    .modern-form-control::placeholder {
+        color: #94a3b8;
+    }
+
+    .modern-form-control.is-invalid {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    .invalid-feedback {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+
+    .modern-form-control.is-invalid + .invalid-feedback {
+        display: block;
+    }
+
+    .modern-btn {
+        width: 100%;
+        padding: 0.875rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+        cursor: pointer;
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+        color: white;
+    }
+
+    .modern-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .modern-alert {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        color: #dc2626;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .register-link {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .register-link a {
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .register-link a:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+    }
+    
+    .register-link p {
+        color: #64748b;
+    }
+
+    .input-icon {
+        position: relative;
+    }
+
+    .input-icon i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        z-index: 1;
+        transition: color 0.3s ease;
+    }
+    
+    .input-icon:focus-within i {
+        color: #2563eb;
+    }
+
+    .input-icon .modern-form-control {
+        padding-left: 3rem;
+    }
+
+    .welcome-text {
+        text-align: center;
+        color: #64748b;
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+    
+    /* Social Login Styles */
+    .social-google {
+        background: #ffffff !important;
+        color: #475569 !important;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .social-google:hover {
+        background: #f8fafc !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        color: #1e293b !important;
+    }
+
+    .social-google i {
+        color: #ea4335;
+        font-size: 1.2rem;
+    }
+
+    .auth-separator {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        margin: 1.5rem 0;
+        color: #94a3b8;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .auth-separator::before,
+    .auth-separator::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .auth-separator:not(:empty)::before {
+        margin-right: 1rem;
+    }
+
+    .auth-separator:not(:empty)::after {
+        margin-left: 1rem;
+    }
+
+    /* Floating Particles */
+    .particles-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #cbd5e1;
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .particle:nth-child(2n) {
+        background: #e2e8f0;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
+        50% { transform: translateY(-100px) rotate(180deg); opacity: 1; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .login-section {
+            padding: 6rem 1rem 2rem;
+        }
+
+        .login-card {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<div class="login-section">
+    <!-- Floating Particles Background -->
+    <div class="particles-bg" id="particles-bg"></div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-icon">
+                <i class="fas fa-sign-in-alt"></i>
             </div>
-        {% endif %}
-        <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-    <div class="text-center mt-3">
-        <a href="{% url 'users:register' %}" class="text-decoration-none"><u>Don't have an account? Register here.</u></a>
+            <h2 class="login-title">Welcome Back</h2>
+            <p class="welcome-text">Sign in to your EasyMoto account</p>
+
+            <a href="{% provider_login_url 'google' %}" class="modern-btn social-google">
+                <i class="fab fa-google"></i>
+                Continue with Google
+            </a>
+
+            <div class="auth-separator">OR</div>
+
+            <form method="POST" action="{% url 'users:login' %}" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                <div class="modern-form-group">
+                    <label for="username" class="modern-form-label">
+                        <i class="fas fa-user me-2"></i>Username
+                    </label>
+                    <div class="input-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text"
+                               class="modern-form-control"
+                               id="username"
+                               name="username"
+                               placeholder="Enter your username"
+                               required>
+                        <div class="invalid-feedback">Please enter a username.</div>
+                    </div>
+                </div>
+
+                <div class="modern-form-group">
+                    <label for="password" class="modern-form-label">
+                        <i class="fas fa-lock me-2"></i>Password
+                    </label>
+                    <div class="input-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password"
+                               class="modern-form-control"
+                               id="password"
+                               name="password"
+                               placeholder="Enter your password"
+                               required>
+                        <div class="invalid-feedback">Please enter a password.</div>
+                    </div>
+                </div>
+
+                {% if errors %}
+                    <div class="modern-alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ errors }}
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="modern-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
+                </button>
+            </form>
+
+            <div class="register-link">
+                <p>New to EasyMoto? Use <strong>Google Login</strong> to get started instantly.</p>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
+    // Particle Animation
+    function createParticles() {
+        const particlesContainer = document.getElementById('particles-bg');
+        const particleCount = 20;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (6 + Math.random() * 4) + 's';
+            particlesContainer.appendChild(particle);
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        createParticles();
+    });
+
+    // Form validation
     (function() {
         'use strict';
         const forms = document.querySelectorAll('.needs-validation');
@@ -41,5 +405,17 @@
             }, false);
         });
     })();
+
+    // Add loading state to button on form submit
+    const form = document.querySelector('form');
+    const submitBtn = document.querySelector('.modern-btn');
+
+    form.addEventListener('submit', function() {
+        if (form.checkValidity()) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+        }
+    });
 </script>
+
 {% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block page_subtitle %}Everything is looking good today.{% endblock %}
+
+{% block admin_content %}
+<!-- Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon icon-blue">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Total Users</h3>
+            <div>{{ total_users }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-purple">
+            <i class="fas fa-motorcycle"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Active Bookings</h3>
+            <div>{{ active_bookings }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-green">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Revenue</h3>
+            <div>Rs. {{ total_revenue }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-orange">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Pending Tasks</h3>
+            <div>5</div> <!-- Placeholder for now -->
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="content-card">
+    <div class="card-header">
+        <h2 class="card-title">Recent Bookings</h2>
+        <a href="{% url 'admin_panel:booking-list' %}" style="color: var(--accent-color); text-decoration: none; font-size: 0.875rem;">View All</a>
+    </div>
+    <div class="table-container">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-dim); text-align: left;">
+                    <th style="padding: 1rem;">Booking ID</th>
+                    <th style="padding: 1rem;">User</th>
+                    <th style="padding: 1rem;">Bike</th>
+                    <th style="padding: 1rem;">Status</th>
+                    <th style="padding: 1rem;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in recent_bookings %}
+                <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.3s ease;">
+                    <td style="padding: 1rem;">#{{ booking.id }}</td>
+                    <td style="padding: 1rem;">{{ booking.user.username }}</td>
+                    <td style="padding: 1rem;">{{ booking.bike.brand }} {{ booking.bike.model }}</td>
+                    <td style="padding: 1rem;">
+                        <span style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.75rem;">
+                            {{ booking.status|title }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">Rs. {{ booking.total_price }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-dim);">No recent bookings found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -6,7 +6,8 @@ class BikeFilter(django_filters.FilterSet):
     brand = django_filters.CharFilter(lookup_expr='icontains')
     type = django_filters.CharFilter(lookup_expr='icontains')
     availability_status = django_filters.BooleanFilter()
+    is_featured = django_filters.BooleanFilter()
 
     class Meta:
         model = Bike
-        fields = ['name', 'brand', 'type', 'availability_status']
+        fields = ['name', 'brand', 'type', 'availability_status', 'is_featured']

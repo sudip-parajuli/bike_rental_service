@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
-from .models import User, OwnerProfile, BikeOwnerRequest
+from .models import User, hostProfile, BikehostRequest
 from django.utils import timezone
 from django.contrib.auth.password_validation import validate_password
 
@@ -13,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'username', 'email', 'password', 'password_confirm', 'first_name', 'last_name',
-            'is_owner', 'phone_number', 'address', 'profile_picture'
+            'is_host', 'phone_number', 'address', 'profile_picture'
         ]
 
     def validate(self, data):
@@ -62,9 +62,9 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
 
-class OwnerProfileSerializer(serializers.ModelSerializer):
+class hostProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OwnerProfile
+        model = hostProfile
         fields = '__all__'
 
     def validate_bank_account_details(self, value):
@@ -87,9 +87,9 @@ class LoginSerializer(serializers.Serializer):
         return {'token': token.key, 'user': UserSerializer(user).data}
 
 
-class BikeOwnerRequestSerializer(serializers.ModelSerializer):
+class BikehostRequestSerializer(serializers.ModelSerializer):
     class Meta:
-        model = BikeOwnerRequest
+        model = BikehostRequest
         fields = [
             'bike_make', 'bike_model', 'bike_year', 'bike_registration_number',
             'registration_certificate', 'insurance_certificate', 'id_proof', 'bike_photos',
@@ -170,4 +170,4 @@ class BikeOwnerRequestSerializer(serializers.ModelSerializer):
         # Remove user from validated_data if present (it will be set separately)
         validated_data.pop('user', None)
         # Create the instance with the validated data (including files)
-        return BikeOwnerRequest.objects.create(**validated_data)
+        return BikehostRequest.objects.create(**validated_data)

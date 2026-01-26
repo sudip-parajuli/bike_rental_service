@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-lg" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
+            <div class="card-header bg-transparent border-0 text-center pt-4 pb-2">
+                <div class="mb-3">
+                    <i class="fab fa-google fa-3x text-primary"></i>
+                </div>
+                <h3 class="card-title fw-bold mb-0">{% trans "Sign In via Google" %}</h3>
+            </div>
+            
+            <div class="card-body p-4 text-center">
+                {% if process == "connect" %}
+                    <h5 class="mb-3">{% trans "Connect Google Account" %}</h5>
+                    <p class="text-muted mb-4">
+                        {% blocktrans with provider.name as provider %}You are about to connect a new third-party account from {{ provider }}.{% endblocktrans %}
+                    </p>
+                {% else %}
+                    <h5 class="mb-3">{% trans "Confirm Sign In" %}</h5>
+                    <p class="text-muted mb-4">
+                        {% blocktrans with provider.name as provider %}You are about to sign in using a third-party account from {{ provider }}.{% endblocktrans %}
+                    </p>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm fw-bold">
+                            {% trans "Continue" %} <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                        <a href="{% url 'users:login' %}" class="btn btn-outline-secondary btn-lg rounded-pill border-0 mt-2">
+                            {% trans "Cancel" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-center pb-4">
+                <small class="text-muted">
+                    By continuing, you agree to our <a href="#" class="text-decoration-none">Terms of Service</a> and <a href="#" class="text-decoration-none">Privacy Policy</a>.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

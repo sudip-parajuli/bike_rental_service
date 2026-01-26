@@ -1,103 +1,496 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <!-- Left Column: Image and Description -->
-        <div class="col-md-6" data-aos="fade-up">
-            <!-- Bike Image -->
-            <img src="{{ bike.image.url|default:'/static/images/default-bike.png' }}" class="img-fluid rounded mb-3" alt="{{ bike.name }}" style="height: 300px; object-fit: cover;" onerror="this.src='/static/images/default-bike.png';">
 
-            <!-- Description Section -->
-            <div class="mt-4">
-                <h5 class="description-heading">Description</h5>
-                <p class="description-text">{{ bike.description|default:"No description available." }}</p>
-            </div>
+<style>
+    /* Modern Bike Detail Styles - Light Theme */
+    .bike-detail-container {
+        min-height: 100vh;
+        background: transparent;
+        padding-top: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .bike-detail-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .bike-detail-title {
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        font-weight: 800;
+        background: linear-gradient(135deg, #2563eb, #7c3aed, #db2777);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Enhanced Image Section */
+    .bike-image-section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: fit-content;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .bike-image-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
+    }
+
+    .bike-image-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bike-main-image {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        border-radius: 16px;
+    }
+
+    .bike-image-section:hover .bike-main-image {
+        transform: scale(1.03);
+    }
+
+    .description-section {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .description-heading {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .description-text {
+        color: #64748b;
+        line-height: 1.7;
+        font-size: 1rem;
+    }
+
+    /* Enhanced Specifications Section */
+    .bike-specs-section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        padding: 2rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: fit-content;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .bike-specs-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
+    }
+
+    .bike-name {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        background: linear-gradient(135deg, #1e293b, #475569);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .status-section {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .status-available {
+        color: #10b981;
+        font-weight: 700;
+    }
+
+    .status-booked {
+        color: #ef4444;
+        font-weight: 700;
+    }
+
+    .rating-section {
+        background: #fffbeb; /* Light yellow bg for ratings */
+        border: 1px solid #fcd34d;
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .rating-stars {
+        font-size: 1.25rem;
+        margin: 0.25rem 0;
+    }
+
+    .rating-text {
+        color: #92400e; /* Dark yellow/brown */
+        font-weight: 600;
+    }
+
+    /* Enhanced Specifications List */
+    .bike-specs {
+        margin-bottom: 2rem;
+    }
+
+    .specs-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .spec-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+
+    .spec-item:hover {
+        background: #f1f5f9;
+        transform: translateX(4px);
+    }
+
+    .spec-label {
+        font-weight: 600;
+        color: #475569;
+        display: flex;
+        align-items: center;
+    }
+
+    .spec-value {
+        color: #1e293b;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .price-highlight {
+        color: #2563eb;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    /* Enhanced Action Button */
+    .action-section {
+        margin-top: 2rem;
+    }
+
+    .book-now-btn {
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        border: none;
+        border-radius: 16px;
+        color: white;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+    }
+
+    .book-now-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+        color: white;
+    }
+
+    .book-now-btn.disabled {
+        background: #e2e8f0;
+        color: #94a3b8;
+        cursor: not-allowed;
+        pointer-events: none;
+        box-shadow: none;
+    }
+
+    /* Floating Particles */
+    .particles-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #cbd5e1;
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .particle:nth-child(2n) {
+        background: #e2e8f0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .spec-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+        .spec-value {
+            text-align: left;
+            padding-left: 1.75rem; /* Indent to align with label text */
+        }
+    }
+</style>
+
+<div class="bike-detail-container">
+    <!-- Floating Particles Background -->
+    <div class="particles-bg" id="particles-bg"></div>
+
+    <div class="container">
+        <!-- Header Section -->
+        <div class="bike-detail-header" data-aos="fade-up">
+            <h1 class="bike-detail-title">Bike Details</h1>
         </div>
 
-        <!-- Right Column: Specifications and Actions -->
-        <div class="col-md-6" data-aos="fade-up">
-            <h2>{{ bike.brand }} {{ bike.name }}</h2>
+        <div class="row">
+            <!-- Left Column: Image and Description -->
+            <div class="col-lg-6 mb-4" data-aos="fade-right">
+                <div class="bike-image-section">
+                    <!-- Bike Image -->
+                    <div class="bike-image-container">
+                        <img src="{{ bike.image.url|default:'/static/images/default-bike.png' }}"
+                             class="bike-main-image"
+                             alt="{{ bike.name }}"
+                             onerror="this.src='/static/images/default-bike.png';">
+                    </div>
 
-            <!-- Availability Status -->
-            <p class="mb-3">
-                <strong>Status:</strong> {{ bike.availability_status|yesno:"Available,Booked" }}
-            </p>
-
-            <!-- Average Rating -->
-            <p class="mb-3">
-                <strong>Average Rating:</strong>
-                {% with bike.average_rating as avg_rating %}
-                    {% if avg_rating %}
-                        {% for star in "x"|rjust:avg_rating %}
-                            ⭐
-                        {% endfor %}
-                        ({{ avg_rating }})
-                    {% else %}
-                        No ratings yet
-                    {% endif %}
-                {% endwith %}
-            </p>
-
-            <!-- Specifications -->
-            <div class="bike-specs">
-                <ul class="list-group">
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Engine Type:</strong>
-                        <span>{{ bike.engine_type|default:"Not specified" }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Displacement:</strong>
-                        <span>{{ bike.displacement|default:"Not specified" }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Max Power:</strong>
-                        <span>{{ bike.max_power|default:"Not specified" }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Torque:</strong>
-                        <span>{{ bike.torque|default:"Not specified" }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Transmission:</strong>
-                        <span>{{ bike.transmission|default:"Not specified" }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Brakes:</strong>
-                        <span>{{ bike.brakes|default:"Not specified" }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Dimensions:</strong>
-                        <span>{{ bike.dimensions|default:"Not specified" }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Fuel Capacity:</strong>
-                        <span>{{ bike.fuel_capacity|default:"Not specified" }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Mileage:</strong>
-                        <span>{{ bike.mileage|default:"Not specified" }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Price Per Day:</strong>
-                        <span>${{ bike.price_per_day|default:"N/A" }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Type:</strong>
-                        <span>{{ bike.get_type_display }}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <strong>Model Year:</strong>
-                        <span>{{ bike.model_year }}</span>
-                    </li>
-                </ul>
+                    <!-- Description Section -->
+                    <div class="description-section">
+                        <h5 class="description-heading">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>Description
+                        </h5>
+                        <p class="description-text">{{ bike.description|default:"No description available." }}</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Actions -->
-            <div class="mt-3">
-                <a href="{% if not user.is_authenticated %}{% url 'users:register' %}{% else %}{% url 'bookings:booking-create' %}?bike_id={{ bike.id }}{% endif %}" class="btn btn-primary w-100 {% if not bike.availability_status %}disabled{% endif %}">Book Now</a>
+            <!-- Right Column: Specifications and Actions -->
+            <div class="col-lg-6 mb-4" data-aos="fade-left">
+                <div class="bike-specs-section">
+                    <h2 class="bike-name">{{ bike.brand }} {{ bike.name }}</h2>
+
+                    <!-- Availability Status -->
+                    <div class="status-section">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <i class="fas fa-circle me-2 {{ bike.availability_status|yesno:'text-success,text-danger' }}"></i>
+                            <strong>Status:</strong>
+                            <span class="ms-2 {{ bike.availability_status|yesno:'status-available,status-booked' }}">
+                                {{ bike.availability_status|yesno:"✅ Available,❌ Booked" }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Average Rating -->
+                    <div class="rating-section">
+                        <div class="rating-text mb-1">
+                            <i class="fas fa-star text-warning me-2"></i>Average Rating
+                        </div>
+                        <div class="rating-stars">
+                            {% with bike.average_rating as avg_rating %}
+                                {% if avg_rating %}
+                                    <span class="text-warning">
+                                    {% for star in "x"|rjust:avg_rating %}
+                                        ⭐
+                                    {% endfor %}
+                                    </span>
+                                    <span class="rating-text ms-2">({{ avg_rating }})</span>
+                                {% else %}
+                                    <span class="text-muted small">No ratings yet</span>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+
+                    <!-- Specifications -->
+                    <div class="bike-specs">
+                        <h5 class="description-heading mb-3">
+                            <i class="fas fa-cogs me-2 text-primary"></i>Specifications
+                        </h5>
+                        <ul class="specs-list">
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-engine me-2 text-primary"></i>Engine Type:
+                                </span>
+                                <span class="spec-value">{{ bike.engine_type|default:"Not specified" }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-tachometer-alt me-2 text-primary"></i>Displacement:
+                                </span>
+                                <span class="spec-value">{{ bike.displacement|default:"Not specified" }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-bolt me-2 text-primary"></i>Max Power:
+                                </span>
+                                <span class="spec-value">{{ bike.max_power|default:"Not specified" }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-cog me-2 text-primary"></i>Torque:
+                                </span>
+                                <span class="spec-value">{{ bike.torque|default:"Not specified" }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-exchange-alt me-2 text-primary"></i>Transmission:
+                                </span>
+                                <span class="spec-value">{{ bike.transmission|default:"Not specified" }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-stop-circle me-2 text-primary"></i>Brakes:
+                                </span>
+                                <span class="spec-value">{{ bike.brakes|default:"Not specified" }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-ruler me-2 text-primary"></i>Dimensions:
+                                </span>
+                                <span class="spec-value">{{ bike.dimensions|default:"Not specified" }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-gas-pump me-2 text-primary"></i>Fuel Capacity:
+                                </span>
+                                <span class="spec-value">{{ bike.fuel_capacity|default:"Not specified" }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-road me-2 text-primary"></i>Mileage:
+                                </span>
+                                <span class="spec-value">{{ bike.mileage|default:"Not specified" }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-coins me-2 text-primary"></i>Price Per Day:
+                                </span>
+                                <span class="spec-value price-highlight">NPR {{ bike.price_per_day|default:"N/A" }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-motorcycle me-2 text-primary"></i>Type:
+                                </span>
+                                <span class="spec-value">{{ bike.get_type_display }}</span>
+                            </li>
+                            <li class="spec-item">
+                                <span class="spec-label">
+                                    <i class="fas fa-calendar me-2 text-primary"></i>Model Year:
+                                </span>
+                                <span class="spec-value">{{ bike.model_year }}</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="action-section">
+                        <a href="{% if not user.is_authenticated %}{% url 'users:login' %}{% else %}{% url 'bookings:booking-create' %}?bike_id={{ bike.id }}{% endif %}"
+                           class="book-now-btn {% if not bike.availability_status %}disabled{% endif %}">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            {% if not user.is_authenticated %}
+                                Login to Book
+                            {% else %}
+                                Book Now
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Similar Bikes Section -->
+    <div class="container mt-5 mb-5">
+        <h3 class="text-center mb-4" style="color: #1e293b;">
+            <i class="fas fa-motorcycle me-2 text-primary"></i>Similar Bikes
+        </h3>
+        <div id="similar-bikes-container" class="row" data-bike-id="{{ bike.id }}">
+            <!-- Similar bikes will be loaded by JavaScript -->
+        </div>
+    </div>
 </div>
+
+<script>
+    // Create floating particles
+    function createParticles() {
+        const particlesContainer = document.getElementById('particles-bg');
+        const particleCount = 20;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (6 + Math.random() * 4) + 's';
+            particlesContainer.appendChild(particle);
+        }
+    }
+
+    // Initialize particles when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        createParticles();
+    });
+</script>
+
+<!-- Load jQuery if not already loaded -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Load recommendations.js -->
+{% load static %}
+<script src="{% static 'js/recommendations.js' %}"></script>
+
 {% endblock %}

@@ -1,0 +1,50 @@
+
+class BikeRecommendationsView(generics.ListAPIView):
+    """
+    Get personalized bike recommendations for the authenticated user.
+    
+    Query Parameters:
+    - strategy: 'popularity', 'content', 'collaborative', or 'hybrid' (default: 'hybrid')
+    - limit: Number of recommendations (default: 6)
+    
+    * Requires: None (works for both authenticated and anonymous users)
+    * Returns: List of recommended bikes with scores and reasons
+    """
+    serializer_class = BikeRecommendationSerializer
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None  # Disable pagination for recommendations
+    
+    def get_queryset(self):
+        user = self.request.user if self.request.user.is_authenticated else None
+        strategy = self.request.query_params.get('strategy', 'hybrid')
+        limit = int(self.request.query_params.get('limit', 6))
+        
+        if user:
+            recommendations = get_recommendations_for_user(user, strategy=strategy, limit=limit)
+        else:
+            # For anonymous users, show popular bikes
+            recommendations = get_popular_bikes(limit=limit)
+        
+        return recommendations
+
+
+class SimilarBikesView(generics.ListAPIView):
+    """
+    Get bikes similar to a specific bike.
+    
+    Query Parameters:
+    - limit: Number of similar bikes (default: 6)
+    
+    * Requires: None (public access)
+    * Returns: List of similar bikes with scores and reasons
+    """
+    serializer_class = BikeRecommendationSerializer
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None  # Disable pagination
+    
+    def get_queryset(self):
+        bike_id = self.kwargs.get('pk')
+        limit = int(self.request.query_params.get('limit', 6))
+        
+        similar_bikes = get_similar_bikes(bike_id=bike_id, limit=limit)
+        return similar_bikes

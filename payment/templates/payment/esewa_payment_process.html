@@ -5,7 +5,6 @@
     {% for key, value in esewa_dict.items %}
         <input type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
-    <input type="hidden" name="signature" value="{{ signature }}">
     <button type="submit" class="btn btn-primary">Proceed to eSewa</button>
 </form>
 <script>

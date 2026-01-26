@@ -1,0 +1,509 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    /* Bike host Request Styles - Matching home.html aesthetic */
+    .bike-host-request-section {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+        position: relative;
+        padding: 8rem 0 4rem;
+    }
+
+    .bike-host-request-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .bike-host-request-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .bike-host-request-subtitle {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.1rem;
+        margin-bottom: 3rem;
+        line-height: 1.6;
+    }
+
+    .request-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 30px;
+        padding: 3rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .request-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .modern-form-group {
+        margin-bottom: 2rem;
+    }
+
+    .modern-form-label {
+        display: block;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .modern-form-control {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .modern-form-control:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.15);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .modern-form-control::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .modern-textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .modern-btn {
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .modern-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        text-decoration: none;
+    }
+
+    .modern-btn.primary {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .modern-btn.primary:hover {
+        box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        color: white;
+    }
+
+    .modern-alert {
+        border-radius: 15px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid;
+    }
+
+    .modern-alert.success {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #10b981;
+    }
+
+    .modern-alert.warning {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #f59e0b;
+    }
+
+    .modern-alert.danger {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+
+    .modern-alert.info {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: #3b82f6;
+    }
+
+    .modern-alert ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .modern-alert li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* File input styling */
+    .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .file-input-wrapper input[type=file] {
+        position: absolute;
+        left: -9999px;
+    }
+
+    .file-input-label {
+        display: block;
+        padding: 1rem 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        color: rgba(255, 255, 255, 0.8);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .file-input-label:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: #3b82f6;
+        color: white;
+    }
+
+    .file-input-label i {
+        margin-right: 0.5rem;
+        color: #3b82f6;
+    }
+
+    .current-file {
+        margin-top: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 10px;
+        color: #10b981;
+        font-size: 0.9rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .form-section {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+    }
+
+    .form-section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .bike-host-request-section {
+            padding: 6rem 0 2rem;
+        }
+
+        .bike-host-request-container {
+            padding: 0 1rem;
+        }
+
+        .request-card {
+            padding: 2rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modern-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Animation classes */
+    .fade-in {
+        animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="bike-host-request-section">
+    <div class="bike-host-request-container">
+        <h2 class="bike-host-request-title fade-in">Become a Bike host</h2>
+        <p class="bike-host-request-subtitle fade-in">
+            Fill out the form below to {% if bike_host_request and bike_host_request.status == 'rejected' %}update your
+            rejected request{% else %}request to list your bike for rent{% endif %}. An admin will review your
+            submission and get back to you soon.
+        </p>
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="fade-in">
+            {% for message in messages %}
+            <div class="modern-alert {{ message.tags }}">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Errors -->
+        {% if errors %}
+        <div class="modern-alert danger fade-in">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Please fix the following errors:</strong>
+            <ul>
+                {% for field, errors in errors.items %}
+                {% for error in errors %}
+                <li>{{ field|title }}: {{ error }}</li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Request Form -->
+        <div class="request-card fade-in">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-grid">
+                    <!-- Bike Information Section -->
+                    <div class="form-section">
+                        <h4 class="form-section-title">
+                            <i class="fas fa-motorcycle me-2"></i>Bike Information
+                        </h4>
+
+                        <div class="modern-form-group">
+                            <label for="bike_make" class="modern-form-label">
+                                <i class="fas fa-industry me-2"></i>Bike Make
+                            </label>
+                            <input type="text" class="modern-form-control" id="bike_make" name="bike_make"
+                                value="{% if initial_data.bike_make %}{{ initial_data.bike_make }}{% elif bike_host_request %}{{ bike_host_request.bike_make|default:'' }}{% else %}{{ '' }}{% endif %}"
+                                placeholder="e.g., Honda, Yamaha, Bajaj" required>
+                        </div>
+
+                        <div class="modern-form-group">
+                            <label for="bike_model" class="modern-form-label">
+                                <i class="fas fa-tag me-2"></i>Bike Model
+                            </label>
+                            <input type="text" class="modern-form-control" id="bike_model" name="bike_model"
+                                value="{% if initial_data.bike_model %}{{ initial_data.bike_model }}{% elif bike_host_request %}{{ bike_host_request.bike_model|default:'' }}{% else %}{{ '' }}{% endif %}"
+                                placeholder="e.g., Pulsar 150, FZ-S, Activa" required>
+                        </div>
+
+                        <div class="modern-form-group">
+                            <label for="bike_year" class="modern-form-label">
+                                <i class="fas fa-calendar me-2"></i>Bike Year
+                            </label>
+                            <input type="number" class="modern-form-control" id="bike_year" name="bike_year"
+                                value="{% if initial_data.bike_year %}{{ initial_data.bike_year }}{% elif bike_host_request %}{{ bike_host_request.bike_year|default:'' }}{% else %}{{ '' }}{% endif %}"
+                                min="2015" max="{{ current_year }}" placeholder="e.g., 2020" required>
+                        </div>
+
+                        <div class="modern-form-group">
+                            <label for="bike_registration_number" class="modern-form-label">
+                                <i class="fas fa-id-card me-2"></i>Registration Number
+                            </label>
+                            <input type="text" class="modern-form-control" id="bike_registration_number"
+                                name="bike_registration_number"
+                                value="{% if initial_data.bike_registration_number %}{{ initial_data.bike_registration_number }}{% elif bike_host_request %}{{ bike_host_request.bike_registration_number|default:'' }}{% else %}{{ '' }}{% endif %}"
+                                placeholder="e.g., BA 12 PA 1234" required>
+                        </div>
+                    </div>
+
+                    <!-- Documents Section -->
+                    <div class="form-section">
+                        <h4 class="form-section-title">
+                            <i class="fas fa-file-alt me-2"></i>Required Documents
+                        </h4>
+
+                        <div class="modern-form-group">
+                            <label for="registration_certificate" class="modern-form-label">
+                                <i class="fas fa-certificate me-2"></i>Registration Certificate
+                            </label>
+                            <div class="file-input-wrapper">
+                                <input type="file" class="modern-form-control" id="registration_certificate"
+                                    name="registration_certificate" accept=".pdf,.jpg,.png">
+                                <label for="registration_certificate" class="file-input-label">
+                                    <i class="fas fa-upload"></i>
+                                    Choose Registration Certificate
+                                </label>
+                            </div>
+                            {% if bike_host_request and bike_host_request.registration_certificate %}
+                            <div class="current-file">
+                                <i class="fas fa-file me-2"></i>
+                                Current file: {{ bike_host_request.registration_certificate.name }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="modern-form-group">
+                            <label for="insurance_certificate" class="modern-form-label">
+                                <i class="fas fa-shield-alt me-2"></i>Insurance Certificate
+                            </label>
+                            <div class="file-input-wrapper">
+                                <input type="file" class="modern-form-control" id="insurance_certificate"
+                                    name="insurance_certificate" accept=".pdf,.jpg,.png">
+                                <label for="insurance_certificate" class="file-input-label">
+                                    <i class="fas fa-upload"></i>
+                                    Choose Insurance Certificate
+                                </label>
+                            </div>
+                            {% if bike_host_request and bike_host_request.insurance_certificate %}
+                            <div class="current-file">
+                                <i class="fas fa-file me-2"></i>
+                                Current file: {{ bike_host_request.insurance_certificate.name }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="modern-form-group">
+                            <label for="id_proof" class="modern-form-label">
+                                <i class="fas fa-id-badge me-2"></i>ID Proof (Driver's License)
+                            </label>
+                            <div class="file-input-wrapper">
+                                <input type="file" class="modern-form-control" id="id_proof" name="id_proof"
+                                    accept=".pdf,.jpg,.png">
+                                <label for="id_proof" class="file-input-label">
+                                    <i class="fas fa-upload"></i>
+                                    Choose ID Proof
+                                </label>
+                            </div>
+                            {% if bike_host_request and bike_host_request.id_proof %}
+                            <div class="current-file">
+                                <i class="fas fa-file me-2"></i>
+                                Current file: {{ bike_host_request.id_proof.name }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="modern-form-group">
+                            <label for="bike_photos" class="modern-form-label">
+                                <i class="fas fa-camera me-2"></i>Bike Photos
+                            </label>
+                            <div class="file-input-wrapper">
+                                <input type="file" class="modern-form-control" id="bike_photos" name="bike_photos"
+                                    accept=".jpg,.png">
+                                <label for="bike_photos" class="file-input-label">
+                                    <i class="fas fa-upload"></i>
+                                    Choose Bike Photos
+                                </label>
+                            </div>
+                            {% if bike_host_request and bike_host_request.bike_photos %}
+                            <div class="current-file">
+                                <i class="fas fa-file me-2"></i>
+                                Current file: {{ bike_host_request.bike_photos.name }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="modern-btn primary">
+                        <i class="fas fa-paper-plane"></i>
+                        {% if bike_host_request and bike_host_request.status == 'rejected' %}Update Request{% else
+                        %}Submit Request{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // File input display names
+    const fileInputs = ['registration_certificate', 'insurance_certificate', 'id_proof', 'bike_photos'];
+
+    fileInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        const label = document.querySelector(`label[for="${inputId}"]`);
+        const originalText = label.innerHTML;
+
+        input.addEventListener('change', function (e) {
+            if (e.target.files.length > 0) {
+                label.innerHTML = `<i class="fas fa-check"></i> ${e.target.files[0].name}`;
+            } else {
+                label.innerHTML = originalText;
+            }
+        });
+    });
+
+    // Add fade-in animation to elements as they come into view
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Apply initial styles and observe elements
+    document.querySelectorAll('.fade-in').forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        element.style.transitionDelay = `${index * 0.1}s`;
+        observer.observe(element);
+    });
+</script>
+
+{% endblock %}

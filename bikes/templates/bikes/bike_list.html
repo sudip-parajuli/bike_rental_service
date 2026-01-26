@@ -1,40 +1,482 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4">Bike List</h2>
 
-    <!-- Filter and Search Controls -->
-    <div class="mb-3">
-        <form class="d-flex" id="bikeListSearchForm" method="GET" action="">
-            <input class="form-control me-2" type="search" placeholder="Search bikes..." aria-label="Search" id="bikeListSearchInput" name="name" value="{{ request.GET.name|default:'' }}" onkeypress="if(event.key === 'Enter') document.getElementById('bikeListSearchForm').submit();">
-            <select class="form-select me-2" id="bikeListFilter" style="max-width: 200px;" name="type">
-                <option value="">All Types</option>
-                <option value="motorcycle" {% if request.GET.type == 'motorcycle' %}selected{% endif %}>Motorcycle</option>
-                <option value="scooter" {% if request.GET.type == 'scooter' %}selected{% endif %}>Scooter</option>
-                <option value="electric" {% if request.GET.type == 'electric' %}selected{% endif %}>Electric Bike</option>
-            </select>
-            <select class="form-select me-2" id="bikeListAvailability" style="max-width: 200px;" name="availability_status">
-                <option value="">All Bikes</option>
-                <option value="true" {% if request.GET.availability_status == 'true' %}selected{% endif %}>Available Only</option>
-            </select>
-            <button class="btn btn-outline-primary me-2" type="submit" name="action" value="search">Search</button>
-            <button class="btn btn-outline-success" type="submit" name="action" value="filter">Filter</button>
-        </form>
+<style>
+    /* Modern Bike List Styles - Light Theme */
+    .bike-list-container {
+        min-height: 100vh;
+        background: transparent; /* Uses body background */
+        padding-top: 40px; /* Adjusted spacing */
+        position: relative;
+        overflow: hidden;
+    }
+
+    .bike-list-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .bike-list-title {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 800;
+        background: linear-gradient(135deg, #2563eb, #7c3aed, #db2777);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+
+    .bike-list-subtitle {
+        color: #64748b; /* Slate 500 */
+        font-size: 1.2rem;
+        font-weight: 400;
+    }
+
+    /* Enhanced Filter Section */
+    .filter-section {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        transition: all 0.3s ease;
+        position: relative;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border-color: #cbd5e1;
+    }
+
+    .filter-form {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .filter-input, .filter-select {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        color: #1e293b;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+        min-width: 200px;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+        background: #ffffff;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        color: #1e293b;
+        outline: none;
+    }
+
+    .filter-input::placeholder {
+        color: #94a3b8;
+    }
+
+    .filter-select option {
+        background: white;
+        color: #1e293b;
+    }
+
+    .filter-btn {
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+    }
+
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+    }
+
+    .filter-btn-secondary {
+        background: linear-gradient(135deg, #10b981, #059669);
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+    }
+
+    .filter-btn-secondary:hover {
+        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Enhanced Bike Cards */
+    .bike-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease; /* Simplified transition */
+        height: 100%;
+        position: relative;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .bike-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: #2563eb;
+    }
+
+    .bike-image-container {
+        position: relative;
+        overflow: hidden;
+        height: 250px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bike-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .bike-card:hover .bike-image {
+        transform: scale(1.05);
+    }
+
+    .bike-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(37, 99, 235, 0.8);
+        opacity: 0;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3;
+    }
+
+    .bike-card:hover .bike-overlay {
+        opacity: 1;
+    }
+
+    .bike-overlay-text {
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        backdrop-filter: blur(5px);
+    }
+
+    .bike-content {
+        padding: 1.5rem;
+        background: white;
+    }
+
+    .bike-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .bike-price {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2563eb;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .bike-status {
+        text-align: center;
+        margin-bottom: 1.25rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .status-available {
+        color: #10b981;
+        background: #ecfdf5;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        display: inline-block;
+    }
+
+    .status-booked {
+        color: #ef4444;
+        background: #fef2f2;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        display: inline-block;
+    }
+
+    .bike-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .bike-btn {
+        padding: 0.6rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: none;
+        font-size: 0.9rem;
+    }
+
+    .bike-btn-primary {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #dbeafe;
+    }
+    
+    .bike-btn-primary:hover {
+        background: #2563eb;
+        color: white;
+    }
+
+    .bike-btn-success {
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+    }
+    
+    .bike-btn-success:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 10px -1px rgba(37, 99, 235, 0.4);
+        color: white;
+    }
+
+    .bike-btn.disabled {
+        background: #f1f5f9;
+        color: #94a3b8;
+        cursor: not-allowed;
+        pointer-events: none;
+        border-color: #e2e8f0;
+        box-shadow: none;
+    }
+
+    /* Loading and Empty States */
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+        color: #64748b;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid #e2e8f0;
+        border-top: 3px solid #2563eb;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #64748b;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h3 {
+        color: #1e293b;
+    }
+
+    /* Enhanced Pagination */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .pagination {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .page-item .page-link {
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: #64748b;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .page-item .page-link:hover {
+        background: #f1f5f9;
+        color: #2563eb;
+    }
+
+    .page-item.active .page-link {
+        background: #eff6ff;
+        color: #2563eb;
+        font-weight: 600;
+    }
+
+    /* Floating Particles */
+    .particles-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #cbd5e1;
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .particle:nth-child(2n) {
+        background: #e2e8f0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .filter-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-input, .filter-select {
+            width: 100%;
+        }
+        .bike-btn {
+            width: 100%;
+        }
+        .bike-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="bike-list-container">
+    <!-- Floating Particles Background -->
+    <div class="particles-bg" id="particles-bg"></div>
+
+    <div class="container">
+        <!-- Header Section -->
+        <div class="bike-list-header" data-aos="fade-up">
+            <h1 class="bike-list-title">Explore Our Fleet</h1>
+            <p class="bike-list-subtitle">Discover the perfect ride for your next adventure</p>
+        </div>
+
+        <!-- Enhanced Filter and Search Controls -->
+        <div class="filter-section" data-aos="fade-up" data-aos-delay="200">
+            <form class="filter-form" id="bikeListSearchForm" method="GET" action="">
+                <input class="filter-input" type="search" placeholder="🔍 Search bikes..." aria-label="Search" id="bikeListSearchInput" name="name" value="{{ request.GET.name|default:'' }}" onkeypress="if(event.key === 'Enter') document.getElementById('bikeListSearchForm').submit();">
+
+                <select class="filter-select" id="bikeListFilter" name="type">
+                    <option value="">🏍️ All Types</option>
+                    <option value="motorcycle" {% if request.GET.type == 'motorcycle' %}selected{% endif %}>🏍️ Motorcycle</option>
+                    <option value="scooter" {% if request.GET.type == 'scooter' %}selected{% endif %}>🛵 Scooter</option>
+                    <option value="electric" {% if request.GET.type == 'electric' %}selected{% endif %}>⚡ Electric Bike</option>
+                </select>
+
+                <select class="filter-select" id="bikeListAvailability" name="availability_status">
+                    <option value="">📋 All Bikes</option>
+                    <option value="true" {% if request.GET.availability_status == 'true' %}selected{% endif %}>✅ Available Only</option>
+                </select>
+
+                <button class="filter-btn" type="submit" name="action" value="search">
+                    <i class="fas fa-search me-2"></i>Search
+                </button>
+                <button class="filter-btn filter-btn-secondary" type="submit" name="action" value="filter">
+                    <i class="fas fa-filter me-2"></i>Filter
+                </button>
+            </form>
+        </div>
+
+        <!-- Enhanced Bike List -->
+        <div class="row justify-content-center" id="bike-list-container" data-aos="fade-up" data-aos-delay="400">
+            <!-- Loading State -->
+            <div class="loading-container" id="loading-message">
+                <div class="loading-spinner"></div>
+                <p>Loading amazing bikes...</p>
+            </div>
+        </div>
+
+        <!-- Enhanced Pagination -->
+        <div class="pagination-container">
+            <nav aria-label="Page navigation">
+                <ul class="pagination" id="bike-list-pagination">
+                    <!-- Pagination will be populated dynamically -->
+                </ul>
+            </nav>
+        </div>
     </div>
-
-    <!-- Bike List -->
-    <div class="row justify-content-center" id="bike-list-container">
-        <!-- Bikes will be loaded dynamically -->
-        <p class="text-center" id="loading-message">Loading bikes...</p>
-    </div>
-
-    <!-- Pagination -->
-    <nav aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center" id="bike-list-pagination">
-            <!-- Pagination will be populated dynamically -->
-        </ul>
-    </nav>
 </div>
+
+<script>
+    // Create floating particles
+    function createParticles() {
+        const particlesContainer = document.getElementById('particles-bg');
+        const particleCount = 30;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (6 + Math.random() * 4) + 's';
+            particlesContainer.appendChild(particle);
+        }
+    }
+
+    // Initialize particles when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        createParticles();
+    });
+</script>
+
 {% endblock %}
 
 {% block extra_scripts %}
@@ -60,23 +502,51 @@
                     const container = $('#bike-list-container');
                     container.empty();
                     $('#loading-message').hide(); // Hide loading message
+
                     if (bikes.length === 0) {
-                        container.html('<p class="text-center">No bikes available. Contact an admin to add bikes.</p>');
+                        container.html(`
+                            <div class="empty-state" data-aos="fade-up">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-motorcycle"></i>
+                                </div>
+                                <h3>No bikes available</h3>
+                                <p>Contact an admin to add bikes or try adjusting your search filters.</p>
+                            </div>
+                        `);
                     } else {
-                        bikes.forEach(bike => {
+                        bikes.forEach((bike, index) => {
                             const bikeDetailUrl = `/bikes/${bike.id}/`; // Adjust based on your URL config
                             const bookingCreateUrl = `/bookings/create/?bike_id=${bike.id}`;
+                            const statusClass = bike.availability_status ? 'status-available' : 'status-booked';
+                            const statusText = bike.availability_status ? 'Available' : 'Booked';
+                            const statusIcon = bike.availability_status ? '✅' : '❌';
+
                             container.append(`
-                                <div class="col-md-4 mb-3">
-                                    <div class="card" style="width: 18rem;">
-                                        <img src="${bike.image || '/static/images/default-bike.png'}" class="card-img-top" alt="${bike.name}" onerror="this.src='/static/images/default-bike.png';">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">${bike.name}</h5>
-                                            <p class="card-text">Price per day: $${bike.price_per_day}</p>
-                                            <p class="card-text"><strong>Status:</strong> ${bike.availability_status ? 'Available' : 'Booked'}</p>
-                                            <div class="d-flex justify-content-between">
-                                                <a href="${bikeDetailUrl}" class="btn btn-primary">View Details</a>
-                                                <a href="${bookingCreateUrl}" class="btn btn-success ${!bike.availability_status ? 'disabled' : ''}">Book Now</a>
+                                <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="${index * 100}">
+                                    <div class="bike-card">
+                                        <div class="bike-image-container">
+                                            <img src="${bike.image || '/static/images/default-bike.png'}" class="bike-image" alt="${bike.name}" onerror="this.src='/static/images/default-bike.png';">
+                                            <div class="bike-overlay">
+                                                <div class="bike-overlay-text">
+                                                    <i class="fas fa-eye me-2"></i>View Details
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="bike-content">
+                                            <h5 class="bike-title">${bike.name}</h5>
+                                            <div class="bike-price">NPR ${bike.price_per_day}/day</div>
+                                            <div class="bike-status">
+                                                <span class="${statusClass}">
+                                                    ${statusIcon} ${statusText}
+                                                </span>
+                                            </div>
+                                            <div class="bike-actions">
+                                                <a href="${bikeDetailUrl}" class="bike-btn bike-btn-primary">
+                                                    <i class="fas fa-info-circle me-2"></i>Details
+                                                </a>
+                                                <a href="${bookingCreateUrl}" class="bike-btn bike-btn-success ${!bike.availability_status ? 'disabled' : ''}">
+                                                    <i class="fas fa-calendar-check me-2"></i>Book Now
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -88,24 +558,39 @@
                         const paginator = response;
                         const pagination = $('#bike-list-pagination');
                         pagination.empty();
+
                         if (paginator.previous) {
-                            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${paginator.previous_page || (page - 1)}">«</a></li>`);
+                            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${paginator.previous_page || (page - 1)}"><i class="fas fa-chevron-left"></i></a></li>`);
                         }
+
                         for (let i = 1; i <= (paginator.total_pages || 1); i++) {
                             pagination.append(`<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`);
                         }
+
                         if (paginator.next) {
-                            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${paginator.next_page || (page + 1)}">»</a></li>`);
+                            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${paginator.next_page || (page + 1)}"><i class="fas fa-chevron-right"></i></a></li>`);
                         }
+
                         pagination.find('a').on('click', function(e) {
                             e.preventDefault();
                             loadBikeList($(this).data('page'), $('#bikeListSearchInput').val(), $('#bikeListFilter').val(), $('#bikeListAvailability').val());
                         });
+
+                        // Reinitialize AOS for new elements
+                        AOS.refresh();
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error('Error fetching bikes:', error, xhr.responseText);
-                    $('#bike-list-container').html('<p class="text-center">Failed to load bikes. Please try again later.</p>');
+                    $('#bike-list-container').html(`
+                        <div class="empty-state" data-aos="fade-up">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <h3>Failed to load bikes</h3>
+                            <p>Please try again later or contact support if the problem persists.</p>
+                        </div>
+                    `);
                     $('#loading-message').hide(); // Hide loading message on error
                 }
             });
@@ -114,7 +599,7 @@
         // Initial load
         loadBikeList(1, $('#bikeListSearchInput').val(), $('#bikeListFilter').val(), $('#bikeListAvailability').val());
 
-        // Handle search and filter
+        // Handle search and filter with debounce
         $('#bikeListSearchInput').on('input', function() {
             clearTimeout(window.searchTimeout);
             window.searchTimeout = setTimeout(function() {
@@ -124,6 +609,11 @@
 
         $('#bikeListSearchForm').on('submit', function(e) {
             e.preventDefault();
+            loadBikeList(1, $('#bikeListSearchInput').val(), $('#bikeListFilter').val(), $('#bikeListAvailability').val());
+        });
+
+        // Handle filter changes
+        $('#bikeListFilter, #bikeListAvailability').on('change', function() {
             loadBikeList(1, $('#bikeListSearchInput').val(), $('#bikeListFilter').val(), $('#bikeListAvailability').val());
         });
 

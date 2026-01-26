@@ -1,16 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Submit a Testimonial</h1>
-<form method="POST" action="{% url 'testimonials:testimonial-create' %}">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="content" class="form-label">Your Testimonial</label>
-        <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
-    </div>
-    <div class="mb-3">
-        <label for="rating" class="form-label">Rating (1-5)</label>
-        <input type="number" class="form-control" id="rating" name="rating" min="1" max="5" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+<div class="container mt-5">
+    <h1>Submit a Testimonial</h1>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    <form method="POST" action="{% url 'testimonials:testimonial-create' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="content" class="form-label">Your Testimonial</label>
+            <textarea class="form-control" id="content" name="content" rows="3" required>{% if form_data.content %}{{ form_data.content }}{% endif %}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="rating" class="form-label">Rating (1-5)</label>
+            <input type="number" class="form-control" id="rating" name="rating" min="1" max="5" required value="{% if form_data.rating %}{{ form_data.rating }}{% endif %}">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
 {% endblock %}

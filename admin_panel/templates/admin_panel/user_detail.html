@@ -1,0 +1,174 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block page_title %}User Details{% endblock %}
+{% block page_subtitle %}View complete profile and history for {{ user_obj.username }}.{% endblock %}
+
+{% block admin_content %}
+<div class="row">
+    <!-- User Profile Card -->
+    <div class="col-md-4 mb-4">
+        <div class="content-card h-100">
+            <div class="card-header">
+                <h3 class="card-title">Profile Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    {% if user_obj.profile_picture %}
+                        <img src="{{ user_obj.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                    {% else %}
+                        <i class="fas fa-user-circle fa-5x text-muted"></i>
+                    {% endif %}
+                    <h4 class="mt-3">{{ user_obj.get_full_name|default:user_obj.username }}</h4>
+                    <p class="text-muted">{{ user_obj.email }}</p>
+                </div>
+                <hr>
+                <div class="info-list">
+                    <p><strong>Username:</strong> {{ user_obj.username }}</p>
+                    <p><strong>Phone:</strong> {{ user_obj.phone_number|default:"N/A" }}</p>
+                    <p><strong>Address:</strong> {{ user_obj.address|default:"N/A" }}</p>
+                    <p><strong>Role:</strong> 
+                        {% if user_obj.is_superuser %}Admin{% elif user_obj.is_host %}Host{% else %}User{% endif %}
+                    </p>
+                    <p><strong>Status:</strong> 
+                        <span class="badge {% if user_obj.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ user_obj.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </p>
+                    <p><strong>Joined:</strong> {{ user_obj.date_joined|date:"M d, Y" }}</p>
+                </div>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'admin_panel:user-update' user_obj.pk %}" class="btn btn-primary btn-sm">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Tabs -->
+    <div class="col-md-8">
+        <div class="content-card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="historyTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab">Bookings</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab">Payments</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="contracts-tab" data-bs-toggle="tab" data-bs-target="#contracts" type="button" role="tab">Contracts</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="historyTabsContent">
+                    <!-- Bookings Tab -->
+                    <div class="tab-pane fade show active" id="bookings" role="tabpanel">
+                        {% if bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Bike</th>
+                                        <th>Dates</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in bookings %}
+                                    <tr>
+                                        <td>#{{ booking.id }}</td>
+                                        <td>{{ booking.bike.brand }} {{ booking.bike.model }}</td>
+                                        <td>{{ booking.start_date|date:"M d" }} - {{ booking.end_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ booking.status|yesno:'success,warning' }}">
+                                                {{ booking.status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'admin_panel:booking-update' booking.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center py-4">No bookings found.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payments Tab -->
+                    <div class="tab-pane fade" id="payments" role="tabpanel">
+                        {% if payments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in payments %}
+                                    <tr>
+                                        <td>#{{ payment.id }}</td>
+                                        <td>Rs. {{ payment.amount }}</td>
+                                        <td>{{ payment.payment_method }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ payment.status|yesno:'success,warning' }}">
+                                                {{ payment.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ payment.created_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center py-4">No payments found.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Contracts Tab -->
+                    <div class="tab-pane fade" id="contracts" role="tabpanel">
+                        {% if contracts %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Date</th>
+                                        <th>Total Amount</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for contract in contracts %}
+                                    <tr>
+                                        <td>#{{ contract.id }}</td>
+                                        <td>{{ contract.contract_date|date:"M d, Y" }}</td>
+                                        <td>Rs. {{ contract.total_amount }}</td>
+                                        <td>
+                                            <a href="{% url 'admin_panel:contract-print' contract.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank">Print</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center py-4">No contracts found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,10 +2,10 @@ from django import forms
 from .models import Bike
 from datetime import datetime
 
-class BikeOwnerCreateForm(forms.ModelForm):
+class BikehostCreateForm(forms.ModelForm):
     class Meta:
         model = Bike
-        exclude = ['is_approved', 'is_featured', 'availability_status', 'owner', 'created_at', 'updated_at', 'average_rating', 'slug']
+        exclude = ['is_approved', 'is_featured', 'availability_status', 'host', 'created_at', 'updated_at', 'average_rating', 'slug']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Name of the bike (e.g., Honda Activa)'}),
             'type': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Type of bike'}),
@@ -42,18 +42,19 @@ class BikeOwnerCreateForm(forms.ModelForm):
         return model_year
 
     def clean_price_per_day(self):
-        price = self.cleaned_data['price_per_day']
-        if price <= 0:
+        price = self.cleaned_data.get('price_per_day')
+        if price is not None and price <= 0:
             raise forms.ValidationError("Price per day must be greater than zero.")
         return price
 
     def clean_image(self):
         image = self.cleaned_data.get('image')
         if image:
-            if image.size > 5 * 1024 * 1024:  # 5MB limit
-                raise forms.ValidationError("Image file size must not exceed 5MB.")
-            if not image.name.lower().endswith(('.png', '.jpg', '.jpeg')):
-                raise forms.ValidationError("Only PNG, JPG, or JPEG images are allowed.")
+            if hasattr(image, 'size'):
+                if image.size > 5 * 1024 * 1024:  # 5MB limit
+                    raise forms.ValidationError("Image file size must not exceed 5MB.")
+                if not image.name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                    raise forms.ValidationError("Only PNG, JPG, or JPEG images are allowed.")
         return image
 
     def clean_description(self):

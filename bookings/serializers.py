@@ -34,12 +34,12 @@ class BookingSerializer(serializers.ModelSerializer):
                             'is_active', 'rental_duration']
 
     def validate_start_date(self, value):
-        if value < now():
+        if value.date() < now().date():
             raise serializers.ValidationError("Start date cannot be in the past.")
         return value
 
     def validate_end_date(self, value):
-        if value < now():
+        if value.date() < now().date():
             raise serializers.ValidationError("End date must be in the future.")
         return value
 
@@ -48,20 +48,19 @@ class BookingSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("End date must be after the start date.")
 
         bike = data.get('bike')
-        if bike and not bike.availability_status:
-            raise serializers.ValidationError("Selected bike is not available for booking.")
-
-        # Check for overlapping confirmed bookings with payment
+        if data['start_date'] > data['end_date']:
+            raise serializers.ValidationError("End date must be after start date.")
+        
+        # Check for overlapping bookings
         overlapping_bookings = Booking.objects.filter(
-            bike=bike,
+            bike=data['bike'],
             start_date__lt=data['end_date'],
             end_date__gt=data['start_date'],
             status='confirmed',
-            payment_status=True
-        ).exclude(id=self.instance.id if self.instance else None)
-
+            payment_status='paid'
+        )
         if overlapping_bookings.exists():
-            raise serializers.ValidationError("The selected date range overlaps with an existing confirmed booking.")
+            raise serializers.ValidationError("This bike is already booked for the selected dates.")
 
         return data
 

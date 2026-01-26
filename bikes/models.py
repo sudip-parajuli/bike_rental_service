@@ -29,59 +29,26 @@ class Bike(models.Model):
     is_featured = models.BooleanField(default=False, help_text="Mark this bike as featured on the homepage.")
     image = models.ImageField(upload_to='bikes/', default='default_bike.png', help_text="Image of the bike.")
     slug = models.SlugField(unique=True, blank=True, null=True, help_text="SEO-friendly URL slug for the bike.")
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bikes', help_text="Owner of the bike.")
+    host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bikes', help_text="host of the bike.")
     created_at = models.DateTimeField(auto_now_add=True, help_text="Timestamp for when the bike was added.")
     updated_at = models.DateTimeField(auto_now=True, help_text="Timestamp for the last update.")
     average_rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
-    engine_type = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        help_text="Type of engine (e.g., 4-stroke, 2-stroke)."
-    )
-    displacement = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True,
-        help_text="Engine displacement (e.g., 125 cc)."
-    )
-    max_power = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True,
-        help_text="Maximum power output (e.g., 8.5 hp)."
-    )
-    torque = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True,
-        help_text="Torque output (e.g., 10 Nm)."
-    )
-    transmission = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        help_text="Transmission type (e.g., Automatic, 5-speed manual)."
-    )
-    brakes = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        help_text="Brake system (e.g., Disc/Drum)."
-    )
-    dimensions = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        help_text="Bike dimensions (e.g., 1800 x 700 x 1100 mm)."
-    )
-    fuel_capacity = models.DecimalField(
-        max_digits=5,
-        decimal_places=1,
-        blank=True,
-        null=True,
-        help_text="Fuel tank capacity in liters (e.g., 5.3 L)."
-    )
+    
+    # Engine & Performance
+    engine_type = models.CharField(max_length=50, blank=True, null=True, help_text="Type of engine (e.g., 4-stroke, 2-stroke).")
+    displacement = models.CharField(max_length=20, blank=True, null=True, help_text="Engine displacement (e.g., 125 cc).")
+    max_power = models.CharField(max_length=20, blank=True, null=True, help_text="Maximum power output (e.g., 8.5 hp).")
+    torque = models.CharField(max_length=20, blank=True, null=True, help_text="Torque output (e.g., 10 Nm).")
+    transmission = models.CharField(max_length=50, blank=True, null=True, help_text="Transmission type (e.g., Automatic, 5-speed manual).")
+    brakes = models.CharField(max_length=50, blank=True, null=True, help_text="Brake system (e.g., Disc/Drum).")
+    dimensions = models.CharField(max_length=50, blank=True, null=True, help_text="Bike dimensions (e.g., 1800 x 700 x 1100 mm).")
+    fuel_capacity = models.DecimalField(max_digits=5, decimal_places=1, blank=True, null=True, help_text="Fuel tank capacity in liters (e.g., 5.3 L).")
+    
+    # Vehicle Identification (Admin/Contract use)
+    vehicle_number = models.CharField(max_length=20, blank=True, null=True, help_text="Vehicle Registration Number (Plate No).")
+    color = models.CharField(max_length=50, blank=True, null=True, help_text="Vehicle Color.")
+    chassis_no = models.CharField(max_length=100, blank=True, null=True, help_text="Chassis Number (VIN). Restricted view.")
+    engine_no = models.CharField(max_length=100, blank=True, null=True, help_text="Engine Number. Restricted view.")
 
     def is_booked_for_dates(self, start_date, end_date):
         """
@@ -93,8 +60,8 @@ class Bike(models.Model):
             bike=self,
             start_date__lt=end_date,
             end_date__gt=start_date,
-            status='confirmed',  # Only confirmed bookings (payment completed)
-            payment_status=True  # Payment must be made (partial or full)
+            status='confirmed',  # Only confirmed bookings
+            payment_status__in=['paid', 'partial']  # Payment must be made (partial or full)
         ).exists()
 
     def is_available(self):
@@ -108,9 +75,33 @@ class Bike(models.Model):
             start_date__lte=now(),
             end_date__gte=now(),
             status='confirmed',
-            payment_status=True
+            payment_status__in=['paid', 'partial']
         ).exists()
         return self.availability_status and not current_bookings
+
+    @property
+    def total_earnings(self):
+        """Calculate the total earnings from confirmed and partially paid bookings for this bike."""
+        from bookings.models import Booking
+        bookings = Booking.objects.filter(
+            bike=self,
+            status='confirmed',
+            payment_status__in=['paid', 'partial']  # Payment must be made (partial or full)
+        ).aggregate(total_earnings=models.Sum('total_price'))
+        return bookings['total_earnings'] or 0
+
+    @property
+    def is_currently_rented(self):
+        """Check if the bike is currently rented."""
+        now_time = now()
+        from bookings.models import Booking
+        return Booking.objects.filter(
+            bike=self,
+            start_date__lte=now_time,
+            end_date__gte=now_time,
+            status='confirmed',
+            payment_status__in=['paid', 'partial']
+        ).exists()
 
     def save(self, *args, **kwargs):
         """Automatically generate a unique slug from the bike's name."""

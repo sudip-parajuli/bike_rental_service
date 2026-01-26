@@ -1,0 +1,33 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block admin_content %}
+<div class="content-card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2);">
+        <h2 class="card-title" style="color: #f87171;">
+            <i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem;"></i>
+            Confirm Deletion
+        </h2>
+    </div>
+    <div style="padding: 2rem; text-align: center;">
+        <p style="font-size: 1.1rem; color: var(--text-base); margin-bottom: 2rem;">
+            Are you sure you want to delete <strong>{{ item_name }}</strong>?
+            <br>
+            <span style="font-size: 0.9rem; color: var(--text-dim);">This action cannot be undone.</span>
+        </p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button type="submit" class="btn btn-danger" style="padding: 0.75rem 2rem; border-radius: 9999px;">
+                    Yes, Delete
+                </button>
+                <a href="javascript:history.back()" class="btn btn-outline-light" style="padding: 0.75rem 2rem; border-radius: 9999px;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

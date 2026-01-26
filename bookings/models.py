@@ -37,14 +37,27 @@ class Booking(models.Model):
     start_date = models.DateTimeField(help_text="Start date of the rental period.")
     end_date = models.DateTimeField(help_text="End date of the rental period.")
     pickup_location = models.CharField(max_length=200, help_text="Location where the bike will be picked up.")
+    PAYMENT_STATUS_CHOICES = [
+        ('unpaid', 'Unpaid'),
+        ('partial', 'Partial'),
+        ('paid', 'Paid'),
+    ]
+
     total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Total rental cost.")
-    payment_status = models.BooleanField(default=False, help_text="Indicates whether the payment is completed.")
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='unpaid', help_text="Status of the payment.")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', help_text="Current status of the booking.")
-    payment_option = models.CharField(max_length=20, choices=PAYMENT_OPTION_CHOICES, default='full_online', help_text="User’s chosen payment method.")
+    payment_option = models.CharField(max_length=20, choices=PAYMENT_OPTION_CHOICES, default='full_online', help_text="User's chosen payment method.")
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, null=True, blank=True, help_text="Selected payment method (eSewa, PayPal, or Cash on Delivery).")
     created_at = models.DateTimeField(auto_now_add=True, help_text="Timestamp for when the booking was created.")
     updated_at = models.DateTimeField(auto_now=True, help_text="Timestamp for the last update.")
     is_active = models.BooleanField(default=True, help_text="Indicates if the booking is active.")
+
+    @property
+    def duration_days(self):
+        """Calculate duration in days."""
+        delta = self.end_date - self.start_date
+        return delta.days + 1
+
 
     class Meta:
         constraints = [
@@ -56,20 +69,19 @@ class Booking(models.Model):
 
     def clean(self):
         """Ensure end_date is after start_date and check for overlapping confirmed bookings."""
-        if self.end_date <= self.start_date:
-            raise ValidationError("End date must be later than start date.")
+        if self.end_date < self.start_date:
+            raise ValidationError("End date must be later than or equal to start date.")
 
-        # Check for overlapping confirmed bookings with payment
+        # Check for overlapping confirmed bookings
         overlapping_bookings = Booking.objects.filter(
             bike=self.bike,
             start_date__lt=self.end_date,
             end_date__gt=self.start_date,
             status='confirmed',
-            payment_status=True
         ).exclude(id=self.id)  # Exclude the current booking during updates
 
         if overlapping_bookings.exists():
-            raise ValidationError("This bike is already booked and paid for during the selected dates.")
+            raise ValidationError("This bike is already booked during the selected dates.")
 
     def calculate_total_price(self):
         """Calculate the total rental price based on the duration with discounts."""
@@ -94,9 +106,28 @@ class Booking(models.Model):
         return round(base_price - discount, 2)
 
     def save(self, *args, **kwargs):
-        """Automatically calculate the total price if not provided."""
+        """Automatically calculate the total price if not provided and sync payment status."""
         if not self.total_price:
             self.total_price = self.calculate_total_price()
+        
+        # Check if this is an update (not a new instance)
+        if self.pk:
+            try:
+                original = Booking.objects.get(pk=self.pk)
+                # If payment_status changed to 'paid', ensure Payment is completed
+                if original.payment_status != 'paid' and self.payment_status == 'paid':
+                     # Import here to avoid circular import
+                    from payment.models import Payment
+                    # Try to get the related payment and update it
+                    try:
+                        payment = Payment.objects.get(booking=self)
+                        if payment.status != 'completed':
+                            Payment.objects.filter(pk=payment.pk).update(status='completed')
+                    except Payment.DoesNotExist:
+                        pass
+            except Booking.DoesNotExist:
+                pass
+        
         super().save(*args, **kwargs)
 
     def __str__(self):

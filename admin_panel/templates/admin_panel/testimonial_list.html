@@ -1,0 +1,55 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block page_title %}Testimonials & Feedback{% endblock %}
+{% block page_subtitle %}Moderate user reviews and testimonials.{% endblock %}
+
+{% block admin_content %}
+<div class="content-card">
+    <div class="card-header">
+        <h2 class="card-title">User Testimonials</h2>
+    </div>
+    <div class="table-container">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-dim); text-align: left;">
+                    <th style="padding: 1rem;">Author</th>
+                    <th style="padding: 1rem;">Content</th>
+                    <th style="padding: 1rem;">Rating</th>
+                    <th style="padding: 1rem;">Status</th>
+                    <th style="padding: 1rem;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for testimonial in testimonials %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem;">{{ testimonial.user.username }}</td>
+                    <td style="padding: 1rem; max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ testimonial.content }}</td>
+                    <td style="padding: 1rem; color: #f59e0b;">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= testimonial.rating %}<i class="fas fa-star"></i>{% endif %}
+                        {% endfor %}
+                    </td>
+                    <td style="padding: 1rem;">
+                        <span class="status-pill {% if testimonial.is_approved %}status-approved{% else %}status-pending{% endif %}">
+                            {{ testimonial.is_approved|yesno:"Approved,Pending" }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <form method="POST" action="{% url 'admin_panel:toggle-testimonial-status' testimonial.pk %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-action" title="{% if testimonial.is_approved %}Hide{% else %}Approve{% endif %}">
+                                <i class="fas {% if testimonial.is_approved %}fa-eye-slash{% else %}fa-check-circle{% endif %}"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-dim);">No testimonials found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

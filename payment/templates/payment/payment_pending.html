@@ -1,0 +1,8 @@
+<!-- templates/payment/payment_pending.html -->
+{% extends "base.html" %}
+{% block content %}
+  <h2>Payment Pending</h2>
+  <p>{{ warning }}</p>
+  <p>Your payment for booking ID {{ payment.booking.id }} was processed successfully but is awaiting confirmation.</p>
+  <p>Please wait a moment or <a href="/contact/">contact support</a> if this takes too long.</p>
+{% endblock %}

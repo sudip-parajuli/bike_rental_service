@@ -1,167 +1,632 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4">Dashboard</h2>
+<style>
+    /* Dashboard Styles - Professional & Modern Light Theme */
+    .dashboard-section {
+        min-height: 100vh;
+        background: transparent;
+        padding: 2rem 0;
+        color: #1e293b;
+        margin-top: 60px;
+    }
 
-    <!-- Key Metrics -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-center bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Total Bookings</h5>
-                    <p class="card-text display-4">{{ total_bookings }}</p>
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        /* Main content + Sidebar */
+        gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .dashboard-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Glassmorphism Card Base -> Clean Light Card */
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border-color: #cbd5e1;
+    }
+
+    /* Welcome Section */
+    .welcome-header {
+        margin-bottom: 2rem;
+    }
+
+    .welcome-title {
+        font-size: 2.25rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b, #475569);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .welcome-subtitle {
+        color: #64748b;
+        font-size: 1.1rem;
+        text-align: center;
+    }
+
+    /* Quick Actions Grid */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        color: #475569;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        gap: 0.75rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .action-btn:hover {
+        background: #f8fafc;
+        border-color: #3b82f6;
+        color: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1);
+    }
+
+    .action-btn i {
+        font-size: 1.5rem;
+        color: #3b82f6;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .metric-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .metric-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .metric-info h3 {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+
+    .metric-info p {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    /* Section Headers */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .view-all-link {
+        color: #2563eb;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .view-all-link:hover {
+        color: #1d4ed8;
+    }
+
+    /* Tables */
+    .modern-table-container {
+        overflow-x: auto;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: #334155;
+    }
+
+    .modern-table th {
+        text-align: left;
+        padding: 1rem;
+        color: #64748b;
+        font-weight: 600;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .modern-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-weight: 500;
+    }
+
+    .modern-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .modern-table tr:hover td {
+        background-color: #f8fafc;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .status-confirmed {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .status-pending {
+        background: #fffbeb;
+        color: #d97706;
+    }
+
+    .status-cancelled {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .status-completed {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    /* Sidebar */
+    .sidebar-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .profile-card {
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+        border: 4px solid #eff6ff;
+        padding: 2px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-avatar img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .profile-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+
+    .profile-email {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Notification Panel */
+    .notification-item {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        gap: 1rem;
+        align-items: start;
+        transition: background-color 0.2s ease;
+    }
+    
+    .notification-item:hover {
+        background-color: #f8fafc;
+        border-radius: 8px;
+    }
+
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    .notif-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: #eff6ff;
+        color: #2563eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+
+    .notif-content h4 {
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .notif-content p {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin: 0;
+    }
+
+    /* Bike host Status */
+    .host-status-card {
+        background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+        border: 1px solid #dbeafe;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    /* Bike Preview Card */
+    .bike-preview-card {
+        padding: 1rem;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .bike-preview-card:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="dashboard-section">
+    <div class="dashboard-container">
+        <!-- Main Content Column -->
+        <div class="main-content">
+            <!-- Welcome Header -->
+            <div class="welcome-header animate-fade-in">
+                <h1 class="welcome-title">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+                <p class="welcome-subtitle">Here's what's happening with your bike rentals today.</p>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions animate-fade-in" style="animation-delay: 0.1s;">
+                <a href="{% url 'bikes:bike-list' %}" class="action-btn">
+                    <i class="fas fa-motorcycle"></i>
+                    <span>Rent a Bike</span>
+                </a>
+                <a href="{% url 'users:contact' %}" class="action-btn">
+                    <i class="fas fa-headset"></i>
+                    <span>Support</span>
+                </a>
+                {% if not user.is_host %}
+                <a href="{% url 'users:bike-host-request' %}" class="action-btn">
+                    <i class="fas fa-handshake"></i>
+                    <span>Become host</span>
+                </a>
+                {% else %}
+                <a href="{% url 'users:bike-host-dashboard' %}" class="action-btn">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Host Dashboard</span>
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="metrics-grid animate-fade-in" style="animation-delay: 0.2s;">
+                <div class="glass-card metric-card">
+                    <div class="metric-icon" style="background: #eff6ff; color: #3b82f6;">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>Active Bookings</h3>
+                        <p>{{ active_bookings }}</p>
+                    </div>
+                </div>
+                <div class="glass-card metric-card">
+                    <div class="metric-icon" style="background: #ecfdf5; color: #10b981;">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>Total Rides</h3>
+                        <p>{{ total_bookings }}</p>
+                    </div>
+                </div>
+                <div class="glass-card metric-card">
+                    <div class="metric-icon" style="background: #fffbeb; color: #f59e0b;">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>Pending Pay</h3>
+                        <p>{{ pending_payments_count }}</p>
+                    </div>
+                </div>
+                <div class="glass-card metric-card">
+                    <div class="metric-icon" style="background: #fdf4ff; color: #a855f7;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h3>Upcoming</h3>
+                        <p>{{ upcoming_bookings }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Active Bookings</h5>
-                    <p class="card-text display-4">{{ active_bookings }}</p>
+
+            <!-- Next Pickup / Action Item -->
+            {% if next_pickup %}
+            <div class="glass-card animate-fade-in"
+                style="margin-bottom: 2rem; border-left: 4px solid #3b82f6; animation-delay: 0.3s;">
+                <div class="section-header" style="margin-bottom: 1rem;">
+                    <h3 class="section-title"><i class="fas fa-bell text-primary"></i> Upcoming Pickup</h3>
+                </div>
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem; font-weight: 700; color: #1e293b;">{{ next_pickup.bike.model }}</h4>
+                        <p style="color: #64748b; margin: 0;">
+                            <i class="far fa-calendar"></i> {{ next_pickup.start_date|date:"M d, Y" }} at {{
+                            next_pickup.start_date|time:"H:i" }}
+                        </p>
+                    </div>
+                    <a href="#" class="btn btn-primary btn-sm rounded-pill">View Details</a>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center bg-warning text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Upcoming Bookings</h5>
-                    <p class="card-text display-4">{{ upcoming_bookings }}</p>
+            {% endif %}
+
+            <!-- Recent Activity Table -->
+            <div class="glass-card animate-fade-in" style="margin-bottom: 2rem; animation-delay: 0.4s;">
+                <div class="section-header">
+                    <h3 class="section-title"><i class="fas fa-list text-primary"></i> Recent Bookings</h3>
+                    <a href="{% url 'bookings:booking-list' %}" class="view-all-link">View All</a>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <h4 class="mb-3">Recent Activity</h4>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Bike Name</th>
-                <th>Rental Dates</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for booking in recent_bookings %}
-            <tr>
-                <td>{{ booking.bike.name }}</td>
-                <td>{{ booking.start_date }} to {{ booking.end_date }}</td>
-                <td>
-                    {% if booking.status == 'Completed' %}
-                        <span class="badge bg-success">{{ booking.status }}</span>
-                    {% elif booking.status == 'Active' %}
-                        <span class="badge bg-primary">{{ booking.status }}</span>
-                    {% else %}
-                        <span class="badge bg-secondary">{{ booking.status }}</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if booking.status == 'Completed' %}
-                        <a href="{% url 'submit_feedback' booking.id %}"
-                           class="btn btn-sm btn-success"
-                           data-bs-toggle="tooltip"
-                           title="Submit feedback for this booking">
-                            Submit Feedback
-                        </a>
-                    {% else %}
-                        <span class="badge bg-secondary">Not Available</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Recent Feedback -->
-    <h4 class="mb-3">Recent Feedback</h4>
-    <div class="row">
-        {% if recent_feedback %}
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Bike Name</th>
-                        <th>Rating</th>
-                        <th>Comment</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for feedback in recent_feedback %}
-                    <tr>
-                        <td>{{ feedback.booking.bike.name }}</td>
-                        <td>
-                            {% for star in "x"|rjust:feedback.rating %}
-                                ⭐
+                <div class="modern-table-container">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Bike</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in booking_history|slice:":5" %}
+                            <tr>
+                                <td><span style="color: #1e293b; font-weight: 600;">{{ booking.bike.model }}</span></td>
+                                <td>{{ booking.start_date|date:"M d" }} - {{ booking.end_date|date:"M d" }}</td>
+                                <td>NPR {{ booking.total_price }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ booking.status|lower }}">
+                                        {{ booking.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="#" class="text-primary"><i class="fas fa-eye"></i></a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">
+                                    No bookings found. <a href="{% url 'bikes:bike-list' %}" class="text-primary" style="font-weight: 600;">Book
+                                        your first ride!</a>
+                                </td>
+                            </tr>
                             {% endfor %}
-                        </td>
-                        <td>{{ feedback.comment }}</td>
-                        <td>{{ feedback.created_at|date:"M d, Y" }}</td>
-                    </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recommended Bikes -->
+            <div class="glass-card animate-fade-in" style="animation-delay: 0.5s;">
+                <div class="section-header">
+                    <h3 class="section-title"><i class="fas fa-star text-warning"></i> Recommended For You</h3>
+                    <a href="{% url 'bikes:bike-list' %}" class="view-all-link">Browse All</a>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem;">
+                    {% for bike in recommended_bikes %}
+                    <div class="bike-preview-card">
+                        <div style="position: relative; height: 160px; margin-bottom: 1rem; border-radius: 12px; overflow: hidden; background: #f1f5f9;">
+                            {% if bike.image %}
+                            <img src="{{ bike.image.url }}" alt="{{ bike.model }}"
+                                style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                            <div
+                                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #cbd5e1;">
+                                <i class="fas fa-motorcycle fa-3x"></i>
+                            </div>
+                            {% endif %}
+                            <div
+                                style="position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(255,255,255,0.9); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; color: #d97706; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <i class="fas fa-star"></i> {{ bike.average_rating|default:"New" }}
+                            </div>
+                        </div>
+                        <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem; color: #1e293b; font-weight: 700;">{{ bike.model }}</h4>
+                        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 0.5rem;">{{ bike.brand }}</p>
+
+                        {% if bike.recommendation_reason %}
+                        <div
+                            style="font-size: 0.75rem; color: #2563eb; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.25rem; background: #eff6ff; padding: 4px 8px; border-radius: 6px; width: fit-content;">
+                            <i class="fas fa-magic"></i> {{ bike.recommendation_reason }}
+                        </div>
+                        {% endif %}
+
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                            <span style="font-weight: 700; color: #2563eb;">NPR {{ bike.price_per_day }}<span
+                                    style="font-size: 0.8rem; color: #94a3b8; font-weight: 400;">/day</span></span>
+                            <a href="{% url 'bikes:bike-detail' bike.id %}"
+                                class="btn btn-primary btn-sm rounded-pill">View</a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="text-align: center; padding: 2rem; color: #64748b; grid-column: 1/-1;">
+                        Check out our <a href="{% url 'bikes:bike-list' %}" class="text-primary">latest fleet</a> for
+                        your next adventure!
+                    </div>
                     {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No feedback submitted yet.</p>
-        {% endif %}
-    </div>
-
-    <!-- Quick Actions -->
-    <h4 class="mb-3">Quick Actions</h4>
-    <div class="d-flex gap-3">
-        <a href="{% url 'bikes:bike-list' %}" class="btn btn-primary" data-bs-toggle="tooltip" title="Browse available bikes">View All Bikes</a>
-        <a href="{% url 'users:user-detail' %}" class="btn btn-secondary" data-bs-toggle="tooltip" title="Update your profile details">View Profile</a>
-        <a href="{% url 'users:contact' %}" class="btn btn-info text-white" data-bs-toggle="tooltip" title="Get in touch with our support team">Contact Support</a>
-        <a href="{% url 'testimonials:testimonial-create' %}" class="btn btn-dark" data-bs-toggle="tooltip" title="Share your experience with EasyMoto!">Share Testimonial</a>
-    </div>
-
-<!-- Bike Owner Request Status -->
-    {% if bike_owner_request %}
-    <div class="mb-4 mt-5">
-        <h4>Bike Owner Request Status</h4>
-        <p>
-            <strong>Status:</strong>
-            <span class="{% if bike_owner_request.status == 'pending' %}text-warning{% elif bike_owner_request.status == 'approved' %}text-success{% else %}text-danger{% endif %}">
-                {{ bike_owner_request.status|title }}
-            </span>
-        </p>
-        {% if bike_owner_request.status == 'rejected' and bike_owner_request.admin_notes %}
-        <p><strong>Reason for Rejection:</strong> {{ bike_owner_request.admin_notes }}</p>
-        {% endif %}
-        {% if bike_owner_request.status == 'rejected' %}
-            <a href="{% url 'users:bike-owner-request' %}" class="btn btn-primary mt-2">Update Request</a>
-        {% endif %}
-    </div>
-    {% elif not user.is_owner %}
-        <div class="mb-4 mt-5 alert alert-info" role="alert">
-            Want to lend your bike for rent? Join our platform as a bike owner and start earning!
-            <a href="{% url 'users:bike-owner-request' %}" class="alert-link">Click here to become a bike owner!</a>
+                </div>
+            </div>
         </div>
-    {% endif %}
 
-    <!-- Bike Owner Management (for approved owners) -->
-    {% if user.is_owner %}
-    <div class="mb-4 mt-5">
-        <h4>Your Bike Listings</h4>
-        {% if user_bikes and user_bikes.exists %}
-            <p>You have {{ user_bikes.count }} bike(s) listed. <a href="{% url 'users:bike-owner-dashboard' %}" class="btn btn-primary">Manage Your Bike Listings</a></p>
-            <ul>
-                {% for bike in user_bikes %}
-                    <li>{{ bike.name }} ({{ bike.type }}) - {{ bike.availability_status|yesno:"Available,Not Available" }}</li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>You have no bikes listed yet. <a href="{% url 'users:bike-owner-dashboard' %}" class="btn btn-primary">Add a Bike Listing</a></p>
-        {% endif %}
+        <!-- Sidebar Column -->
+        <div class="sidebar-section animate-fade-in" style="animation-delay: 0.3s;">
+            <!-- Profile Card -->
+            <div class="glass-card profile-card">
+                <div class="profile-avatar">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Profile">
+                    {% else %}
+                    <img src="{% static 'images/default_avatar.png' %}" alt="Default Profile">
+                    {% endif %}
+                </div>
+                <h3 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h3>
+                <p class="profile-email">{{ user.email }}</p>
+                <div style="display: flex; justify-content: center; gap: 0.5rem;">
+                    <span class="badge bg-primary rounded-pill">Member</span>
+                    {% if user.is_host %}
+                    <span class="badge bg-success rounded-pill">Bike Host</span>
+                    {% endif %}
+                </div>
+                <div style="margin-top: 1rem;">
+                    <a href="{% url 'users:user-detail' %}" class="btn btn-outline-primary btn-sm rounded-pill">Edit Profile</a>
+                </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="glass-card">
+                <div class="section-header">
+                    <h3 class="section-title" style="font-size: 1.1rem;"><i class="fas fa-credit-card text-primary"></i> Payments
+                    </h3>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 0.25rem;">Outstanding</p>
+                    <h4 style="font-size: 1.5rem; color: #ef4444; font-weight: 700;">NPR {{ outstanding_payment_amount }}</h4>
+                </div>
+                {% if last_payment %}
+                <div style="padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                    <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 0.25rem;">Last Payment</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #1e293b; font-weight: 600;">NPR {{ last_payment.amount }}</span>
+                        <span style="color: #94a3b8; font-size: 0.8rem;">{{ last_payment.created_at|date:"M d" }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Notifications (Mock) -->
+            <div class="glass-card">
+                <div class="section-header">
+                    <h3 class="section-title" style="font-size: 1.1rem;"><i class="fas fa-bell text-primary"></i> Notifications</h3>
+                </div>
+                <div class="notification-list">
+                    {% if bike_host_request %}
+                    <div class="notification-item">
+                        <div class="notif-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="notif-content">
+                            <h4>Host Request</h4>
+                            <p>Status: <span
+                                    class="text-{{ bike_host_request.status|yesno:'success,warning,danger' }}">{{
+                                    bike_host_request.status|title }}</span></p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <!-- Static placeholders for demo -->
+                    {% if show_special_offer %}
+                    <div class="notification-item">
+                        <div class="notif-icon" style="background: #ecfdf5; color: #10b981;">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        <div class="notif-content">
+                            <h4>Special Offer</h4>
+                            <p>Get 20% off your next ride!</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
-    {% endif %}
 </div>
-
-<!-- Initialize Tooltips -->
-<script>
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-</script>
 {% endblock %}

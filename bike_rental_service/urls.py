@@ -2,10 +2,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
+from .views import HomeView, PublicHomeView
+from users.views import RegisterView
 
 # Configure Swagger schema
 schema_view = get_schema_view(
@@ -28,13 +30,24 @@ urlpatterns = [
     path('api/testimonial/', include('testimonials.urls', namespace='testimonials-api')),  # API routing for testimonials (JSON)
     path('api/payment/', include('payment.urls', namespace='payments-api')),  # API routing for payments (JSON)
     path('api/user/', include('users.urls', namespace='users-api')),  # API routing for users (JSON)
+    path('api/chatbot/', include('chatbot.urls')),  # API routing for chatbot
     path('api/admin/', include('admin_panel.urls')),
     path('api-auth/', include('rest_framework.urls')),
-    path('', TemplateView.as_view(template_name='home.html'), name='home'),
+    path('admin-panel/', include('admin_panel.urls', namespace='admin_panel')),
+    path('', HomeView.as_view(), name='home'),
+    path('public-home/', PublicHomeView.as_view(), name='public-home'),
     path('bikes/', include('bikes.urls', namespace='bikes')),  # Template-based bikes (HTML)
     path('bookings/', include('bookings.urls', namespace='bookings')),  # Template-based bookings (HTML) - Ensure this is included
     path('testimonials/', include('testimonials.urls', namespace='testimonials')),  # Template-based testimonials (HTML)
     path('users/', include('users.urls', namespace='users')),  # Template-based users (HTML)
+    path('register/', RegisterView.as_view(), name='register'),
+
+
+    # Authentication
+    path('accounts/', include('allauth.urls')),
+    path('api/auth/', include('dj_rest_auth.urls')),
+    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('api/auth/google/', include('allauth.socialaccount.providers.google.urls')),
 
     # Swagger endpoints
     path('api/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

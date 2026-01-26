@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from .models import Testimonial
 from .serializers import TestimonialSerializer
+from .filters import TestimonialFilter
 from users.permissions import IsUserOrReadOnly
 
 class TestimonialListView(generics.ListAPIView):
@@ -20,6 +21,7 @@ class TestimonialListView(generics.ListAPIView):
     serializer_class = TestimonialSerializer
     permission_classes = [permissions.AllowAny]  # Public access
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = TestimonialFilter
     search_fields = ['user__username', 'content']
     pagination_class = PageNumberPagination
 

@@ -6,11 +6,13 @@ class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = [
         ('paypal', 'PayPal'),
         ('esewa', 'eSewa'),
+        ('cash_on_delivery', 'Cash on Delivery'),
     ]
 
     # Choices for payment status
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('partial', 'Partial'),
         ('completed', 'Completed'),
         ('failed', 'Failed'),
     ]
@@ -76,6 +78,13 @@ class Payment(models.Model):
         """
         return self.status == 'completed'
 
+    @property
+    def due_amount(self):
+        """Calculate the remaining amount to be paid."""
+        if not self.booking.total_price:
+            return 0
+        return self.booking.total_price - self.amount
+
     def mark_as_completed(self, transaction_id=None, transaction_uuid=None):
         """
         Mark the payment as completed and update the transaction ID or UUID.
@@ -101,12 +110,36 @@ class Payment(models.Model):
         """Override save to update booking payment status."""
         if self.pk:  # Existing instance
             original = Payment.objects.get(pk=self.pk)
-            if original.status != 'completed' and self.status == 'completed':
-                self.booking.payment_status = True
-                self.booking.status = 'confirmed'
+            if original.status != self.status:
+                if self.status == 'completed':
+                    self.booking.payment_status = 'paid'
+                    self.booking.status = 'confirmed'
+                elif self.status == 'partial':
+                    self.booking.payment_status = 'partial'
+                    self.booking.status = 'confirmed'
                 self.booking.save(update_fields=['payment_status', 'status'])
-        elif self.status == 'completed':  # New instance
-            self.booking.payment_status = True
+        elif self.status in ['completed', 'partial']:  # New instance
+            self.booking.payment_status = 'paid' if self.status == 'completed' else 'partial'
             self.booking.status = 'confirmed'
             self.booking.save(update_fields=['payment_status', 'status'])
         super().save(*args, **kwargs)
+
+class Invoice(models.Model):
+    booking = models.OneToOneField(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='invoice',
+        help_text="Booking associated with this invoice."
+    )
+    invoice_number = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Unique invoice number."
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Timestamp for when the invoice was generated."
+    )
+    
+    def __str__(self):
+        return f"Invoice {self.invoice_number} for Booking {self.booking.id}"

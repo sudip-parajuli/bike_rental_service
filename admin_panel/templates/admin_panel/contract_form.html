@@ -1,0 +1,207 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block page_title %}Create Rental Contract{% endblock %}
+{% block page_subtitle %}Generate a new contract and invoice for a booking{% endblock %}
+
+{% block admin_content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="content-card">
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger mb-4">
+                    <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:</h5>
+                    {{ form.errors }}
+                </div>
+                {% endif %}
+
+                <!-- Booking Selection -->
+                <div class="mb-5">
+                    <h4 class="card-title text-primary mb-3">Booking Reference</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted fw-bold">Select Booking</label>
+                            {{ form.booking }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Customer Details -->
+                    <div class="col-md-6">
+                        <h4 class="card-title text-primary mb-3"><i class="fas fa-user me-2"></i>Customer Details</h4>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Full Name</label>
+                            {{ form.customer_name }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Address</label>
+                            {{ form.customer_address }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted">Phone Number</label>
+                                {{ form.customer_phone }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted">Nationality</label>
+                                {{ form.nationality }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted">Driving License No</label>
+                                {{ form.driving_license_no }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted">Passport No</label>
+                                {{ form.passport_no }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vehicle Details -->
+                    <div class="col-md-6">
+                        <h4 class="card-title text-primary mb-3"><i class="fas fa-motorcycle me-2"></i>Vehicle Details</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted">Vehicle Model</label>
+                                {{ form.vehicle_model }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted">Vehicle Number</label>
+                                {{ form.vehicle_number }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Color</label>
+                            {{ form.vehicle_color }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Chassis No</label>
+                            {{ form.chassis_no }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Engine No</label>
+                            {{ form.engine_no }}
+                        </div>
+                    </div>
+
+                    <!-- Guarantor & Security -->
+                    <div class="col-md-6">
+                        <h4 class="card-title text-primary mb-3"><i class="fas fa-user-shield me-2"></i>Guarantor Details</h4>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Name</label>
+                            {{ form.guarantor_name }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Address</label>
+                            {{ form.guarantor_address }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Phone</label>
+                            {{ form.guarantor_phone }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <h4 class="card-title text-primary mb-3"><i class="fas fa-clipboard-check me-2"></i>Checklist</h4>
+                            <div class="form-check">
+                                {{ form.helmet }}
+                                <label class="form-check-label">Helmet Provided</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.bungy_cord }}
+                                <label class="form-check-label">Bungy Cord Provided</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.maps }}
+                                <label class="form-check-label">Maps Provided</label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="card-title text-primary mb-3"><i class="fas fa-lock me-2"></i>Security Deposit</h4>
+                            <div class="form-check">
+                                {{ form.deposit_passport }}
+                                <label class="form-check-label">Original Passport</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.deposit_citizenship }}
+                                <label class="form-check-label">Citizenship Card</label>
+                            </div>
+                            <div class="form-check">
+                                {{ form.deposit_id_card }}
+                                <label class="form-check-label">National ID / Voter ID</label>
+                            </div>
+                            <div class="mt-2">
+                                <label class="form-label text-muted">Other</label>
+                                {{ form.deposit_other }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financials -->
+                    <div class="col-12">
+                        <h4 class="card-title text-primary mb-3"><i class="fas fa-money-bill-wave me-2"></i>Financial Details</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead style="background: #f1f5f9;">
+                                    <tr>
+                                        <th>Rate Per Day (Rs.)</th>
+                                        <th>Discount (Rs.)</th>
+                                        <th>Manual Discount (Rs.)</th>
+                                        <th>Total Amount (Rs.)</th>
+                                        <th>Advance (Rs.)</th>
+                                        <th>Balance To Pay (Rs.)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{{ form.rate_per_day }}</td>
+                                        <td>{{ form.discount_amount }}</td>
+                                        <td>{{ form.manual_discount }}</td>
+                                        <td>{{ form.total_amount }}</td>
+                                        <td>{{ form.advance_amount }}</td>
+                                        <td>{{ form.balance_amount }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label text-muted">Remarks</label>
+                            {{ form.remarks }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 d-flex justify-content-end gap-3">
+                    <a href="{% url 'admin_panel:booking-list' %}" class="btn px-4 py-2" style="background: #e2e8f0; color: #475569; border-radius: 8px;">Cancel</a>
+                    <button type="submit" class="btn px-4 py-2 text-white" style="background: var(--accent-color); border-radius: 8px; border: none;">
+                        <i class="fas fa-save me-2"></i>Save Contract
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #334155;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        background-color: #ffffff;
+    }
+</style>
+{% endblock %}

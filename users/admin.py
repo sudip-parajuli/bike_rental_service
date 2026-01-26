@@ -2,36 +2,36 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse, path
 from django.shortcuts import get_object_or_404, render
-from .models import User, OwnerProfile, BikeOwnerRequest
+from .models import User, hostProfile, BikehostRequest
 
 class UserAdmin(admin.ModelAdmin):
     """
     Custom admin interface for User model.
     """
-    list_display = ('username', 'email', 'is_owner', 'phone_number', 'created_at', 'is_active')
-    list_filter = ('is_owner', 'is_staff', 'is_active', 'created_at')
+    list_display = ('username', 'email', 'is_host', 'phone_number', 'created_at', 'is_active')
+    list_filter = ('is_host', 'is_staff', 'is_active', 'created_at')
     search_fields = ('username', 'email', 'phone_number')
     ordering = ('-created_at',)
     fieldsets = (
         (None, {'fields': ('username', 'email', 'password')}),
         ('Personal Info', {'fields': ('first_name', 'last_name', 'phone_number', 'address', 'profile_picture', 'date_of_birth', 'bio')}),
-        ('Permissions', {'fields': ('is_owner', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Permissions', {'fields': ('is_host', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Status', {'fields': ('is_active', 'last_login', 'date_joined')}),
     )
     readonly_fields = ('last_login', 'date_joined', 'created_at', 'updated_at')
 
-class OwnerProfileAdmin(admin.ModelAdmin):
+class hostProfileAdmin(admin.ModelAdmin):
     """
-    Custom admin interface for OwnerProfile model.
+    Custom admin interface for hostProfile model.
     """
     list_display = ('user', 'total_bookings', 'total_earnings', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('user__username', 'user__email')
     ordering = ('-created_at',)
 
-class BikeOwnerRequestAdmin(admin.ModelAdmin):
+class BikehostRequestAdmin(admin.ModelAdmin):
     """
-    Custom admin interface for BikeOwnerRequest model.
+    Custom admin interface for BikehostRequest model.
     """
     list_display = (
         'user', 'bike_make', 'bike_model', 'status', 'requested_at',
@@ -58,7 +58,7 @@ class BikeOwnerRequestAdmin(admin.ModelAdmin):
         # Link to the custom view that displays all documents
         return format_html(
             '<a href="{}">View Documents</a>',
-            reverse('admin:bike_owner_request_documents', args=[obj.pk])
+            reverse('admin:bike_host_request_documents', args=[obj.pk])
         )
     view_documents.short_description = "Documents"
 
@@ -69,24 +69,24 @@ class BikeOwnerRequestAdmin(admin.ModelAdmin):
             path(
                 '<int:pk>/documents/',
                 self.admin_site.admin_view(self.view_documents_page),
-                name='bike_owner_request_documents'
+                name='bike_host_request_documents'
             ),
         ]
         return custom_urls + urls
 
     def view_documents_page(self, request, pk):
         # View to render the documents template
-        bike_owner_request = get_object_or_404(BikeOwnerRequest, pk=pk)
-        print(f"Registration Certificate URL: {bike_owner_request.registration_certificate.url}")
-        print(f"Insurance Certificate URL: {bike_owner_request.insurance_certificate.url}")
-        print(f"ID Proof URL: {bike_owner_request.id_proof.url}")
-        print(f"Bike Photos URL: {bike_owner_request.bike_photos.url}")
+        bike_host_request = get_object_or_404(BikehostRequest, pk=pk)
+        print(f"Registration Certificate URL: {bike_host_request.registration_certificate.url}")
+        print(f"Insurance Certificate URL: {bike_host_request.insurance_certificate.url}")
+        print(f"ID Proof URL: {bike_host_request.id_proof.url}")
+        print(f"Bike Photos URL: {bike_host_request.bike_photos.url}")
         context = {
-            'title': f"Bike Owner Request Documents - {bike_owner_request.user.username}",
-            'bike_owner_request': bike_owner_request,
+            'title': f"Bike host Request Documents - {bike_host_request.user.username}",
+            'bike_host_request': bike_host_request,
         }
        
-        return render(request, 'users/admin/bike_owner_request_documents.html', context)
+        return render(request, 'users/admin/bike_host_request_documents.html', context)
 
     def approve_selected(self, request, queryset):
         for request_instance in queryset:
@@ -105,5 +105,5 @@ class BikeOwnerRequestAdmin(admin.ModelAdmin):
     reject_selected.short_description = "Reject selected requests"
 
 admin.site.register(User, UserAdmin)
-admin.site.register(OwnerProfile, OwnerProfileAdmin)
-admin.site.register(BikeOwnerRequest, BikeOwnerRequestAdmin)
+admin.site.register(hostProfile, hostProfileAdmin)
+admin.site.register(BikehostRequest, BikehostRequestAdmin)

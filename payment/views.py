@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from django.utils.timezone import now
 from .models import Payment
 from .serializers import PaymentSerializer
-from users.permissions import IsOwnerOrAdmin
+from users.permissions import IshostOrAdmin
 from bookings.models import Booking
 from django.conf import settings
 from django.urls import reverse
@@ -61,90 +61,101 @@ class PaymentListView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == "GET":
             return [IsAuthenticated()]
-        return [IsOwnerOrAdmin()]
+        return [IshostOrAdmin()]
 
 class PaymentDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     Retrieve, update, or delete a payment.
 
     * Requires: Authentication (only owner or admin)
-    * Returns: Payment data or success message on deletion
     """
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    permission_classes = [IsOwnerOrAdmin]
+    permission_classes = [IsAuthenticated, IshostOrAdmin]
+    lookup_field = 'booking_id'
+
 
 def payment_process(request, booking_id, amount):
     payment = get_object_or_404(Payment, booking_id=booking_id)
     amount_float = float(amount)
     host = request.get_host()
+    
+    # Currency Conversion: NPR to USD
+    # Assuming 1 USD = 135 NPR (Fixed Rate for now)
+    exchange_rate = 135
+    amount_usd = amount_float / exchange_rate
+    
     paypal_dict = {
         "business": settings.PAYPAL_RECEIVER_EMAIL,
-        "amount": f"{amount_float:.2f}",
-        "item_name": f"Bike Rental for {payment.booking.bike.name}",
+        "amount": f"{amount_usd:.2f}",
+        "item_name": f"Bike Rental for {payment.booking.bike.name} (NPR {amount_float:.2f})",
         "invoice": str(booking_id),
-        "custom": str(booking_id),  # For IPN
+        "custom": str(booking_id),
         "currency_code": "USD",
         "notify_url": f"http://{host}{reverse('payment:paypal-ipn')}",
-        "return_url": f"http://{host}{reverse('payment:payment-done')}?booking_id={booking_id}",  # Pass booking_id explicitly
+        "return_url": f"http://{host}{reverse('payment:payment-done')}?booking_id={booking_id}",
         "cancel_return": f"http://{host}{reverse('payment:payment-canceled')}",
     }
+
     form = PayPalPaymentsForm(initial=paypal_dict)
-    request.session['booking_id'] = booking_id  # Store in session as fallback
-    context = {"form": form, "payment": payment, "amount": amount_float}
+    request.session['booking_id'] = booking_id
+    context = {"form": form, "payment": payment, "amount": amount_float, "amount_usd": amount_usd}
     return render(request, "payment/payment_process.html", context)
 
-def esewa_payment_process(request, booking_id, amount):
-    """
-    Render the eSewa payment form.
 
-    * Requires: booking_id and amount (passed via URL after payment initiation)
-    * Returns: HTML form for eSewa payment with dynamic amount in NPR
-    """
+def esewa_payment_process(request, booking_id, amount):
     payment = get_object_or_404(Payment, booking_id=booking_id)
     host = request.get_host()
-    transaction_uuid = f"txn_{payment.id}_{int(now().timestamp())}"
+    
+    # Use hyphens instead of underscores for transaction_uuid to be safe
+    transaction_uuid = f"txn-{payment.id}-{int(now().timestamp())}"
 
     # Convert str amount to Decimal for processing
     amount_decimal = Decimal(amount)
-    # Convert USD to NPR (fixed rate for testing, replace with API in production)
-    usd_to_npr_rate = Decimal('130')
-    total_amount_npr = amount_decimal * usd_to_npr_rate
+    
+    # Amount is already in NPR, so no conversion needed
+    total_amount_npr = amount_decimal
+    
+    # Format amount to 2 decimal places string
+    total_amount_str = "{:.2f}".format(total_amount_npr)
 
-    # Generate HMAC-SHA256 signature
-    message = f"{settings.ESEWA_PRODUCT_CODE}|{transaction_uuid}|{total_amount_npr}|{settings.ESEWA_SECRET_KEY}"
+    # Generate HMAC-SHA256 signature for V2
+    # Message format: total_amount=100,transaction_uuid=123,product_code=EPAYTEST
+    message = f"total_amount={total_amount_str},transaction_uuid={transaction_uuid},product_code={settings.ESEWA_PRODUCT_CODE}"
+    
+    # Ensure secret key is stripped of whitespace
+    secret_key = settings.ESEWA_SECRET_KEY.strip()
+    
     signature = base64.b64encode(
         hmac.new(
-            settings.ESEWA_SECRET_KEY.encode('utf-8'),
+            secret_key.encode('utf-8'),
             message.encode('utf-8'),
             hashlib.sha256
         ).digest()
     ).decode('utf-8')
 
-    # Prepare success data (single data parameter)
-    success_data = {
-        'transaction_uuid': transaction_uuid,
-        'status': 'COMPLETED',
-        'total_amount': str(total_amount_npr),
-        'product_code': settings.ESEWA_PRODUCT_CODE,
-        'transaction_code': transaction_uuid
-    }
-    encoded_data = urllib.parse.quote(base64.b64encode(json.dumps(success_data).encode()).decode())
-    success_url = f"http://{host}{reverse('payment:esewa_payment_success')}?booking_id={booking_id}&data={encoded_data}"
+    # Correct success URL construction
+    success_url = f"{request.scheme}://{host}{reverse('payment:esewa_payment_success')}?booking_id={booking_id}"
+    failure_url = f"{request.scheme}://{host}{reverse('payment:esewa_payment_failure')}?booking_id={booking_id}"
 
-    # eSewa request parameters
+    # eSewa V2 request parameters
     esewa_dict = {
-        "amt": str(total_amount_npr),
-        "pdc": "0",
-        "psc": "0",
-        "txAmt": "0",
-        "tAmt": str(total_amount_npr),
-        "pid": str(booking_id),
-        "scd": settings.ESEWA_PRODUCT_CODE,  # Merchant code (product_code)
-        "su": success_url,
-        "fu": f"http://{host}{reverse('payment:esewa_payment_failure')}?booking_id={booking_id}",
+        "amount": total_amount_str,
+        "tax_amount": "0.00",
+        "product_service_charge": "0.00",
+        "product_delivery_charge": "0.00",
+        "total_amount": total_amount_str,
+        "transaction_uuid": transaction_uuid,
+        "product_code": settings.ESEWA_PRODUCT_CODE,
+        "success_url": success_url,
+        "failure_url": failure_url,
+        "signed_field_names": "total_amount,transaction_uuid,product_code",
+        "signature": signature,
     }
+    
+    print(f"DEBUG: eSewa Dict: {json.dumps(esewa_dict, indent=2)}")
     logger.info(f"eSewa request parameters: {esewa_dict}")
+    logger.info(f"eSewa signature message: {message}")
     logger.info(f"eSewa signature: {signature}")
 
     context = {
@@ -152,24 +163,23 @@ def esewa_payment_process(request, booking_id, amount):
         "gateway_url": settings.ESEWA_GATEWAY_URL,
         "payment": payment,
         "amount": amount_decimal,
-        "signature": signature
+        "signature": signature 
     }
     return render(request, "payment/esewa_payment_process.html", context)
 
 
 def esewa_payment_success(request):
     booking_id = request.GET.get('booking_id')
-    data_params = request.GET.getlist('data')
+    data_param = request.GET.get('data')
 
-    logger.info(f"eSewa success callback: booking_id={booking_id}, data_params={data_params}")
+    logger.info(f"eSewa success callback: booking_id={booking_id}, data={data_param}")
 
-    if not booking_id or not data_params:
-        logger.error("Missing booking_id or no data parameters")
+    if not booking_id or not data_param:
+        logger.error("Missing booking_id or no data parameter")
         return render(request, "payment/esewa_payment_failure.html", {'error': "Missing booking_id or eSewa response data."})
 
     try:
-        esewa_response = data_params[-1]
-        decoded_data = base64.b64decode(esewa_response).decode('utf-8')
+        decoded_data = base64.b64decode(data_param).decode('utf-8')
         esewa_data = json.loads(decoded_data)
 
         transaction_uuid = esewa_data.get('transaction_uuid')
@@ -185,10 +195,16 @@ def esewa_payment_success(request):
             logger.warning(f"Transaction not completed: status={status}")
             return render(request, "payment/esewa_payment_failure.html", {'error': f"Transaction not completed: {status}"})
 
-        payment = get_object_or_404(Payment, booking_id=booking_id, transaction_uuid=transaction_uuid)
+        # Extract payment ID from transaction_uuid (format: txn_{id}_{timestamp})
+        try:
+            payment_id = int(transaction_uuid.split('-')[1])
+            payment = get_object_or_404(Payment, id=payment_id, booking_id=booking_id)
+        except (IndexError, ValueError):
+             payment = get_object_or_404(Payment, booking_id=booking_id)
+
         logger.info(f"Found payment: id={payment.id}, current_status={payment.status}")
 
-        # Verify signature (optional for sandbox)
+        # Verify signature
         if signature and signed_field_names:
             signed_fields = {key: esewa_data[key] for key in signed_field_names.split(',') if key in esewa_data}
             message = ','.join(f"{key}={signed_fields[key]}" for key in signed_field_names.split(','))
@@ -202,10 +218,9 @@ def esewa_payment_success(request):
 
             logger.info(f"Signature check: message={message}, expected={expected_signature}, received={signature}")
 
-            # Temporarily bypass for testing
-            # if signature != expected_signature:
-            #     logger.error("Signature verification failed")
-            #     return render(request, "payment/esewa_payment_failure.html", {'error': "Invalid signature from eSewa."})
+            if signature != expected_signature:
+                logger.error("Signature verification failed")
+                return render(request, "payment/esewa_payment_failure.html", {'error': "Invalid signature from eSewa."})
 
         payment.mark_as_completed(transaction_id=transaction_code, transaction_uuid=transaction_uuid)
         logger.info(f"Payment updated: id={payment.id}, status={payment.status}")
@@ -221,7 +236,7 @@ def esewa_payment_success(request):
         logger.error(f"Data decoding error: {str(e)}")
         return render(request, "payment/esewa_payment_failure.html", {'error': f"Invalid eSewa data: {str(e)}"})
     except Payment.DoesNotExist:
-        logger.error(f"Payment not found: booking_id={booking_id}, transaction_uuid={transaction_uuid}")
+        logger.error(f"Payment not found: booking_id={booking_id}")
         return render(request, "payment/esewa_payment_failure.html", {'error': "Payment record not found."})
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
@@ -242,29 +257,50 @@ def esewa_payment_failure(request):
     return render(request, "payment/esewa_payment_failure.html", {'error': "No booking_id provided."})
 
 def payment_done(request):
-    booking_id = request.GET.get('booking_id') or request.GET.get('invoice') or request.session.get('booking_id')
+    booking_id = (
+        request.GET.get('booking_id')
+        or request.GET.get('invoice')
+        or request.session.get('booking_id')
+    )
     payment_id = request.GET.get('paymentId')
     payer_id = request.GET.get('PayerID')
     token = request.GET.get('token')
 
     logger.info(f"PayPal success callback: booking_id={booking_id}, payment_id={payment_id}, payer_id={payer_id}, token={token}")
 
-    if not payer_id or not booking_id:
-        logger.error("Missing critical PayPal parameters")
-        return render(request, "payment/payment_canceled.html", {'error': "Missing payment details."})
+    if not booking_id:
+        logger.error("Missing booking_id in PayPal callback.")
+        return render(request, "payment/payment_canceled.html", {'error': "Missing booking ID."})
 
     try:
         payment = get_object_or_404(Payment, booking_id=booking_id)
-        logger.info(f"Found payment: id={payment.id}, current_status={payment.status}")
+        logger.info(f"Payment object fetched: ID={payment.id}, Status={payment.status}")
 
-        # Mark as completed (use token if payment_id is missing)
-        payment.mark_as_completed(transaction_id=payment_id or f"pending_{token}", transaction_uuid=payment_id or token)
-        logger.info(f"Payment updated: id={payment.id}, status={payment.status}")
+        # ✅ Already completed (e.g., via IPN)
+        if payment.status == "completed":
+            logger.info("Payment already marked as completed by IPN.")
+            if 'booking_id' in request.session:
+                del request.session['booking_id']
+            return render(request, "payment/payment_done.html", {'payment': payment})
+
+        # ✅ Treat missing payer_id as 'possibly completed' if payment not marked
+        if not payer_id:
+            logger.warning("PayerID not found, but payment might be successful via IPN.")
+            return render(request, "payment/payment_pending.html", {
+                'payment': payment,
+                'warning': "Payment may have been completed. Awaiting confirmation. Please check your booking dashboard or contact support."
+            })
+
+        # ✅ Mark as completed manually (fallback)
+        payment.mark_as_completed(
+            transaction_id=payment_id or f"paypal_pending_{token}",
+            transaction_uuid=payment_id or token
+        )
+        logger.info("Marked payment as completed.")
 
         payment.booking.status = 'confirmed'
         payment.booking.payment_status = True
         payment.booking.save(update_fields=['status', 'payment_status'])
-        logger.info(f"Booking updated: id={payment.booking.id}, status={payment.booking.status}")
 
         if 'booking_id' in request.session:
             del request.session['booking_id']
@@ -272,11 +308,13 @@ def payment_done(request):
         return render(request, "payment/payment_done.html", {'payment': payment})
 
     except Payment.DoesNotExist:
-        logger.error(f"Payment not found: booking_id={booking_id}")
-        return render(request, "payment/payment_canceled.html", {'error': "Payment record not found."})
+        logger.error(f"Payment not found for booking_id={booking_id}")
+        return render(request, "payment/payment_canceled.html", {'error': "No such payment found."})
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
-        return render(request, "payment/payment_canceled.html", {'error': f"Processing failed: {str(e)}"})
+        logger.exception(f"Error during PayPal payment_done processing: {str(e)}")
+        return render(request, "payment/payment_canceled.html", {'error': f"An unexpected error occurred: {str(e)}"})
+
+
 
 def payment_canceled(request):
     """
@@ -304,15 +342,21 @@ def handle_ipn(sender, **kwargs):
 
     try:
         payment = Payment.objects.get(booking_id=booking_id)
+        
+        # Verify the specific status from PayPal IPN
+        # Common statuses: "Completed", "Pending", "Denied", "Failed", "Refunded"
+        
         if ipn_obj.payment_status == "Completed":
-            payment.mark_as_completed(transaction_id=payment_id, transaction_uuid=payment_id)
-            payment.booking.status = 'confirmed'
-            Booking.payment_status = True
-            payment.booking.save(update_fields=['status', 'payment_status'])
-            logger.info(f"IPN confirmed payment: id={payment.id}, booking_id={booking_id}")
+            # Check amounts match, currency, etc. (omitted for brevity but recommended)
+            payment.mark_as_completed(transaction_id=ipn_obj.txn_id)
+            
+            # Payment model's save() hook will update Booking automatically:
+            # Booking.payment_status = 'paid'
+            # payment.booking.save()
+            
         elif ipn_obj.payment_status in ["Failed", "Canceled"]:
-            payment.mark_as_failed()
-            logger.info(f"IPN marked payment as failed: id={payment.id}, booking_id={booking_id}")
+             payment.mark_as_failed()
+             logger.warning(f"IPN payment failed/canceled: {ipn_obj.payment_status}")
         else:
             logger.warning(f"IPN payment status unhandled: status={ipn_obj.payment_status}")
     except Payment.DoesNotExist:

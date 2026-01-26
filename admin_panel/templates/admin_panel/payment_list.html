@@ -1,0 +1,48 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block page_title %}Payment Monitoring{% endblock %}
+{% block page_subtitle %}Track all transactions and payment statuses.{% endblock %}
+
+{% block admin_content %}
+<div class="content-card">
+    <div class="card-header">
+        <h2 class="card-title">Transaction History</h2>
+    </div>
+    <div class="table-container">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-dim); text-align: left;">
+                    <th style="padding: 1rem;">Transaction ID</th>
+                    <th style="padding: 1rem;">User</th>
+                    <th style="padding: 1rem;">Amount</th>
+                    <th style="padding: 1rem;">Due Amount</th>
+                    <th style="padding: 1rem;">Method</th>
+                    <th style="padding: 1rem;">Status</th>
+                    <th style="padding: 1rem;">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem;">{{ payment.transaction_id|default:"N/A" }}</td>
+                    <td style="padding: 1rem;">{{ payment.booking.user.username }}</td>
+                    <td style="padding: 1rem;">Rs. {{ payment.amount }}</td>
+                    <td style="padding: 1rem; color: #dc3545; font-weight: bold;">Rs. {{ payment.due_amount }}</td>
+                    <td style="padding: 1rem;">{{ payment.payment_method|upper }}</td>
+                    <td style="padding: 1rem;">
+                        <span class="status-pill {% if payment.status == 'completed' %}status-completed{% else %}status-warning{% endif %}">
+                            {{ payment.status|title }}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem;">{{ payment.payment_date|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-dim);">No payments recorded.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

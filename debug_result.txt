@@ -1,0 +1,6 @@
+--- eSewa Configuration Debug ---
+Secret Key: '8gBm/:&EnhH.1/q'
+Product Code: 'EPAYTEST'
+Test Message: '100.00,test_txn_123,EPAYTEST'
+Test Signature: 'cVrKi49Hn9bxM3+L9DPmEWDsc7GdsBCGSb2dNSKywi0='
+---------------------------------

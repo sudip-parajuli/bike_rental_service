@@ -4,14 +4,14 @@ from django.db.models import Q
 from django.db import models
 
 class UserFilter(django_filters.FilterSet):
-    is_owner = django_filters.BooleanFilter(field_name="is_owner")
+    is_host = django_filters.BooleanFilter(field_name="is_host")
     phone_number = django_filters.CharFilter(field_name="phone_number", lookup_expr='icontains')
     full_name = django_filters.CharFilter(method='filter_full_name', label="Full Name (First + Last)")
     username = django_filters.CharFilter(field_name="username", lookup_expr='icontains')
 
     class Meta:
         model = User
-        fields = ['is_owner', 'phone_number', 'username', 'full_name']
+        fields = ['is_host', 'phone_number', 'username', 'full_name']
 
     def filter_full_name(self, queryset, _, value):
         """

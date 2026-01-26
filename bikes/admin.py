@@ -6,17 +6,19 @@ class BikeAdmin(admin.ModelAdmin):
     Custom admin interface for Bike model.
     """
     list_display = (
-        'name', 'type', 'brand', 'price_per_day', 'availability_status', 'is_approved', 'is_featured',
-        'owner', 'created_at', 'engine_type', 'displacement', 'max_power', 'torque', 'transmission',
-        'brakes', 'dimensions', 'fuel_capacity'
+        'name', 'type', 'brand', 'vehicle_number', 'price_per_day', 'availability_status', 'is_approved', 'is_featured',
+        'host', 'created_at'
     )
     list_filter = ('type', 'availability_status', 'is_approved', 'is_featured', 'created_at')
-    search_fields = ('name', 'brand', 'owner__username')
+    search_fields = ('name', 'brand', 'vehicle_number', 'host__username')
     ordering = ('-created_at',)
     list_editable = ('availability_status', 'is_approved')  # Allow inline editing
     fieldsets = (
         (None, {
-            'fields': ('name', 'type', 'brand', 'model_year', 'owner')
+            'fields': ('name', 'type', 'brand', 'model_year', 'host')
+        }),
+        ('Vehicle Identification', {
+            'fields': ('vehicle_number', 'color', 'chassis_no', 'engine_no')
         }),
         ('Details', {
             'fields': ('mileage', 'description', 'price_per_day', 'image', 'engine_type', 'displacement',

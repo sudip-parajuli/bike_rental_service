@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>Add Phone Number</h3>
+                </div>
+                <div class="card-body p-5">
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        To continue using EasyMoto, please provide your nationality and mobile number.
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="countrySelect" class="form-label fw-bold">Select Nationality</label>
+                            <select id="countrySelect" class="form-select modern-form-control">
+                                <option value="" selected disabled>Choose your country...</option>
+                                <!-- Options populated by JS -->
+                            </select>
+                        </div>
+
+                        <!-- Hidden Nationality Field (populated by JS) -->
+                        <div class="mb-3 d-none">
+                            {{ form.nationality }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label fw-bold">Mobile Number</label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.phone_number.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text text-muted">Dialing code added automatically.</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                                Save & Continue <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const countrySelect = document.getElementById('countrySelect');
+        const nationalityInput = document.getElementById('nationalityInput');
+        const phoneNumberInput = document.getElementById('phoneNumberInput');
+
+        const countries = [
+            { name: "Nepal", code: "+977" },
+            { name: "India", code: "+91" },
+            { name: "China", code: "+86" },
+            { name: "United States", code: "+1" },
+            { name: "United Kingdom", code: "+44" },
+            { name: "Australia", code: "+61" },
+            { name: "Japan", code: "+81" },
+            { name: "Germany", code: "+49" },
+            { name: "France", code: "+33" },
+            { name: "Canada", code: "+1" },
+            { name: "South Korea", code: "+82" },
+            { name: "Brazil", code: "+55" },
+            { name: "Russia", code: "+7" },
+            { name: "Italy", code: "+39" },
+            { name: "Spain", code: "+34" },
+            { name: "Netherlands", code: "+31" },
+            { name: "Switzerland", code: "+41" },
+            { name: "Sweden", code: "+46" },
+            { name: "Norway", code: "+47" },
+            { name: "Denmark", code: "+45" },
+            { name: "Singapore", code: "+65" },
+            { name: "Thailand", code: "+66" },
+            { name: "Malaysia", code: "+60" },
+            { name: "Vietnam", code: "+84" },
+            { name: "Indonesia", code: "+62" },
+            { name: "Philippines", code: "+63" },
+            { name: "Pakistan", code: "+92" },
+            { name: "Bangladesh", code: "+880" },
+            { name: "Sri Lanka", code: "+94" },
+            { name: "United Arab Emirates", code: "+971" },
+            { name: "Saudi Arabia", code: "+966" },
+            { name: "Qatar", code: "+974" },
+            { name: "Kuwait", code: "+965" },
+            { name: "Israel", code: "+972" },
+            { name: "Turkey", code: "+90" },
+            { name: "Egypt", code: "+20" },
+            { name: "South Africa", code: "+27" },
+            { name: "New Zealand", code: "+64" },
+            { name: "Mexico", code: "+52" },
+            { name: "Argentina", code: "+54" }
+        ];
+
+        // Sort countries alphabetically
+        countries.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Populate dropdown
+        countries.forEach(country => {
+            const option = document.createElement('option');
+            option.value = country.name;
+            option.dataset.code = country.code;
+            option.textContent = `${country.name} (${country.code})`;
+            countrySelect.appendChild(option);
+        });
+
+        // Handle selection
+        countrySelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const countryName = selectedOption.value;
+            const dialingCode = selectedOption.dataset.code;
+
+            // Update hidden nationality field
+            if (nationalityInput) {
+                nationalityInput.value = countryName;
+            }
+
+            // Update phone number with dialing code
+            if (phoneNumberInput) {
+                // Keep existing number part if any, just replace/add prefix
+                let currentVal = phoneNumberInput.value.trim();
+                // Remove any existing dialing code (simple heuristic: starts with +)
+                // This is a bit tricky, simpler to just set it if empty or replace if it starts with +
+                
+                // Better approach: Just set the prefix and let user type rest. 
+                // Or if user already typed something, try to preserve it?
+                // Let's just set the prefix for now to be safe and simple.
+                phoneNumberInput.value = dialingCode + " ";
+                phoneNumberInput.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}
