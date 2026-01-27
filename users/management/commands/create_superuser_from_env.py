@@ -25,3 +25,16 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f'Successfully created superuser "{username}"!'))
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f'Error creating superuser: {e}'))
+
+        # Update Site domain for Google OAuth
+        from django.contrib.sites.models import Site
+        try:
+            site = Site.objects.get(id=settings.SITE_ID)
+            site_domain = os.environ.get('SITE_DOMAIN', 'www.easymoto.com.np')
+            site_name = os.environ.get('SITE_NAME', 'EasyMoto')
+            site.domain = site_domain
+            site.name = site_name
+            site.save()
+            self.stdout.write(self.style.SUCCESS(f'Updated Site configuration: {site.domain}'))
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f'Could not update Site: {e}'))
