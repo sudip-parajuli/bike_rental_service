@@ -205,6 +205,7 @@ class SimilarBikesView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
     pagination_class = None  # Disable pagination
     
+    def get_queryset(self):
         bike_id = self.kwargs.get('pk')
         limit = int(self.request.query_params.get('limit', 6))
         
