@@ -1,4 +1,6 @@
 {% load static %}
+{% static 'images/default-logo.png' as default_logo_url %}
+{% static 'images/default-user.jpg' as default_user_url %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -26,7 +28,7 @@
             <a class="navbar-brand" href="{% url 'public-home' %}">
                 <img src="{% static 'images/brand-logo.png' %}" alt="Bike Rental Logo"
                     style="height: 60px; width: auto; object-fit: contain;"
-                    onerror="this.onerror=null; this.src='{% static 'images/default-logo.png' %}';"
+                    onerror="this.onerror=null; this.src='{{ default_logo_url }}';">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,9 +54,9 @@
                             <img src="{{ user.profile_picture.url }}"
                                 alt="{{ user.username }}" class="rounded-circle me-1"
                                 style="width: 40px; height: 40px; object-fit: cover;"
-                                onerror="this.onerror=null; this.src='{% static 'images/default-user.jpg' %}';">
+                                onerror="this.onerror=null; this.src='{{ default_user_url }}';">
                             {% else %}
-                            <img src="{% static 'images/default-user.jpg' %}"
+                            <img src="{{ default_user_url }}"
                                 alt="{{ user.username }}" class="rounded-circle me-1"
                                 style="width: 40px; height: 40px; object-fit: cover;">
                             {% endif %}
