@@ -374,13 +374,10 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
 
 
 
-class RegisterView(APIView):
+class RegisterView(View):
     """
-    Register a new user.
+    Register a new user (Browser-based).
     """
-    permission_classes = [AllowAny]
-    throttle_scope = 'register'
-
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('home')
@@ -389,11 +386,6 @@ class RegisterView(APIView):
     def post(self, request):
         if request.user.is_authenticated:
             return redirect('home')
-
-        # Check for API request
-        if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
-             # For API, we'd typically use a serializer, keeping simple for inconsistencies
-             return Response({"detail": "Use /api/auth/registration/ for API registration."}, status=status.HTTP_400_BAD_REQUEST)
         
         form = RegisterForm(request.POST)
         if form.is_valid():
@@ -405,49 +397,41 @@ class RegisterView(APIView):
         return render(request, 'users/register.html', {'form': form, 'errors': form.errors})
 
 
-
-class LoginView(APIView):
+class LoginView(View):
     """
-    Log in an existing user.
-
-    * Requires: None (public access) for API, template rendering for non-API
-    * Returns: JSON with token and user data for API, renders login form or redirects for non-API
+    Log in an existing user (Browser-based).
+    For API login, use /api/auth/login/.
     """
-    permission_classes = [AllowAny]
-    throttle_scope = 'login'
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('home')
+        return render(request, 'users/login.html')
 
     def post(self, request):
-        serializer = LoginSerializer(data=request.data if request.content_type == 'application/json' else request.POST)
-        if serializer.is_valid():
-            user = authenticate(username=request.data.get('username') or request.POST.get('username'),
-                                password=request.data.get('password') or request.POST.get('password'))
-            if user:
-                login(request, user)
-                if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
-                    # API consumers should use /api/auth/login/ for JWT
-                    return Response({"detail": "Please use /api/auth/login/ for API authentication."}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    # Handle non-API POST (e.g., form submission to /login/)
-                    messages.success(request, f"Welcome back, {user.username}!")
-                    if user.is_staff or user.is_superuser:
-                        return redirect('admin_panel:dashboard')
-                    return redirect('home')  # Redirect to homepage after successful login
-            if request.path.startswith('/api/'):
-                return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-            return render(request, 'users/login.html', {'errors': {"error": "Invalid credentials"}})
-        else:
-            if request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', ''):
-                # Return JSON errors for API requests
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                # Render template with errors for non-API requests
-                return render(request, 'users/login.html', {'errors': serializer.errors})
+        if request.user.is_authenticated:
+            return redirect('home')
 
-    def get(self, request):
-        if request.path.startswith('/api/'):
-            return Response({"detail": "Method not allowed for API"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        # Render template for non-API GET requests (e.g., /login/)
-        return render(request, 'users/login.html')
+        # Standard Django form handling would be better, but keeping custom logic for now
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        if not username or not password:
+             return render(request, 'users/login.html', {'errors': {'error': "Please provide both username and password."}})
+
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            messages.success(request, f"Welcome back, {user.username}!")
+            if user.is_staff or user.is_superuser:
+                return redirect('admin_panel:dashboard')
+            
+            # Check for next parameter
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            return redirect('home')
+        else:
+            return render(request, 'users/login.html', {'errors': {'error': "Invalid credentials"}})
 
 
 class LogoutView(APIView):
