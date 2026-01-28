@@ -47,7 +47,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('api/auth/', include('dj_rest_auth.urls')),
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
-    path('api/auth/google/', include('allauth.socialaccount.providers.google.urls')),
+    path('api/auth/', include('allauth.socialaccount.providers.google.urls')),
 
     # Swagger endpoints
     path('api/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

@@ -21,6 +21,9 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
 # Trust the X-Forwarded-Proto header for SSL (Render handles SSL termination)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# CSRF Trusted Origins (Required for Admin Login on HTTPS)
+CSRF_TRUSTED_ORIGINS = ['https://www.easymoto.com.np', 'https://*.onrender.com']
+
 # Application definition
 INSTALLED_APPS = [
     'jazzmin', #template for custom dashboard
