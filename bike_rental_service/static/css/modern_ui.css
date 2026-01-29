@@ -122,12 +122,12 @@
 .gallery-container {
     position: relative;
     width: 100%;
-    height: 600px;
+    height: 380px;
     display: flex;
     justify-content: center;
     align-items: center;
     perspective: 1000px;
-    margin: 5rem 0;
+    margin: 1rem 0;
     overflow: hidden;
 }
 
@@ -571,15 +571,25 @@
     overflow: visible !important; /* Allow side cards to be seen */
     width: 100%;
     max-width: 800px; /* Constrain width to keep perspective nice */
-    margin: 3rem auto; /* Center it */
+    margin: 1rem auto; /* Center it */
 }
 
 .gallery-wheel {
-    width: 260px;
-    height: 340px;
+    width: 220px;
+    height: 300px;
     transform-style: preserve-3d;
     transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
     margin: 0 auto; /* Center key */
+}
+
+/* Handle long text in cards */
+.gallery-card-content h5 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.gallery-card-content p {
+    margin-bottom: 0.5rem;
 }
 /* Ensure buttons override bootstrap */
 .btn-gradient {

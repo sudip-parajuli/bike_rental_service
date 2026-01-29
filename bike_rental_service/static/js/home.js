@@ -209,32 +209,15 @@ $(document).ready(function() {
 
     // Fetch featured bikes with search/filter
     // 3D Gallery Logic
+    // 3D Gallery Logic (CoverFlow Style)
     function init3DGallery() {
         const wheel = $('#gallery-wheel');
-        const radius = 500; // Increased radius to reduce overlap and show 50% of side cards
-        let theta = 0;
-        
-        // Inject styles for active/blur state if not in CSS
-        if (!$('#gallery-styles').length) {
-            $('head').append(`
-                <style id="gallery-styles">
-                    .gallery-card {
-                        transition: transform 1s, filter 0.5s, opacity 0.5s;
-                        filter: blur(4px) grayscale(50%); /* Default state: blurred */
-                        opacity: 0.6;
-                        cursor: pointer;
-                    }
-                    .gallery-card.active {
-                        filter: blur(0) grayscale(0);
-                        opacity: 1;
-                        z-index: 10;
-                    }
-                </style>
-            `);
-        }
+        let activeIndex = 0;
+        let cards = [];
+        const totalCards = 7; // Fixed number of cards to fetch
 
         $.ajax({
-            url: '/api/bike/?is_featured=true&page_size=8', 
+            url: `/api/bike/?is_featured=true&page_size=${totalCards}`,
             method: 'GET',
             headers: { 'Accept': 'application/json' },
             success: function(response) {
@@ -246,16 +229,12 @@ $(document).ready(function() {
                     return;
                 }
 
-                const total = bikes.length;
-                const angleStep = 360 / total;
-
                 // Create Cards
                 bikes.forEach((bike, index) => {
-                    const angle = angleStep * index;
                     const bikeDetailUrl = window.bikeDetailBaseUrl + bike.id + '/';
                     
                     const card = $(`
-                        <div class="gallery-card" data-index="${index}" style="transform: rotateY(${angle}deg) translateZ(${radius}px);">
+                        <div class="gallery-card" data-index="${index}">
                             <img src="${bike.image || '/static/images/default-bike.png'}" alt="${bike.name}" onerror="this.src='/static/images/default-bike.png';">
                             <div class="gallery-card-content">
                                 <div>
@@ -267,56 +246,27 @@ $(document).ready(function() {
                         </div>
                     `);
                     
-                    // Click to rotate to this card
+                    // Click to make this card active
                     card.on('click', function() {
-                        const targetTheta = -(index * angleStep);
-                        // Find shortest path
-                        const currentRot = theta % 360;
-                        const targetRot = targetTheta % 360;
-                        let diff = targetRot - currentRot;
-                        if (diff < -180) diff += 360;
-                        if (diff > 180) diff -= 360;
-                        
-                        theta += diff;
-                        rotateWheel();
+                        activeIndex = index;
+                        updateGallery();
                     });
 
                     wheel.append(card);
                 });
 
-                // Update Active State
-                function rotateWheel() {
-                    wheel.css('transform', `rotateY(${theta}deg)`);
-                    
-                    // Calculate active index
-                    // Normalize theta to positive equivalent for easy mod
-                    let normalizedTheta = -theta % 360;
-                    if (normalizedTheta < 0) normalizedTheta += 360;
-                    
-                    // The interaction logic: which angle is closest to 0 (front)?
-                    // Card angle is `index * angleStep`.
-                    // We want `index * angleStep + theta ~= 0 (mod 360)`
-                    // So `index * angleStep ~= -theta`
-                    
-                    // Find closest index
-                    let activeIndex = Math.round(normalizedTheta / angleStep) % total;
-                    
-                    $('.gallery-card').removeClass('active');
-                    $(`.gallery-card[data-index="${activeIndex}"]`).addClass('active');
-                }
-
-                // Initial Active
-                rotateWheel();
+                cards = $('.gallery-card');
+                updateGallery(); // Initial Position
 
                 // Controls
                 $('#nextBtn').off('click').on('click', function() {
-                    theta -= angleStep;
-                    rotateWheel();
+                    activeIndex = (activeIndex + 1) % cards.length;
+                    updateGallery();
                 });
 
                 $('#prevBtn').off('click').on('click', function() {
-                    theta += angleStep;
-                    rotateWheel();
+                    activeIndex = (activeIndex - 1 + cards.length) % cards.length;
+                    updateGallery();
                 });
             },
             error: function(err) {
@@ -324,6 +274,71 @@ $(document).ready(function() {
                 wheel.html('<p class="text-center text-danger">Failed to load gallery.</p>');
             }
         });
+
+        function updateGallery() {
+            const count = cards.length;
+            
+            cards.each(function(i) {
+                // Calculate "circular" distance from active index
+                let offset = (i - activeIndex) % count;
+                if (offset > count / 2) offset -= count;
+                if (offset < -count / 2) offset += count;
+
+                const $card = $(this);
+                let transform = '';
+                let zIndex = 10 - Math.abs(offset);
+                let opacity = 1;
+                let filter = 'none';
+
+                // Config based on User Request
+                // "Previous card: 310deg" (aka -50deg relative to 0)
+                // "Next card: 50deg"
+                // Center: 0deg
+                
+                if (offset === 0) {
+                    // Center Card
+                    transform = `translateX(0) translateZ(100px) rotateY(0deg) scale(1)`;
+                    zIndex = 20;
+                    opacity = 1;
+                    filter = 'none';
+                    $card.addClass('active');
+                } else if (offset === 1) {
+                    // Next Card (Right) -> Rotated 50deg inward? 
+                    // To look like the image (facing center), right card should rotate Y negative (e.g. -50deg)
+                    // But user asked for 50. Let's try -50 to match the VISUAL reference which faces IN.
+                    // If user insists on 50, it would look away. Let's stick to reference image visual.
+                    // Creating "Gap" with translateX: 220px card width + gap
+                    transform = `translateX(180px) translateZ(-50px) rotateY(-50deg) scale(0.9)`;
+                    opacity = 0.8;
+                    filter = 'blur(2px) grayscale(30%)';
+                    $card.removeClass('active');
+                } else if (offset === -1) {
+                    // Prev Card (Left) -> Rotated 50deg inward (positive)
+                    transform = `translateX(-180px) translateZ(-50px) rotateY(50deg) scale(0.9)`;
+                    opacity = 0.8;
+                    filter = 'blur(2px) grayscale(30%)';
+                    $card.removeClass('active');
+                } else {
+                    // Farther cards
+                    // Push them well out of the way or hide them
+                    const direction = offset > 0 ? 1 : -1;
+                    const farDist = 300 + (Math.abs(offset) * 50);
+                    transform = `translateX(${direction * farDist}px) translateZ(-200px) rotateY(${direction * -60}deg) scale(0.8)`;
+                    opacity = 0; // Hide others to keep view clean as per "focus" request
+                    filter = 'blur(10px)';
+                    zIndex = 0;
+                    $card.removeClass('active');
+                }
+
+                $card.css({
+                    'transform': transform,
+                    'z-index': zIndex,
+                    'opacity': opacity,
+                    'filter': filter,
+                    'transition': 'all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)' 
+                });
+            });
+        }
     }
 
     // Fetch testimonials
