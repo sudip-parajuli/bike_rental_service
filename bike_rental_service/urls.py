@@ -31,7 +31,6 @@ urlpatterns = [
     path('api/payment/', include('payment.urls', namespace='payments-api')),  # API routing for payments (JSON)
     path('api/user/', include('users.urls', namespace='users-api')),  # API routing for users (JSON)
     path('api/chatbot/', include('chatbot.urls')),  # API routing for chatbot
-    path('api/admin/', include('admin_panel.urls')),
     path('api-auth/', include('rest_framework.urls')),
     path('admin-panel/', include('admin_panel.urls', namespace='admin_panel')),
     path('', HomeView.as_view(), name='home'),
