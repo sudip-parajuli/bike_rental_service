@@ -404,6 +404,29 @@
                     </div>
 
                     <div class="modern-form-group">
+                        <label class="modern-form-label">
+                            <i class="fas fa-lock me-2"></i>Password Settings
+                        </label>
+                        <div class="p-3 rounded" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+                            {% if user.has_usable_password %}
+                                <p class="text-light small mb-2">Need to change your password? Click below to update it.</p>
+                                <a href="{% url 'account_change_password' %}" class="modern-btn secondary btn-sm" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; border-radius: 10px;">
+                                    <i class="fas fa-key me-1"></i>Change Password
+                                </a>
+                            {% else %}
+                                <p class="text-warning small mb-2">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    You signed in using Google and don't have a password set yet. 
+                                    <strong>You must set a password</strong> to log into the mobile app.
+                                </p>
+                                <a href="{% url 'account_set_password' %}" class="modern-btn primary btn-sm" style="padding: 0.5rem 1.5rem; font-size: 0.9rem; border-radius: 10px; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);">
+                                    <i class="fas fa-plus-circle me-1"></i>Set Password
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="modern-form-group">
                         <label for="profile_picture" class="modern-form-label">
                             <i class="fas fa-camera me-2"></i>Profile Picture
                         </label>
