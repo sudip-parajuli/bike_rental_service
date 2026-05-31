@@ -192,15 +192,13 @@ SIMPLE_JWT = {
 }
 
 # OAuth Providers
+# NOTE: Google client_id/secret are stored in the database via Django admin
+# (Sites > Social Applications). Do NOT add an 'APP' key here — allauth 65.x
+# raises MultipleObjectsReturned when credentials exist in both settings AND DB.
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
-        'APP': {
-            'client_id': config('GOOGLE_CLIENT_ID', default=''),
-            'secret': config('GOOGLE_CLIENT_SECRET', default=''),
-            'key': ''
-        }
     }
 }
 
