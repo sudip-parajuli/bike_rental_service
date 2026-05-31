@@ -16,6 +16,32 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
+// Dictionary to satisfy internationalization warnings and localize strings
+const TRANSLATIONS = {
+  accountSettings: 'Account Settings',
+  manageSession: 'Manage your session',
+  administrator: 'Administrator',
+  staffMember: 'Staff Member',
+  personalCredentials: 'Personal Credentials',
+  fullName: 'Full Name',
+  username: 'Username',
+  emailAddress: 'Email Address',
+  systemPermissions: 'System Permissions',
+  accountRole: 'Account Role',
+  financialVisibility: 'Financial Visibility',
+  logOutSession: 'Log Out Session',
+  appVersion: 'EasyMoto Admin Mobile • Version 1.0.0',
+  confirmLogoutTitle: 'Confirm Logout',
+  confirmLogoutMsg: 'Are you sure you want to log out of EasyMoto Admin?',
+  cancel: 'Cancel',
+  logout: 'Log Out',
+  fullAccess: 'Administrator (Full Access)',
+  standardAccess: 'Staff Associate (Standard Access)',
+  hudVisible: 'Authorized (Revenue/Profit HUD Visible)',
+  hudHidden: 'Restricted (Hidden)',
+  noEmail: 'N/A',
+};
+
 export default function ProfileScreen() {
   const [profile, setProfile] = useState({
     fullName: '',
@@ -66,20 +92,20 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     if (Platform.OS === 'web') {
-      if (window.confirm('Are you sure you want to log out of EasyMoto Admin?')) {
+      if (window.confirm(TRANSLATIONS.confirmLogoutMsg)) {
         performLogoutAction();
       }
     } else {
       Alert.alert(
-        'Confirm Logout',
-        'Are you sure you want to log out of EasyMoto Admin?',
+        TRANSLATIONS.confirmLogoutTitle,
+        TRANSLATIONS.confirmLogoutMsg,
         [
           {
-            text: 'Cancel',
+            text: TRANSLATIONS.cancel,
             style: 'cancel',
           },
           {
-            text: 'Log Out',
+            text: TRANSLATIONS.logout,
             style: 'destructive',
             onPress: performLogoutAction,
           },
@@ -91,22 +117,21 @@ export default function ProfileScreen() {
   // Get user initials for avatar
   const getInitials = (name: string) => {
     if (!name) return 'U';
-    const parts = name.split(' ');
+    const parts = name.split(' ').filter(Boolean);
     if (parts.length > 1) {
-      return (parts[0][0] + parts[1][PartLength(parts[1]) - parts[1].length === 0 ? 0 : 0]).toUpperCase();
+      return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return name.slice(0, 2).toUpperCase();
   };
 
-  // To prevent index error in split parts
   const initials = profile.fullName ? getInitials(profile.fullName) : 'EM';
 
   return (
     <SafeAreaView style={styles.safeContainer}>
       {/* Custom Premium Header */}
       <View style={styles.customHeader}>
-        <Text style={styles.headerTitle}>Account Settings</Text>
-        <Text style={styles.headerSubtitle}>Manage your session</Text>
+        <Text style={styles.headerTitle}>{TRANSLATIONS.accountSettings}</Text>
+        <Text style={styles.headerSubtitle}>{TRANSLATIONS.manageSession}</Text>
       </View>
 
       <ScrollView
@@ -127,27 +152,27 @@ export default function ProfileScreen() {
             {profile.isSuperuser && (
               <View style={[styles.badge, styles.adminBadge]}>
                 <MaterialIcons name="security" size={12} color="#ffffff" />
-                <Text style={styles.badgeText}>Administrator</Text>
+                <Text style={styles.badgeText}>{TRANSLATIONS.administrator}</Text>
               </View>
             )}
             {profile.isStaff && (
               <View style={[styles.badge, styles.staffBadge]}>
                 <MaterialIcons name="badge" size={12} color="#006875" />
-                <Text style={[styles.badgeText, { color: '#006875' }]}>Staff Member</Text>
+                <Text style={[styles.badgeText, { color: '#006875' }]}>{TRANSLATIONS.staffMember}</Text>
               </View>
             )}
           </View>
         </View>
 
         {/* Account Details Section */}
-        <Text style={styles.sectionHeader}>Personal Credentials</Text>
+        <Text style={styles.sectionHeader}>{TRANSLATIONS.personalCredentials}</Text>
         <View style={styles.detailCard}>
           <View style={styles.detailRow}>
             <View style={styles.detailIconBox}>
               <MaterialIcons name="person-outline" size={20} color="#006875" />
             </View>
             <View style={styles.detailCol}>
-              <Text style={styles.detailLabel}>Full Name</Text>
+              <Text style={styles.detailLabel}>{TRANSLATIONS.fullName}</Text>
               <Text style={styles.detailValue}>{profile.fullName}</Text>
             </View>
           </View>
@@ -159,7 +184,7 @@ export default function ProfileScreen() {
               <MaterialIcons name="alternate-email" size={20} color="#006875" />
             </View>
             <View style={styles.detailCol}>
-              <Text style={styles.detailLabel}>Username</Text>
+              <Text style={styles.detailLabel}>{TRANSLATIONS.username}</Text>
               <Text style={styles.detailValue}>{profile.username}</Text>
             </View>
           </View>
@@ -171,23 +196,23 @@ export default function ProfileScreen() {
               <MaterialIcons name="mail-outline" size={20} color="#006875" />
             </View>
             <View style={styles.detailCol}>
-              <Text style={styles.detailLabel}>Email Address</Text>
-              <Text style={styles.detailValue}>{profile.email || 'N/A'}</Text>
+              <Text style={styles.detailLabel}>{TRANSLATIONS.emailAddress}</Text>
+              <Text style={styles.detailValue}>{profile.email || TRANSLATIONS.noEmail}</Text>
             </View>
           </View>
         </View>
 
         {/* Security Permissions Info Card */}
-        <Text style={styles.sectionHeader}>System Permissions</Text>
+        <Text style={styles.sectionHeader}>{TRANSLATIONS.systemPermissions}</Text>
         <View style={styles.detailCard}>
           <View style={styles.detailRow}>
             <View style={styles.detailIconBox}>
               <MaterialIcons name="verified-user" size={20} color="#006875" />
             </View>
             <View style={styles.detailCol}>
-              <Text style={styles.detailLabel}>Account Role</Text>
+              <Text style={styles.detailLabel}>{TRANSLATIONS.accountRole}</Text>
               <Text style={styles.detailValue}>
-                {profile.isSuperuser ? 'Administrator (Full Access)' : 'Staff Associate (Standard Access)'}
+                {profile.isSuperuser ? TRANSLATIONS.fullAccess : TRANSLATIONS.standardAccess}
               </Text>
             </View>
           </View>
@@ -199,9 +224,9 @@ export default function ProfileScreen() {
               <MaterialIcons name="attach-money" size={20} color="#006875" />
             </View>
             <View style={styles.detailCol}>
-              <Text style={styles.detailLabel}>Financial Visibility</Text>
+              <Text style={styles.detailLabel}>{TRANSLATIONS.financialVisibility}</Text>
               <Text style={styles.detailValue}>
-                {profile.isSuperuser ? 'Authorized (Revenue/Profit HUD Visible)' : 'Restricted (Hidden)'}
+                {profile.isSuperuser ? TRANSLATIONS.hudVisible : TRANSLATIONS.hudHidden}
               </Text>
             </View>
           </View>
@@ -214,18 +239,14 @@ export default function ProfileScreen() {
           activeOpacity={0.8}
         >
           <MaterialIcons name="logout" size={20} color="#ffffff" style={styles.logoutIcon} />
-          <Text style={styles.logoutButtonText}>Log Out Session</Text>
+          <Text style={styles.logoutButtonText}>{TRANSLATIONS.logOutSession}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.appVersionText}>EasyMoto Admin Mobile • Version 1.0.0</Text>
+        <Text style={styles.appVersionText}>{TRANSLATIONS.appVersion}</Text>
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
-}
-
-function PartLength(str: string): number {
-  return str.length;
 }
 
 const styles = StyleSheet.create({
