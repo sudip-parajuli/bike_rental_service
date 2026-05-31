@@ -8,6 +8,7 @@ import {
   Alert,
   SafeAreaView,
   Dimensions,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -44,39 +45,47 @@ export default function ProfileScreen() {
     loadProfileData();
   }, []);
 
+  const performLogoutAction = async () => {
+    try {
+      // Clear auth and profile credentials
+      await AsyncStorage.multiRemove([
+        'access_token',
+        'refresh_token',
+        'is_superuser',
+        'is_staff',
+        'username',
+        'full_name',
+        'email',
+      ]);
+      router.replace('/');
+    } catch (error) {
+      console.log('Error clearing session:', error);
+      alert('Failed to log out successfully.');
+    }
+  };
+
   const handleLogout = () => {
-    Alert.alert(
-      'Confirm Logout',
-      'Are you sure you want to log out of EasyMoto Admin?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Log Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Clear auth and profile credentials
-              await AsyncStorage.multiRemove([
-                'access_token',
-                'refresh_token',
-                'is_superuser',
-                'is_staff',
-                'username',
-                'full_name',
-                'email',
-              ]);
-              router.replace('/');
-            } catch (error) {
-              console.log('Error clearing session:', error);
-              Alert.alert('Error', 'Failed to log out successfully.');
-            }
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to log out of EasyMoto Admin?')) {
+        performLogoutAction();
+      }
+    } else {
+      Alert.alert(
+        'Confirm Logout',
+        'Are you sure you want to log out of EasyMoto Admin?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
           },
-        },
-      ]
-    );
+          {
+            text: 'Log Out',
+            style: 'destructive',
+            onPress: performLogoutAction,
+          },
+        ]
+      );
+    }
   };
 
   // Get user initials for avatar
