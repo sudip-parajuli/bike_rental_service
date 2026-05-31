@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import api from '../api';
+
+// Show the API URL in dev mode to help with debugging
+const API_BASE = Platform.OS === 'web'
+  ? 'http://localhost:8000/api/mobile'
+  : 'https://easymoto.com.np/api/mobile';
 
 export default function LoginScreen() {
   const [login, setLogin] = useState('');
@@ -40,11 +45,20 @@ export default function LoginScreen() {
       await AsyncStorage.setItem('email', email || '');
       router.replace('/(tabs)');
     } catch (error: any) {
-      const msg =
+      // Show detailed error so user knows exactly what went wrong
+      const serverMsg =
         error.response?.data?.non_field_errors?.[0] ||
         error.response?.data?.detail ||
-        'Login failed. Please check your credentials.';
-      Alert.alert('Login Failed', msg);
+        error.response?.data?.login?.[0] ||
+        error.response?.data?.password?.[0] ||
+        JSON.stringify(error.response?.data || {});
+      const networkMsg = error.message || 'Unknown error';
+      const statusCode = error.response?.status || 'No response';
+      Alert.alert(
+        'Login Failed',
+        `Status: ${statusCode}\n\nServer: ${serverMsg || networkMsg}\n\nURL: ${API_BASE}/auth/login/`,
+        [{ text: 'OK' }]
+      );
     } finally {
       setLoading(false);
     }
@@ -63,12 +77,18 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
       <View style={styles.card}>
         <View style={styles.logoContainer}>
           <Text style={styles.logo}>🏍️</Text>
         </View>
         <Text style={styles.title}>EasyMoto Admin</Text>
         <Text style={styles.subtitle}>Staff & Administrator Login</Text>
+
+        {/* Debug URL indicator */}
+        <View style={styles.debugBadge}>
+          <Text style={styles.debugText}>🔗 {Platform.OS === 'web' ? 'localhost:8000' : 'easymoto.com.np'}</Text>
+        </View>
 
         <View style={styles.inputWrapper}>
           <Text style={styles.label}>Username or Email</Text>
@@ -107,6 +127,7 @@ export default function LoginScreen() {
           <Text style={styles.hintText}>⚠️ Admin access only. Regular customer accounts cannot log in here.</Text>
         </View>
       </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -192,5 +213,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 18,
+  },
+  debugBadge: {
+    backgroundColor: '#0f172a',
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  debugText: {
+    color: '#64748b',
+    fontSize: 11,
+    fontFamily: 'monospace' as any,
   },
 });
