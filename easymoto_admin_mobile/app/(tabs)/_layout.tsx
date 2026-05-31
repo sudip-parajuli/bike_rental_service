@@ -1,9 +1,33 @@
-import React from 'react';
-import { Tabs } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Tabs, useRouter } from 'expo-router';
 // Using an existing icon set since create-expo-app gives you vector-icons by default
 import { MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, ActivityIndicator } from 'react-native';
 
 export default function TabLayout() {
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = await AsyncStorage.getItem('access_token');
+      if (!token) {
+        router.replace('/');
+      } else {
+        setCheckingAuth(false);
+      }
+    };
+    checkToken();
+  }, []);
+
+  if (checkingAuth) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f3fbfc' }}>
+        <ActivityIndicator size="large" color="#006875" />
+      </View>
+    );
+  }
   return (
     <Tabs
       screenOptions={{
