@@ -50,6 +50,9 @@ class Bike(models.Model):
     chassis_no = models.CharField(max_length=100, blank=True, null=True, help_text="Chassis Number (VIN). Restricted view.")
     engine_no = models.CharField(max_length=100, blank=True, null=True, help_text="Engine Number. Restricted view.")
 
+    # Maintenance
+    next_maintenance_date = models.DateField(null=True, blank=True, help_text="Automatically calculated date for the next maintenance.")
+
     def is_booked_for_dates(self, start_date, end_date):
         """
         Check if the bike is booked for the given date range based on confirmed bookings
@@ -89,6 +92,17 @@ class Bike(models.Model):
             payment_status__in=['paid', 'partial']  # Payment must be made (partial or full)
         ).aggregate(total_earnings=models.Sum('total_price'))
         return bookings['total_earnings'] or 0
+
+    @property
+    def total_maintenance_cost(self):
+        """Calculate the total maintenance cost for this bike."""
+        maintenance = self.maintenance_records.aggregate(total_cost=models.Sum('cost'))
+        return maintenance['total_cost'] or 0
+
+    @property
+    def maintenance_count(self):
+        """Count the total number of maintenance records for this bike."""
+        return self.maintenance_records.count()
 
     @property
     def is_currently_rented(self):
@@ -137,3 +151,13 @@ class Bike(models.Model):
             raise ValidationError("Price per day must be greater than zero.")
         if self.mileage is not None and self.mileage < 0:
             raise ValidationError("Mileage cannot be negative.")
+
+class MaintenanceRecord(models.Model):
+    bike = models.ForeignKey(Bike, on_delete=models.CASCADE, related_name='maintenance_records', help_text="Bike that was maintained.")
+    date = models.DateField(help_text="Date of maintenance.")
+    cost = models.DecimalField(max_digits=10, decimal_places=2, help_text="Cost of the maintenance.")
+    description = models.TextField(help_text="Details of the maintenance work performed.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Maintenance for {self.bike.name} on {self.date}"

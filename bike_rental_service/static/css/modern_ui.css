@@ -62,8 +62,13 @@
 }
 
 @keyframes drift {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(30px, 50px) scale(1.1); }
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    100% {
+        transform: translate(30px, 50px) scale(1.1);
+    }
 }
 
 /* Enhanced Glassmorphism */
@@ -89,7 +94,8 @@
     display: flex;
     align-items: center;
     position: relative;
-    padding-top: 80px; /* Offset for navbar */
+    padding-top: 80px;
+    /* Offset for navbar */
     overflow: hidden;
 }
 
@@ -152,7 +158,8 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    backface-visibility: hidden; /* Or visible depending on desired effect */
+    backface-visibility: hidden;
+    /* Or visible depending on desired effect */
     /* Transform is set via JS */
 }
 
@@ -160,7 +167,7 @@
     width: 100%;
     height: 60%;
     object-fit: cover;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .gallery-card-content {
@@ -187,7 +194,7 @@
     border-radius: 50%;
     background: white;
     border: none;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -210,14 +217,16 @@
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
-    pointer-events: none; /* Allow clicks to pass through container area */
+    pointer-events: none;
+    /* Allow clicks to pass through container area */
 }
 
 .gooey-nav-container nav {
     display: flex;
     position: relative;
     transform: translate3d(0, 0, 0.01px);
-    pointer-events: auto; /* Re-enable clicks on nav */
+    pointer-events: auto;
+    /* Re-enable clicks on nav */
 }
 
 .gooey-nav-container nav ul {
@@ -229,12 +238,13 @@
     position: relative;
     z-index: 3;
     align-items: center;
-    background: rgba(255, 255, 255, 0.8); /* Higher opacity for visibility */
+    background: rgba(255, 255, 255, 0.8);
+    /* Higher opacity for visibility */
     backdrop-filter: blur(10px);
     border-radius: 50px;
     border: 1px solid rgba(255, 255, 255, 0.5);
     padding: 10px 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .gooey-nav-container nav ul li {
@@ -275,7 +285,8 @@
 .gooey-nav-container .effect.filter {
     /* SVG Filter for proper gooey effect without background issues */
     filter: url('#goo');
-    display: block !important; /* Ensure it's visible now that we have the SVG */
+    display: block !important;
+    /* Ensure it's visible now that we have the SVG */
     opacity: 1;
 }
 
@@ -291,14 +302,16 @@
     position: absolute;
     inset: -75px;
     z-index: -2;
-    background: transparent; /* Changed from white to transparent for SVG method */
+    background: transparent;
+    /* Changed from white to transparent for SVG method */
 }
 
 .gooey-nav-container .effect.filter::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: #e0f2fe; /* Light Blue Pill */
+    background: #e0f2fe;
+    /* Light Blue Pill */
     transform: scale(0);
     opacity: 0;
     z-index: -1;
@@ -341,24 +354,29 @@
 }
 
 .magnifying-glass {
-    position: fixed; /* Changed to fixed to avoid overflow issues */
+    position: fixed;
+    /* Changed to fixed to avoid overflow issues */
     width: 120px;
     height: 120px;
     border-radius: 50%;
     border: 3px solid rgba(255, 255, 255, 0.9);
     box-shadow:
-        0 0 10px rgba(0,0,0,0.2),
-        inset 0 0 20px rgba(255,255,255,0.8);
-    backdrop-filter: scale(1.4); /* Magnification */
+        0 0 10px rgba(0, 0, 0, 0.2),
+        inset 0 0 20px rgba(255, 255, 255, 0.8);
+    backdrop-filter: scale(1.4);
+    /* Magnification */
     -webkit-backdrop-filter: scale(1.4);
     pointer-events: none;
-    z-index: 9999; /* Ensure it's on top */
+    z-index: 9999;
+    /* Ensure it's on top */
     display: none;
     /* Create circular mask for the effect */
     mask-image: radial-gradient(circle, black 100%, transparent 100%);
     -webkit-mask-image: radial-gradient(circle, black 100%, transparent 100%);
-    background: rgba(255, 255, 255, 0.05); /* Subtle highlight */
-    transform: translate(-50%, -50%); /* Center on cursor */
+    background: rgba(255, 255, 255, 0.05);
+    /* Subtle highlight */
+    transform: translate(-50%, -50%);
+    /* Center on cursor */
 }
 
 /* Enhance existing hero title for interaction */
@@ -397,12 +415,23 @@
 }
 
 @keyframes fadeInUp {
-    to { opacity: 1; transform: translateY(0); }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
+.delay-100 {
+    animation-delay: 0.1s;
+}
+
+.delay-200 {
+    animation-delay: 0.2s;
+}
+
+.delay-300 {
+    animation-delay: 0.3s;
+}
 
 /* Transparent Navbar */
 .modern-transparent-nav {
@@ -458,7 +487,8 @@
     cursor: default;
     padding: 10px;
     border-radius: 10px;
-    display: inline-block; /* Ensure transforms work */
+    display: inline-block;
+    /* Ensure transforms work */
 }
 
 .glass-hover-text:hover {
@@ -494,9 +524,11 @@
 
 .btn-outline-gradient {
     background: transparent;
-    border: 2px solid #2563eb; /* Fallback */
+    border: 2px solid #2563eb;
+    /* Fallback */
     border-image: var(--primary-gradient) 1;
-    border-radius: 50px; /* Note: border-image conflicts with border-radius usually. Using psueod-element or simpler border color */
+    border-radius: 50px;
+    /* Note: border-image conflicts with border-radius usually. Using psueod-element or simpler border color */
     /* Simpler approach for rounded gradient border: */
     position: relative;
     z-index: 1;
@@ -508,18 +540,22 @@
     background-clip: padding-box;
     transition: all 0.3s ease;
     border-radius: 50px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .btn-outline-gradient::before {
     content: '';
     position: absolute;
-    top: 0; right: 0; bottom: 0; left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     z-index: -1;
     margin: -2px;
     border-radius: inherit;
     background: var(--primary-gradient);
 }
+
 /* Fix for button inner white background covering text if z-index is wrong */
 .btn-outline-gradient:hover {
     transform: translateY(-2px);
@@ -531,7 +567,8 @@
     background: #2563eb;
     color: white;
     border: none;
-    padding: 12px 30px; /* Consistent padding */
+    padding: 12px 30px;
+    /* Consistent padding */
     border-radius: 50px;
     font-weight: 600;
     box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
@@ -553,7 +590,8 @@
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.8);
     box-shadow:
-        0 0 20px rgba(37, 99, 235, 0.5), /* Stronger blue glow */
+        0 0 20px rgba(37, 99, 235, 0.5),
+        /* Stronger blue glow */
         inset 0 0 30px rgba(255, 255, 255, 0.6);
     /* Extreme values to force visibility */
     backdrop-filter: scale(1.5) saturate(400%) brightness(130%) contrast(120%);
@@ -561,17 +599,21 @@
     pointer-events: none;
     z-index: 9999;
     display: none;
-    background: rgba(255, 255, 255, 0.1); /* Slight white tint to catch light */
+    background: rgba(255, 255, 255, 0.1);
+    /* Slight white tint to catch light */
     transform: translate(-50%, -50%);
 }
 
 /* Updated Gallery Container for Visibility */
 .gallery-container {
     perspective: 1000px;
-    overflow: visible !important; /* Allow side cards to be seen */
+    overflow: visible !important;
+    /* Allow side cards to be seen */
     width: 100%;
-    max-width: 800px; /* Constrain width to keep perspective nice */
-    margin: 1rem auto; /* Center it */
+    max-width: 800px;
+    /* Constrain width to keep perspective nice */
+    margin: 1rem auto;
+    /* Center it */
 }
 
 .gallery-wheel {
@@ -579,7 +621,8 @@
     height: 300px;
     transform-style: preserve-3d;
     transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
-    margin: 0 auto; /* Center key */
+    margin: 0 auto;
+    /* Center key */
 }
 
 /* Handle long text in cards */
@@ -588,9 +631,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
 .gallery-card-content p {
     margin-bottom: 0.5rem;
 }
+
 /* Ensure buttons override bootstrap */
 .btn-gradient {
     background: var(--primary-gradient) !important;

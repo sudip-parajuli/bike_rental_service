@@ -127,7 +127,7 @@ class AdminBikeDeleteView(DeleteView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Delete Bike'
-        context['item_name'] = f"{self.object.brand} {self.object.model}"
+        context['item_name'] = f"{self.object.brand} {self.object.name}"
         return context
 
 class AdminBookingListView(ListView):
@@ -182,14 +182,14 @@ def approve_bike(request, pk):
     bike = get_object_or_404(Bike, pk=pk)
     bike.availability_status = True
     bike.save()
-    messages.success(request, f"Bike {bike.brand} {bike.model} approved.")
+    messages.success(request, f"Bike {bike.brand} {bike.name} approved.")
     return redirect('admin_panel:bike-list')
 
 def reject_bike(request, pk):
     bike = get_object_or_404(Bike, pk=pk)
     bike.availability_status = False
     bike.save()
-    messages.success(request, f"Bike {bike.brand} {bike.model} rejected/hidden.")
+    messages.success(request, f"Bike {bike.brand} {bike.name} rejected/hidden.")
     return redirect('admin_panel:bike-list')
 
 def toggle_testimonial(request, pk):
@@ -228,7 +228,7 @@ def generate_invoice_pdf(request, booking_id):
     if not pdf.err:
         response = HttpResponse(result.getvalue(), content_type='application/pdf')
         filename = f"Invoice_{invoice.invoice_number}.pdf"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
         return response
     
     return HttpResponse("Error generating PDF", status=400)
@@ -306,7 +306,32 @@ class AdminContractCreateView(CreateView):
         if booking_id:
             booking = get_object_or_404(Booking, id=booking_id)
             form.instance.booking = booking
-        return super().form_valid(form)
+            
+        # Enforce math calculations to ensure manual discount is applied
+        duration = form.instance.booking.duration_days if form.instance.booking else 1
+        base_total = form.instance.rate_per_day * duration
+        new_total = max(0, base_total - form.instance.discount_amount - form.instance.manual_discount)
+        form.instance.total_amount = new_total
+        form.instance.balance_amount = max(0, new_total - form.instance.advance_amount)
+        
+        response = super().form_valid(form)
+        
+        # Sync changes to Booking
+        contract = self.object
+        if contract.booking:
+            booking = contract.booking
+            if contract.total_amount != booking.total_price:
+                booking.total_price = contract.total_amount
+                booking.save(update_fields=['total_price'])
+                try:
+                    payment = booking.payment
+                    if payment.status in ['completed', 'pending']:
+                        payment.amount = booking.total_price
+                        payment.save(update_fields=['amount'])
+                except Exception:
+                    pass
+                    
+        return response
 
     def get_success_url(self):
         return reverse_lazy('admin_panel:contract-print', kwargs={'pk': self.object.pk})
@@ -322,6 +347,14 @@ class AdminContractUpdateView(UpdateView):
     template_name = 'admin_panel/contract_form.html'
     
     def form_valid(self, form):
+        # Enforce math calculations to ensure manual discount is applied
+        if form.instance.booking:
+            duration = form.instance.booking.duration_days
+            base_total = form.instance.rate_per_day * duration
+            new_total = max(0, base_total - form.instance.discount_amount - form.instance.manual_discount)
+            form.instance.total_amount = new_total
+            form.instance.balance_amount = max(0, new_total - form.instance.advance_amount)
+            
         response = super().form_valid(form)
         # Sync changes to Booking
         contract = self.object
@@ -333,16 +366,9 @@ class AdminContractUpdateView(UpdateView):
                 booking.save(update_fields=['total_price'])
                 
                 # Also update Payment if it exists and was fully paid or needs adjustment
-                # This is tricky as payment might be partial. 
-                # For now, if payment exists, we might need to update it or leave it for manual adjustment.
-                # Let's update it if it was 'completed' to match the new total, 
-                # or if it's 'pending' we update the amount to match.
                 try:
                     payment = booking.payment
-                    if payment.status == 'completed':
-                        payment.amount = booking.total_price
-                        payment.save(update_fields=['amount'])
-                    elif payment.status == 'pending':
+                    if payment.status in ['completed', 'pending']:
                         payment.amount = booking.total_price
                         payment.save(update_fields=['amount'])
                 except Exception:

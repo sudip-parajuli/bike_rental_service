@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/testimonial/', include('testimonials.urls', namespace='testimonials-api')),  # API routing for testimonials (JSON)
     path('api/payment/', include('payment.urls', namespace='payments-api')),  # API routing for payments (JSON)
     path('api/user/', include('users.urls', namespace='users-api')),  # API routing for users (JSON)
+    path('api/mobile/', include('mobile_api.urls', namespace='mobile_api')), # Admin mobile app endpoints
     path('api/chatbot/', include('chatbot.urls')),  # API routing for chatbot
     path('api-auth/', include('rest_framework.urls')),
     path('admin-panel/', include('admin_panel.urls', namespace='admin_panel')),

@@ -62,6 +62,10 @@ class RentalContract(models.Model):
     balance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     remarks = models.TextField(blank=True)
 
+    @property
+    def subtotal_amount(self):
+        return self.total_amount + self.discount_amount + self.manual_discount
+
     def save(self, *args, **kwargs):
         if not self.contract_number:
             self.contract_number = f"CNT-{uuid.uuid4().hex[:8].upper()}"

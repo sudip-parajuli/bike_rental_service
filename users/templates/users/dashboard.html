@@ -439,7 +439,7 @@
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                     <div>
-                        <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem; font-weight: 700; color: #1e293b;">{{ next_pickup.bike.model }}</h4>
+                        <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem; font-weight: 700; color: #1e293b;">{{ next_pickup.bike.name }}</h4>
                         <p style="color: #64748b; margin: 0;">
                             <i class="far fa-calendar"></i> {{ next_pickup.start_date|date:"M d, Y" }} at {{
                             next_pickup.start_date|time:"H:i" }}
@@ -470,7 +470,7 @@
                         <tbody>
                             {% for booking in booking_history|slice:":5" %}
                             <tr>
-                                <td><span style="color: #1e293b; font-weight: 600;">{{ booking.bike.model }}</span></td>
+                                <td><span style="color: #1e293b; font-weight: 600;">{{ booking.bike.name }}</span></td>
                                 <td>{{ booking.start_date|date:"M d" }} - {{ booking.end_date|date:"M d" }}</td>
                                 <td>NPR {{ booking.total_price }}</td>
                                 <td>
@@ -506,7 +506,7 @@
                     <div class="bike-preview-card">
                         <div style="position: relative; height: 160px; margin-bottom: 1rem; border-radius: 12px; overflow: hidden; background: #f1f5f9;">
                             {% if bike.image %}
-                            <img src="{{ bike.image.url }}" alt="{{ bike.model }}"
+                            <img src="{{ bike.image.url }}" alt="{{ bike.name }}"
                                 style="width: 100%; height: 100%; object-fit: cover;">
                             {% else %}
                             <div
@@ -519,7 +519,7 @@
                                 <i class="fas fa-star"></i> {{ bike.average_rating|default:"New" }}
                             </div>
                         </div>
-                        <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem; color: #1e293b; font-weight: 700;">{{ bike.model }}</h4>
+                        <h4 style="font-size: 1.1rem; margin-bottom: 0.25rem; color: #1e293b; font-weight: 700;">{{ bike.name }}</h4>
                         <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 0.5rem;">{{ bike.brand }}</p>
 
                         {% if bike.recommendation_reason %}

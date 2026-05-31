@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rental Contract & Invoice</title>
+    <style>
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            color: #000;
+            background: #fff;
+            font-size: 13px;
+        }
+
+        .page-container {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 15px;
+            position: relative;
+        }
+
+        @page {
+            size: A4;
+            margin: 0.8cm;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+        /* Company Header */
+        .company-header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .company-name {
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 0 0 2px 0;
+        }
+        .company-sub {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 0 2px 0;
+        }
+        .company-address {
+            font-size: 11px;
+            line-height: 1.3;
+        }
+
+        /* Layout Helpers */
+        .label {
+            font-weight: bold;
+        }
+
+        /* Tables */
+        table.bill-details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        table.bill-details-table td {
+            border: none;
+            padding: 2px 0;
+            vertical-align: top;
+        }
+
+        table.items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        table.items-table th {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            background-color: #f0f0f0;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        table.items-table td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            vertical-align: top;
+            font-size: 12px;
+        }
+
+        .right { text-align: right !important; }
+        .center { text-align: center !important; }
+        .bold { font-weight: bold; }
+
+        /* Terms */
+        .terms-list {
+            font-size: 10px;
+            padding-left: 12px;
+            text-align: justify;
+            margin: 0;
+        }
+        .terms-list li {
+            margin-bottom: 2px;
+        }
+
+        /* Checkboxes */
+        .checkbox-item {
+            display: inline-block;
+            margin-right: 12px;
+            font-size: 11px;
+        }
+        .box {
+            display: inline-block;
+            width: 11px;
+            height: 11px;
+            border: 1px solid #000;
+            margin-right: 4px;
+            text-align: center;
+            font-size: 9px;
+            line-height: 11px;
+            font-weight: bold;
+        }
+
+        /* Signature block */
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 35px;
+        }
+        .signature-table td {
+            border: none;
+            text-align: center;
+            font-size: 11px;
+            vertical-align: bottom;
+            width: 50%;
+        }
+
+        /* Watermarks */
+        .watermark-text {
+            position: absolute;
+            top: 40%;
+            left: 20%;
+            font-size: 90px;
+            color: #f6f6f6;
+            font-weight: bold;
+            z-index: -100;
+            transform: rotate(-45deg);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================== -->
+    <!-- CONTRACT AGREEMENT                         -->
+    <!-- ========================================== -->
+    <div class="page-container">
+
+        <!-- Watermark -->
+        <div style="font-size: 90px; color: #f9f9f9; position: absolute; top: 40%; left: 15%; font-weight: bold; z-index: -100; transform: rotate(-35deg);">
+            AGREEMENT
+        </div>
+
+        <div class="company-header" style="margin-bottom: 8px;">
+            <div class="company-sub" style="font-size: 18px;">Easymoto Rental Service Pvt. Ltd.</div>
+            <div style="font-size: 16px; font-weight: bold; letter-spacing: 0.5px; margin: 2px 0;">MOTORBIKE RENTAL SERVICE</div>
+            <div class="company-address">
+                Budhanilkantha-03, Kathmandu, Nepal<br>
+                Contact No.: +977 9851401903, 9860702780 &nbsp;|&nbsp; PAN No.: 622522502
+            </div>
+        </div>
+
+        <div style="font-size: 9px; margin-bottom: 12px; font-style: italic; color: #444; text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 6px;">
+            Easymoto Rental Service Pvt. Ltd. offers a diverse range of motorbikes from top manufacturers at competitive prices, providing you with the freedom and flexibility to explore new destinations at your own pace.
+        </div>
+
+        <!-- 2-Column main area via table layout -->
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <!-- LEFT COLUMN -->
+                <td style="width: 48%; vertical-align: top; padding-right: 10px; border: none;">
+                    
+                    <h4 style="border-bottom: 1px solid #ccc; padding-bottom: 2px; margin: 0 0 6px 0; font-size: 12px;">Customer Details:</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 8px;">
+                        <tr><td style="padding: 2px 0; font-weight: bold; width: 110px;">Name:</td><td style="padding: 2px 0;">{{ contract.customer_name }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Address:</td><td style="padding: 2px 0;">{{ contract.customer_address }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Nationality:</td><td style="padding: 2px 0;">{{ contract.nationality }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Phone No.:</td><td style="padding: 2px 0;">{{ contract.customer_phone }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Driving License No.:</td><td style="padding: 2px 0;">{{ contract.driving_license_no }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Passport No.:</td><td style="padding: 2px 0;">{{ contract.passport_no }}</td></tr>
+                    </table>
+
+                    <h4 style="border-bottom: 1px solid #ccc; padding-bottom: 2px; margin: 8px 0 6px 0; font-size: 12px;">Vehicle Details:</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 8px;">
+                        <tr><td style="padding: 2px 0; font-weight: bold; width: 110px;">Vehicle Model:</td><td style="padding: 2px 0;">{{ contract.vehicle_model }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Vehicle Number:</td><td style="padding: 2px 0;">{{ contract.vehicle_number }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Vehicle Color:</td><td style="padding: 2px 0;">{{ contract.vehicle_color }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Chassis No.:</td><td style="padding: 2px 0;">{{ contract.chassis_no }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Engine No.:</td><td style="padding: 2px 0;">{{ contract.engine_no }}</td></tr>
+                    </table>
+
+                    <h4 style="border-bottom: 1px solid #ccc; padding-bottom: 2px; margin: 8px 0 6px 0; font-size: 12px;">Special Equipment:</h4>
+                    <div style="margin-bottom: 8px;">
+                        <span class="checkbox-item"><span class="box">{% if contract.helmet %}✓{% endif %}</span> Helmet</span>
+                        <span class="checkbox-item"><span class="box">{% if contract.bungy_cord %}✓{% endif %}</span> Bungy cord</span>
+                        <span class="checkbox-item"><span class="box">{% if contract.maps %}✓{% endif %}</span> Maps</span>
+                    </div>
+                    <div style="font-size: 11px; margin-bottom: 8px;"><span class="label">Miscellaneous:</span> .........................</div>
+
+                    <h4 style="border-bottom: 1px solid #ccc; padding-bottom: 2px; margin: 8px 0 6px 0; font-size: 12px;">Security Deposit:</h4>
+                    <div style="margin-bottom: 8px;">
+                        <span class="checkbox-item"><span class="box">{% if contract.deposit_passport %}✓{% endif %}</span> Passport</span>
+                        <span class="checkbox-item"><span class="box">{% if contract.deposit_citizenship %}✓{% endif %}</span> Citizenship</span>
+                        <span class="checkbox-item"><span class="box">{% if contract.deposit_id_card %}✓{% endif %}</span> National ID</span>
+                    </div>
+                    <div style="font-size: 11px; margin-bottom: 8px;"><span class="label">Other:</span> {{ contract.deposit_other }}</div>
+
+                    <h4 style="border-bottom: 1px solid #ccc; padding-bottom: 2px; margin: 8px 0 6px 0; font-size: 12px;">Guarantor Details:</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                        <tr><td style="padding: 2px 0; font-weight: bold; width: 110px;">Name:</td><td style="padding: 2px 0;">{{ contract.guarantor_name }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Address:</td><td style="padding: 2px 0;">{{ contract.guarantor_address }}</td></tr>
+                        <tr><td style="padding: 2px 0; font-weight: bold;">Phone No.:</td><td style="padding: 2px 0;">{{ contract.guarantor_phone }}</td></tr>
+                    </table>
+
+                </td>
+
+                <!-- RIGHT COLUMN -->
+                <td style="width: 52%; vertical-align: top; padding-left: 10px; border: none;">
+                    
+                    <h4 style="border-bottom: 1px solid #ccc; padding-bottom: 2px; margin: 0 0 6px 0; font-size: 12px;">Terms and Conditions:</h4>
+                    <ul class="terms-list">
+                        <li>The vehicle must be used in compliance with all motor vehicle laws and regulations.</li>
+                        <li>The vehicle must be returned latest by 7:30 PM, else penalty applies.</li>
+                        <li>Vehicles does not have any insurance.</li>
+                        <li>Any damage to the vehicle must be reported immediately.</li>
+                        <li>The lessee is responsible for any fines or penalties.</li>
+                        <li>In case of accident, the lessee must provide a written statement. Lessee is liable for loss of rental income during repair.</li>
+                        <li>Any additional charges for damages or late returns will be billed separately.</li>
+                        <li>The booking charge is non-refundable.</li>
+                        <li>There is no guarantee provided for the tires and tubes.</li>
+                        <li>Once agreed upon, the bike rental rates are non-negotiable.</li>
+                        <li>In case of loss of the bill book or vehicle papers, the lessee will be charged.</li>
+                        <li>Regular maintenance is responsibility of Easymoto. However, lessee must ensure good condition during rental.</li>
+                    </ul>
+
+                    <div style="font-weight: bold; font-size: 10px; margin-top: 8px; line-height: 1.3;">
+                        I hereby agree all terms and conditions mentioned above and all detail provided are true.
+                    </div>
+
+                    <!-- Fingerprint Box -->
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 8px; border: 1px solid #000;">
+                        <tr>
+                            <td colspan="2" style="border-bottom: 1px solid #000; text-align: center; font-weight: bold; padding: 3px; font-size: 11px;">Fingerprint</td>
+                        </tr>
+                        <tr style="height: 50px;">
+                            <td style="border-right: 1px solid #000; text-align: center; vertical-align: bottom; font-size: 10px; padding: 2px;">Right</td>
+                            <td style="text-align: center; vertical-align: bottom; font-size: 10px; padding: 2px;">Left</td>
+                        </tr>
+                    </table>
+
+                    <!-- Booking Details Inside Box -->
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 12px; border: 1px solid #000; padding: 8px;">
+                        <tr>
+                            <td style="border: none; padding: 3px;"><strong style="font-size: 12px;">Booking Details:</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; padding: 2px;"><span class="label">Booking Date:</span> {{ contract.created_at|date:"Y-m-d" }}</td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; padding: 0;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="border: none; padding: 2px;"><span class="label">Hiring Date:</span> {{ contract.booking.start_date|date:"Y-m-d" }}</td>
+                                        <td style="border: none; padding: 2px;"><span class="label">Time:</span> .......</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="border: none; padding: 2px;"><span class="label">Arrival Date:</span> {{ contract.booking.end_date|date:"Y-m-d" }}</td>
+                                        <td style="border: none; padding: 2px;"><span class="label">Time:</span> .......</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; padding-top: 6px;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                                    <thead>
+                                        <tr>
+                                            <th style="border: 1px solid #000; padding: 4px; background-color: #f0f0f0; text-align: center;">No. of Days</th>
+                                            <th style="border: 1px solid #000; padding: 4px; background-color: #f0f0f0; text-align: center;">Rate</th>
+                                            <th style="border: 1px solid #000; padding: 4px; background-color: #f0f0f0; text-align: center;">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="border: 1px solid #000; padding: 4px; text-align: center; height: 20px;">{{ contract.booking.duration_days }}</td>
+                                            <td style="border: 1px solid #000; padding: 4px; text-align: right;">{{ contract.rate_per_day }}</td>
+                                            <td style="border: 1px solid #000; padding: 4px; text-align: right;">{{ contract.total_amount }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" style="border: 1px solid #000; padding: 4px; text-align: right; font-weight: bold;">Advance</td>
+                                            <td style="border: 1px solid #000; padding: 4px; text-align: right;">{{ contract.advance_amount }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" style="border: 1px solid #000; padding: 4px; text-align: right; font-weight: bold;">Balance</td>
+                                            <td style="border: 1px solid #000; padding: 4px; text-align: right; font-weight: bold;">{{ contract.balance_amount }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none; padding: 4px 2px 2px 2px;"><span class="label">Remarks:</span> {{ contract.remarks }}</td>
+                        </tr>
+                    </table>
+
+                    <!-- Signatures Section -->
+                    <table class="signature-table">
+                        <tr>
+                            <td>
+                                <div style="border-top: 1px dotted #000; padding-top: 4px; display: inline-block; width: 80%;">
+                                    Customer Signature
+                                </div>
+                            </td>
+                            <td>
+                                <div style="border-top: 1px dotted #000; padding-top: 4px; display: inline-block; width: 80%;">
+                                    Easymoto Rental Service Pvt. Ltd.
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
+            </tr>
+        </table>
+
+        <div style="text-align: center; font-weight: bold; font-style: italic; margin-top: 16px; font-size: 13px;">
+            Adventure awaits on two wheels. Embrace the journey with Easymoto Rental Service.
+        </div>
+
+    </div>
+
+</body>
+</html>

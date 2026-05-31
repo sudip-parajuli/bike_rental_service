@@ -97,121 +97,7 @@
         <a href="javascript:history.back()" style="margin-left: 20px; color: #666; text-decoration: none;">Back to Dashboard</a>
     </div>
 
-    <!-- PAGE 1: BILL -->
-    <div class="page-container page-break">
-        <div class="watermark">EASYMOTO</div>
-        
-        <div class="company-header">
-            <div class="company-name" style="letter-spacing: 2px;">EASYMOTO</div>
-            <div class="company-sub">EASYMOTO RENTAL SERVICE PVT. LTD.</div>
-            <div class="company-address">Budhanilkantha-03, Kathmandu, Nepal<br>Ph: 9860702780</div>
-        </div>
 
-        <div class="row">
-            <div><span class="label">PAN No.:</span> 622522502</div>
-            <div style="text-align: right;">
-                <div class="line-item"><span class="label">Bill No.:</span> {{ contract.contract_number }}</div>
-                <div class="line-item"><span class="label">Date:</span> {{ contract.created_at|date:"Y-m-d" }}</div>
-            </div>
-        </div>
-
-        <div class="line-item" style="display: flex;">
-            <span class="label">Customer's Name:</span>
-            <span class="value">{{ contract.customer_name }}</span>
-        </div>
-        <div class="row">
-            <div style="flex: 2; display: flex; margin-right: 20px;">
-                <span class="label">Address:</span>
-                <span class="value">{{ contract.customer_address }}</span>
-            </div>
-            <div style="flex: 1; display: flex;">
-                <span class="label">Vehicle No.:</span>
-                <span class="value">{{ contract.vehicle_number }}</span>
-            </div>
-        </div>
-        <div class="line-item" style="display: flex;">
-            <span class="label">Vehicle Name:</span>
-            <span class="value">{{ contract.vehicle_model }}</span>
-        </div>
-
-        <div style="margin-top: 15px; margin-bottom: 10px;">
-            <span class="label">Mode of Payment:</span>
-            <b>Cash / QR Payment / Credit / Others</b>
-        </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 50px;">S.No.</th>
-                    <th>PARTICULARS</th>
-                    <th style="width: 60px;">QTY</th>
-                    <th style="width: 100px;">RATE</th>
-                    <th style="width: 120px;">AMOUNT</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr style="height: 300px; vertical-align: top;">
-                    <td style="text-align: center;">1</td>
-                    <td>
-                        Bike Rental - {{ contract.vehicle_model }}
-                        <br>
-                        ({{ contract.booking.start_date|date:"Y-m-d" }} to {{ contract.booking.end_date|date:"Y-m-d" }})
-                    </td>
-                    <td style="text-align: center;">{{ contract.booking.duration_days }}</td>
-                    <td style="text-align: right;">{{ contract.rate_per_day }}</td>
-                    <!-- Calculate Subtotal (Rate * Quantity) manually since Django templates prevent math. We assume view passes it or we do basic math if possible, but simplest is to assume rate * days -->
-                    <!-- Since we can't do math in templates easily without custom tags, we'll use Javascript to fill this or rely on a property. 
-                         HOWEVER, let's look at what we have. contract.total_amount is the FINAL price.
-                         Let's assume Subtotal = Rate * Days. 
-                         Discount = Subtotal - Total. -->
-                     <!-- Since we don't have math filters, let's use a small script at the bottom or rely on the view context update. -->
-                    <td style="text-align: right;" id="subtotal"></td>
-                </tr>
-                <tr>
-                    <td colspan="3" rowspan="3" style="vertical-align: top;">
-                        <span class="label">In words:</span>
-                        {{ contract.total_amount }} Rupees Only
-                        <br><br>
-                        <span class="label">Remarks:</span> {{ contract.remarks }}
-                    </td>
-                    <td style="text-align: right; font-weight: bold;">Sub Total</td>
-                    <td style="text-align: right;" id="subtotal_display"></td>
-                </tr>
-                <tr>
-                    <td style="text-align: right;">Discount</td>
-                    <td style="text-align: right;" id="discount_display">0.00</td>
-                </tr>
-                <tr>
-                    <td style="text-align: right; font-weight: bold;">Grand Total</td>
-                    <td style="text-align: right; font-weight: bold;">{{ contract.total_amount }}</td>
-                </tr>
-            </tbody>
-            
-            <script>
-                // Simple inline script to calculate subtotal and discount for display since logic is missing in backend
-                (function() {
-                     var rate = parseFloat("{{ contract.rate_per_day }}" || "0");
-                     var days = parseFloat("{{ contract.booking.duration_days }}" || "1"); // Ensure at least 1
-                     var total = parseFloat("{{ contract.total_amount }}" || "0");
-                     
-                     var subtotal = rate * days;
-                     var discount = subtotal - total;
-                     
-                     document.getElementById('subtotal').innerText = subtotal.toFixed(2);
-                     document.getElementById('subtotal_display').innerText = subtotal.toFixed(2);
-                     document.getElementById('discount_display').innerText = discount.toFixed(2);
-                })();
-            </script>
-        </table>
-
-        <div class="signature-section">
-            <div class="sig-box">Customer Sign.</div>
-            <div class="sig-box">
-                Signature<br>
-                <span style="font-size: 10px;">EASYMOTO Rental Service Pvt. Ltd.</span>
-            </div>
-        </div>
-    </div>
 
     <!-- PAGE 2: CONTRACT -->
     <div class="page-container" style="position: relative;">
@@ -333,8 +219,10 @@
                 </div>
 
                 <div class="signature-section" style="margin-top: 40px;">
-                    <div class="sig-box" style="border-top: 1px dotted #000;">
-                        Wait for Signature<br>
+                    <div class="sig-box" style="border-top: 1px dotted #000; padding-top: 5px;">
+                        Customer Signature
+                    </div>
+                    <div class="sig-box" style="border-top: 1px dotted #000; padding-top: 5px;">
                         Easymoto Rental Service Pvt. Ltd.
                     </div>
                 </div>

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'payment',
     'admin_panel',
     'chatbot',
+    'mobile_api',
 
     #third party package
     'rest_framework',

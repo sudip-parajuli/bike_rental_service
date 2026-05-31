@@ -79,7 +79,7 @@
                                     {% for booking in bookings %}
                                     <tr>
                                         <td>#{{ booking.id }}</td>
-                                        <td>{{ booking.bike.brand }} {{ booking.bike.model }}</td>
+                                        <td>{{ booking.bike.brand }} {{ booking.bike.name }}</td>
                                         <td>{{ booking.start_date|date:"M d" }} - {{ booking.end_date|date:"M d, Y" }}</td>
                                         <td>
                                             <span class="badge bg-{{ booking.status|yesno:'success,warning' }}">
