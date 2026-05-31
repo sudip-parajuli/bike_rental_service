@@ -15,6 +15,7 @@ from datetime import timedelta
 from io import BytesIO
 from xhtml2pdf import pisa
 from django.template.loader import get_template
+from .models import StaffActivityLog
 
 
 class QueryParamJWTAuthentication(JWTAuthentication):
@@ -56,23 +57,30 @@ class AdminDashboardStatsView(APIView):
     def get(self, request):
         now = timezone.now()
         today = now.date()
-        
+        is_superuser = request.user.is_superuser
+
         # Today's pickups and returns
         today_pickups = Booking.objects.filter(start_date__date=today, status='confirmed').count()
         today_returns = Booking.objects.filter(end_date__date=today, status='confirmed').count()
-        
+
         # Current inventory status
         total_bikes = Bike.objects.count()
         available_bikes = Bike.objects.filter(availability_status=True).count()
 
-        # Financial Metrics
-        from payment.models import Payment
-        from bikes.models import MaintenanceRecord
-        from decimal import Decimal
-
-        total_revenue = Payment.objects.filter(status='completed').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
-        total_expenditure = MaintenanceRecord.objects.aggregate(Sum('cost'))['cost__sum'] or Decimal('0.00')
-        net_profit = total_revenue - total_expenditure
+        # Financial Metrics — only for superusers
+        financial_data = {}
+        if is_superuser:
+            from payment.models import Payment
+            from bikes.models import MaintenanceRecord
+            from decimal import Decimal
+            total_revenue = Payment.objects.filter(status='completed').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+            total_expenditure = MaintenanceRecord.objects.aggregate(Sum('cost'))['cost__sum'] or Decimal('0.00')
+            net_profit = total_revenue - total_expenditure
+            financial_data = {
+                'total_revenue': float(total_revenue),
+                'total_expenditure': float(total_expenditure),
+                'net_profit': float(net_profit),
+            }
 
         # Rented Bikes
         rented_bookings = Booking.objects.filter(
@@ -111,18 +119,38 @@ class AdminDashboardStatsView(APIView):
                 'customer_phone': booking.user.phone_number,
                 'end_date': booking.end_date.isoformat(),
             })
-        
-        return Response({
+
+        # Staff Activity Notifications — only for superusers
+        staff_activity_notifications = []
+        if is_superuser:
+            unread_logs = StaffActivityLog.objects.filter(is_read=False).select_related('staff_user', 'booking')[:50]
+            for log in unread_logs:
+                staff_name = (
+                    log.staff_user.get_full_name() or log.staff_user.username
+                    if log.staff_user else 'Unknown Staff'
+                )
+                staff_activity_notifications.append({
+                    'id': log.id,
+                    'action': log.action,
+                    'action_label': log.get_action_display(),
+                    'staff_name': staff_name,
+                    'description': log.description,
+                    'booking_id': log.booking_id,
+                    'timestamp': log.timestamp.isoformat(),
+                })
+
+        response_data = {
             'today_pickups': today_pickups,
             'today_returns': today_returns,
             'total_bikes': total_bikes,
             'available_bikes': available_bikes,
-            'total_revenue': float(total_revenue),
-            'total_expenditure': float(total_expenditure),
-            'net_profit': float(net_profit),
             'rented_bikes': rented_bikes_data,
             'rental_end_alerts': rental_end_alerts_data,
-        })
+            'staff_activity_notifications': staff_activity_notifications,
+            'is_superuser': is_superuser,
+        }
+        response_data.update(financial_data)
+        return Response(response_data)
 
 
 class AdminBikeListView(generics.ListCreateAPIView):
@@ -407,6 +435,25 @@ class WalkInBookingCreateView(APIView):
                 except Exception as e:
                     print(f'Email dispatch error: {e}')
 
+            # --- Staff Activity Log ---
+            # Record this booking with the staff member who created it
+            staff_user = request.user
+            staff_name = staff_user.get_full_name() or staff_user.username
+            customer_name = user.get_full_name() or user.username
+            bike_label = f"{bike.brand} {bike.name}"
+            StaffActivityLog.objects.create(
+                staff_user=staff_user,
+                action='walk_in_booking',
+                description=(
+                    f"{staff_name} created a walk-in booking for {customer_name} "
+                    f"({user.phone_number}) on {bike_label} "
+                    f"from {start_date.date()} to {end_date.date()} "
+                    f"(Rs. {total_amount})."
+                ),
+                booking=booking,
+                is_read=False,
+            )
+
             return Response({
                 "detail": "Booking & Contract created successfully.",
                 "booking_id": booking.id,
@@ -585,3 +632,53 @@ class AdminBookingContractPDFView(APIView):
         return Response({"detail": "Error generating contract PDF"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class StaffActivityLogListView(APIView):
+    """Admin-only view to list all staff activity logs (with optional ?unread=1 filter)."""
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        if not request.user.is_superuser:
+            return Response(
+                {"detail": "Only administrators can view activity logs."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        unread_only = request.query_params.get('unread', '0') == '1'
+        qs = StaffActivityLog.objects.select_related('staff_user', 'booking')
+        if unread_only:
+            qs = qs.filter(is_read=False)
+        logs = []
+        for log in qs[:100]:
+            staff_name = (
+                log.staff_user.get_full_name() or log.staff_user.username
+                if log.staff_user else 'Unknown Staff'
+            )
+            logs.append({
+                'id': log.id,
+                'action': log.action,
+                'action_label': log.get_action_display(),
+                'staff_name': staff_name,
+                'description': log.description,
+                'booking_id': log.booking_id,
+                'is_read': log.is_read,
+                'timestamp': log.timestamp.isoformat(),
+            })
+        return Response(logs)
+
+
+class MarkNotificationsReadView(APIView):
+    """Admin marks all (or specific) staff activity notifications as read."""
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        if not request.user.is_superuser:
+            return Response(
+                {"detail": "Only administrators can mark notifications as read."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        # Optional: pass {"ids": [1, 2, 3]} to mark specific ones; otherwise marks all
+        ids = request.data.get('ids', None)
+        qs = StaffActivityLog.objects.filter(is_read=False)
+        if ids:
+            qs = qs.filter(id__in=ids)
+        count = qs.update(is_read=True)
+        return Response({"detail": f"{count} notification(s) marked as read."})

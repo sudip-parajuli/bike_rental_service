@@ -1,4 +1,3 @@
-
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model, authenticate
@@ -6,10 +5,12 @@ from rest_framework import serializers
 
 User = get_user_model()
 
+
 class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     Custom serializer that allows login with either username OR email.
     Only allows staff/admin users to get tokens.
+    Embeds role flags and user info directly into the JWT payload.
     """
     username_field = 'login'
 
@@ -17,6 +18,16 @@ class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
         super().__init__(*args, **kwargs)
         self.fields['login'] = serializers.CharField()
         self.fields.pop('username', None)
+
+    @classmethod
+    def get_token(cls, user):
+        """Embed role flags into the token payload for easy client-side access."""
+        token = super().get_token(user)
+        token['is_superuser'] = user.is_superuser
+        token['is_staff'] = user.is_staff
+        token['username'] = user.username
+        token['full_name'] = user.get_full_name() or user.username
+        return token
 
     def validate(self, attrs):
         login = attrs.get('login', '').strip()
@@ -52,9 +63,12 @@ class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
             'username': user.username,
+            'full_name': user.get_full_name() or user.username,
             'email': user.email,
             'is_superuser': user.is_superuser,
+            'is_staff': user.is_staff,
         }
+
 
 class AdminTokenObtainPairView(TokenObtainPairView):
     serializer_class = AdminTokenObtainPairSerializer

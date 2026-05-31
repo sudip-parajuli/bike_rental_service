@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../api';
 
 const { width } = Dimensions.get('window');
@@ -25,6 +26,8 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [alertModalVisible, setAlertModalVisible] = useState(false);
+  const [isSuperuser, setIsSuperuser] = useState(false);
+  const [displayName, setDisplayName] = useState('Admin');
   const router = useRouter();
 
   const fetchDashboardData = async () => {
@@ -44,7 +47,14 @@ export default function DashboardScreen() {
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    const init = async () => {
+      const superuserVal = await AsyncStorage.getItem('is_superuser');
+      const nameVal = await AsyncStorage.getItem('full_name') || await AsyncStorage.getItem('username') || 'Admin';
+      setIsSuperuser(superuserVal === 'true');
+      setDisplayName(nameVal);
+      fetchDashboardData();
+    };
+    init();
   }, []);
 
   const onRefresh = () => {
@@ -81,14 +91,25 @@ export default function DashboardScreen() {
 
   const endingTodayCount = stats?.rental_end_alerts?.length || 0;
   const maintenanceCount = alerts.length || 0;
-  const totalNotifications = endingTodayCount + maintenanceCount;
+  const staffActivityCount = isSuperuser ? (stats?.staff_activity_notifications?.length || 0) : 0;
+  const totalNotifications = endingTodayCount + maintenanceCount + staffActivityCount;
+
+  const handleMarkStaffNotificationsRead = async () => {
+    try {
+      await api.post('/staff-activity/mark-read/');
+      // Refetch to clear the badge
+      fetchDashboardData();
+    } catch (e) {
+      console.log('Error marking read:', e);
+    }
+  };
 
   return (
     <View style={styles.safeContainer}>
       {/* Top Custom Header */}
       <View style={styles.customHeader}>
         <View>
-          <Text style={styles.greetingText}>Namaste, Admin! 👋</Text>
+          <Text style={styles.greetingText}>Namaste, {displayName}! 👋</Text>
           <Text style={styles.brandTitle}>EasyMoto Hub</Text>
         </View>
         <TouchableOpacity 
@@ -196,43 +217,47 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </ScrollView>
 
-        {/* Financial Business HUD Panel */}
-        <Text style={styles.sectionHeader}>Financial Overview</Text>
-        <View style={styles.financialHud}>
-          <View style={styles.profitHeaderRow}>
-            <Text style={styles.profitLabel}>Net Cash Flow</Text>
-            <View style={styles.profitBadge}>
-              <Text style={styles.profitBadgeText}>Live Stats</Text>
-            </View>
-          </View>
-          <Text style={styles.netProfitValue}>Rs. {stats?.net_profit?.toLocaleString() || '0.00'}</Text>
-          
-          <View style={styles.hudDividingLine} />
-
-          <View style={styles.financialRow}>
-            <View style={styles.financialCol}>
-              <View style={styles.kpiIndicatorRow}>
-                <View style={[styles.dot, { backgroundColor: '#10b981' }]} />
-                <Text style={styles.kpiLabel}>Total Revenue</Text>
+        {/* Financial Business HUD Panel — Admin only */}
+        {isSuperuser && (
+          <>
+            <Text style={styles.sectionHeader}>Financial Overview</Text>
+            <View style={styles.financialHud}>
+              <View style={styles.profitHeaderRow}>
+                <Text style={styles.profitLabel}>Net Cash Flow</Text>
+                <View style={styles.profitBadge}>
+                  <Text style={styles.profitBadgeText}>Live Stats</Text>
+                </View>
               </View>
-              <Text style={[styles.kpiValue, { color: '#166534' }]}>
-                Rs. {stats?.total_revenue?.toLocaleString() || '0.00'}
-              </Text>
-            </View>
+              <Text style={styles.netProfitValue}>Rs. {stats?.net_profit?.toLocaleString() || '0.00'}</Text>
 
-            <View style={styles.financialVerticalDivider} />
+              <View style={styles.hudDividingLine} />
 
-            <View style={styles.financialCol}>
-              <View style={styles.kpiIndicatorRow}>
-                <View style={[styles.dot, { backgroundColor: '#ef4444' }]} />
-                <Text style={styles.kpiLabel}>Expenditures</Text>
+              <View style={styles.financialRow}>
+                <View style={styles.financialCol}>
+                  <View style={styles.kpiIndicatorRow}>
+                    <View style={[styles.dot, { backgroundColor: '#10b981' }]} />
+                    <Text style={styles.kpiLabel}>Total Revenue</Text>
+                  </View>
+                  <Text style={[styles.kpiValue, { color: '#166534' }]}>
+                    Rs. {stats?.total_revenue?.toLocaleString() || '0.00'}
+                  </Text>
+                </View>
+
+                <View style={styles.financialVerticalDivider} />
+
+                <View style={styles.financialCol}>
+                  <View style={styles.kpiIndicatorRow}>
+                    <View style={[styles.dot, { backgroundColor: '#ef4444' }]} />
+                    <Text style={styles.kpiLabel}>Expenditures</Text>
+                  </View>
+                  <Text style={[styles.kpiValue, { color: '#991b1b' }]}>
+                    Rs. {stats?.total_expenditure?.toLocaleString() || '0.00'}
+                  </Text>
+                </View>
               </View>
-              <Text style={[styles.kpiValue, { color: '#991b1b' }]}>
-                Rs. {stats?.total_expenditure?.toLocaleString() || '0.00'}
-              </Text>
             </View>
-          </View>
-        </View>
+          </>
+        )}
 
         {/* Core Inventory Stats Cards */}
         <View style={styles.grid}>
@@ -375,8 +400,8 @@ export default function DashboardScreen() {
               <Text style={[styles.modalGroupTitle, { marginTop: 24 }]}>🔧 Bike Maintenance Alerts ({maintenanceCount})</Text>
               {alerts && alerts.length > 0 ? (
                 alerts.map((bikeAlert: any) => (
-                  <TouchableOpacity 
-                    key={`maint-alert-${bikeAlert.id}`} 
+                  <TouchableOpacity
+                    key={`maint-alert-${bikeAlert.id}`}
                     style={styles.modalAlertItemBlue}
                     onPress={() => {
                       setAlertModalVisible(false);
@@ -392,6 +417,41 @@ export default function DashboardScreen() {
                 ))
               ) : (
                 <Text style={styles.modalEmptyText}>No bikes currently require maintenance.</Text>
+              )}
+
+              {/* Staff Activity Notifications — Admin only */}
+              {isSuperuser && (
+                <>
+                  <View style={[styles.staffActivityHeader, { marginTop: 24 }]}>
+                    <Text style={styles.modalGroupTitle}>🛎️ Staff Activity ({staffActivityCount})</Text>
+                    {staffActivityCount > 0 && (
+                      <TouchableOpacity
+                        style={styles.markReadButton}
+                        onPress={handleMarkStaffNotificationsRead}
+                      >
+                        <MaterialIcons name="done-all" size={14} color="#006875" />
+                        <Text style={styles.markReadButtonText}>Mark All Read</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  {stats?.staff_activity_notifications && stats.staff_activity_notifications.length > 0 ? (
+                    stats.staff_activity_notifications.map((notif: any) => (
+                      <View key={`staff-${notif.id}`} style={styles.modalAlertItemGreen}>
+                        <View style={styles.staffNotifHeader}>
+                          <MaterialIcons name="person" size={14} color="#065f46" />
+                          <Text style={styles.staffNotifStaff}>{notif.staff_name}</Text>
+                          <Text style={styles.staffNotifLabel}>{notif.action_label}</Text>
+                        </View>
+                        <Text style={styles.alertItemText}>{notif.description}</Text>
+                        <Text style={styles.alertItemPlate}>
+                          {new Date(notif.timestamp).toLocaleDateString()} {new Date(notif.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={styles.modalEmptyText}>No unread staff activity notifications.</Text>
+                  )}
+                </>
               )}
             </ScrollView>
 
@@ -890,5 +950,55 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  modalAlertItemGreen: {
+    backgroundColor: '#dcfce7',
+    padding: 14,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  staffActivityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  staffNotifHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 6,
+    flexWrap: 'wrap',
+  },
+  staffNotifStaff: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#065f46',
+    marginLeft: 2,
+  },
+  staffNotifLabel: {
+    fontSize: 11,
+    color: '#047857',
+    backgroundColor: '#bbf7d0',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 6,
+  },
+  markReadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: '#006875',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#f0fdfa',
+  },
+  markReadButtonText: {
+    fontSize: 11,
+    color: '#006875',
+    fontWeight: '600',
   },
 });
