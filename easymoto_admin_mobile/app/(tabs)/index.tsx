@@ -112,18 +112,28 @@ export default function DashboardScreen() {
           <Text style={styles.greetingText}>Namaste, {displayName}! 👋</Text>
           <Text style={styles.brandTitle}>EasyMoto Hub</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.notificationBell}
-          onPress={() => setAlertModalVisible(true)}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="notifications" size={28} color="#006875" />
-          {totalNotifications > 0 && (
-            <View style={styles.notificationBadge}>
-              <Text style={styles.badgeText}>{totalNotifications}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.notificationBell}
+            onPress={() => setAlertModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="notifications" size={28} color="#006875" />
+            {totalNotifications > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.badgeText}>{totalNotifications}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.profileHeaderIcon}
+            onPress={() => router.push('/(tabs)/profile')}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="account-circle" size={28} color="#006875" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView 
@@ -502,6 +512,16 @@ const styles = StyleSheet.create({
   },
   notificationBell: {
     position: 'relative',
+    padding: 8,
+    backgroundColor: '#f3fbfc',
+    borderRadius: 24,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  profileHeaderIcon: {
     padding: 8,
     backgroundColor: '#f3fbfc',
     borderRadius: 24,

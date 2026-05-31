@@ -30,12 +30,14 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const response = await api.post('/auth/login/', { login, password });
-      const { access, refresh, is_superuser, username, full_name } = response.data;
+      const { access, refresh, is_superuser, is_staff, username, full_name, email } = response.data;
       await AsyncStorage.setItem('access_token', access);
       await AsyncStorage.setItem('refresh_token', refresh);
       await AsyncStorage.setItem('is_superuser', is_superuser ? 'true' : 'false');
+      await AsyncStorage.setItem('is_staff', is_staff ? 'true' : 'false');
       await AsyncStorage.setItem('username', username || login);
       await AsyncStorage.setItem('full_name', full_name || username || login);
+      await AsyncStorage.setItem('email', email || '');
       router.replace('/(tabs)');
     } catch (error: any) {
       const msg =
