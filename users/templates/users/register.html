@@ -328,7 +328,9 @@
             </div>
             <h2 class="register-title">Create Account</h2>
 
-            <a href="{% provider_login_url 'google' %}" class="modern-btn social-google">
+            {# Google button always shown — uses the allauth direct URL so it works
+               even when the database Site domain hasn't been updated yet #}
+            <a href="/accounts/google/login/?process=signup" class="modern-btn social-google">
                 <i class="fab fa-google"></i>
                 Continue with Google
             </a>
