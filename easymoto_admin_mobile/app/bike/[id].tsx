@@ -4,8 +4,9 @@ import {
   Image, TouchableOpacity, RefreshControl,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../../api';
-
+ 
 export default function BikeDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
@@ -13,7 +14,8 @@ export default function BikeDetailScreen() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
+  const [isSuperuser, setIsSuperuser] = useState(false);
+ 
   const fetchData = async () => {
     try {
       const [bikeRes, bookingsRes] = await Promise.all([
@@ -30,8 +32,15 @@ export default function BikeDetailScreen() {
       setRefreshing(false);
     }
   };
-
-  useEffect(() => { fetchData(); }, [id]);
+ 
+  useEffect(() => {
+    const checkRole = async () => {
+      const superuserVal = await AsyncStorage.getItem('is_superuser');
+      setIsSuperuser(superuserVal === 'true');
+    };
+    checkRole();
+    fetchData();
+  }, [id]);
 
   if (loading) return <View style={s.center}><ActivityIndicator size="large" color="#3b82f6" /></View>;
   if (!bike) return <View style={s.center}><Text>Bike not found</Text></View>;
@@ -67,10 +76,14 @@ export default function BikeDetailScreen() {
 
       {/* Stats */}
       <View style={s.section}>
-        <Text style={s.sectionTitle}>Financial Overview</Text>
+        <Text style={s.sectionTitle}>{isSuperuser ? 'Financial & Maintenance Overview' : 'Maintenance Status'}</Text>
         <View style={s.statsGrid}>
-          <StatBox label="Total Revenue" value={`Rs. ${bike.total_earnings || 0}`} color="#3b82f6" />
-          <StatBox label="Maint. Cost" value={`Rs. ${bike.total_maintenance_cost || 0}`} color="#f59e0b" />
+          {isSuperuser && (
+            <>
+              <StatBox label="Total Revenue" value={`Rs. ${bike.total_earnings || 0}`} color="#3b82f6" />
+              <StatBox label="Maint. Cost" value={`Rs. ${bike.total_maintenance_cost || 0}`} color="#f59e0b" />
+            </>
+          )}
           <StatBox label="Maint. Count" value={String(bike.maintenance_count || 0)} color="#8b5cf6" />
           <StatBox
             label="Next Maint."
