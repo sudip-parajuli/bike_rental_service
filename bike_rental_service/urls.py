@@ -6,7 +6,7 @@ from django.views.generic import TemplateView, RedirectView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
-from .views import HomeView, PublicHomeView
+from .views import HomeView, PublicHomeView, PingView
 from users.views import RegisterView
 
 # Configure Swagger schema
@@ -25,6 +25,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('ping/', PingView.as_view(), name='ping'),  # Health check for cron jobs / uptime monitors
     path('api/bike/', include('bikes.urls', namespace='bikes-api')),  # API routing for bikes (JSON)
     path('api/booking/', include('bookings.urls', namespace='bookings-api')),  # API routing for bookings (JSON)
     path('api/testimonial/', include('testimonials.urls', namespace='testimonials-api')),  # API routing for testimonials (JSON)
