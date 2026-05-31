@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import api from '../../api';
+import api, { BASE_MEDIA_URL } from '../../api';
 
 export default function BikesScreen() {
   const [bikes, setBikes] = useState<any[]>([]);
@@ -56,7 +56,7 @@ export default function BikesScreen() {
       activeOpacity={0.85}
     >
       <Image
-        source={{ uri: item.image?.startsWith('http') ? item.image : `http://localhost:8000${item.image}` }}
+        source={{ uri: item.image?.startsWith('http') ? item.image : `${BASE_MEDIA_URL}${item.image}` }}
         style={styles.bikeImage}
         defaultSource={{ uri: 'https://placehold.co/120x120/006875/ffffff?text=Bike' }}
       />

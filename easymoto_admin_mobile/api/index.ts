@@ -7,9 +7,16 @@ import { router } from 'expo-router';
 // You MUST replace 127.0.0.1 with your computer's local Wi-Fi IP address.
 import { Platform } from 'react-native';
 
-const API_URL = Platform.OS === 'web'
+// Detect local vs production environment dynamically
+const isLocalWeb = Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hostname === 'localhost';
+
+const API_URL = isLocalWeb
   ? 'http://localhost:8000/api/mobile'
-  : 'https://easymoto.com.np/api/mobile'; // Production URL for native app (Android/iOS)
+  : 'https://www.easymoto.com.np/api/mobile'; // Canonical production URL (uses www to prevent redirect header stripping)
+
+export const BASE_MEDIA_URL = isLocalWeb
+  ? 'http://localhost:8000'
+  : 'https://www.easymoto.com.np';
 
 const api = axios.create({
   baseURL: API_URL,

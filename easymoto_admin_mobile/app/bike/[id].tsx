@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../../api';
+import api, { BASE_MEDIA_URL } from '../../api';
  
 export default function BikeDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -47,7 +47,7 @@ export default function BikeDetailScreen() {
 
   const imageUri = bike.image?.startsWith('http')
     ? bike.image
-    : `http://localhost:8000${bike.image}`;
+    : `${BASE_MEDIA_URL}${bike.image}`;
 
   const nextMaint = bike.next_maintenance_date;
   const isOverdue = nextMaint && new Date(nextMaint) < new Date();

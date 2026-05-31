@@ -5,9 +5,10 @@ import { router } from 'expo-router';
 import api from '../api';
 
 // Show the API URL in dev mode to help with debugging
-const API_BASE = Platform.OS === 'web'
+const isLocalWeb = Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hostname === 'localhost';
+const API_BASE = isLocalWeb
   ? 'http://localhost:8000/api/mobile'
-  : 'https://easymoto.com.np/api/mobile';
+  : 'https://www.easymoto.com.np/api/mobile';
 
 export default function LoginScreen() {
   const [login, setLogin] = useState('');
@@ -87,7 +88,7 @@ export default function LoginScreen() {
 
         {/* Debug URL indicator */}
         <View style={styles.debugBadge}>
-          <Text style={styles.debugText}>🔗 {Platform.OS === 'web' ? 'localhost:8000' : 'easymoto.com.np'}</Text>
+          <Text style={styles.debugText}>🔗 {isLocalWeb ? 'localhost:8000' : 'www.easymoto.com.np'}</Text>
         </View>
 
         <View style={styles.inputWrapper}>
