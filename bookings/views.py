@@ -73,6 +73,19 @@ class BookingCreateView(generics.CreateAPIView):
     serializer_class = BookingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def permission_denied(self, request, message=None, code=None):
+        """
+        Redirect unauthenticated HTML requests to login page instead of
+        returning a DRF 401/403 response.
+        """
+        is_api = request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', '')
+        if not is_api and not request.user.is_authenticated:
+            from django.conf import settings
+            login_url = reverse('users:login')
+            next_url = request.get_full_path()
+            return redirect(f"{login_url}?next={urllib.parse.quote(next_url)}")
+        super().permission_denied(request, message=message, code=code)
+
     def perform_create(self, serializer):
         bike_id = self.request.query_params.get('bike_id') or self.request.POST.get('bike')
         if bike_id:
@@ -85,6 +98,12 @@ class BookingCreateView(generics.CreateAPIView):
             raise serializers.ValidationError({"bike_id": "No bike specified."})
 
     def post(self, request, *args, **kwargs):
+        # Safety net: redirect unauthenticated HTML users to login
+        is_api = request.path.startswith('/api/') or 'application/json' in request.headers.get('Accept', '')
+        if not request.user.is_authenticated and not is_api:
+            login_url = reverse('users:login')
+            next_url = request.get_full_path()
+            return redirect(f"{login_url}?next={urllib.parse.quote(next_url)}")
         if 'application/json' in request.headers.get('Accept', '') or request.path.startswith('/api/'):
             serializer = self.get_serializer(data=request.data)
             if serializer.is_valid():
