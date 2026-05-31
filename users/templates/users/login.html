@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load socialaccount %}
+{% get_providers as socialaccount_providers %}
 {% block content %}
 
 <style>
@@ -308,12 +309,14 @@
             <h2 class="login-title">Welcome Back</h2>
             <p class="welcome-text">Sign in to your EasyMoto account</p>
 
-            <a href="{% provider_login_url 'google' %}" class="modern-btn social-google">
+            {% if socialaccount_providers %}
+            <a href="{% provider_login_url 'google' process='login' %}" class="modern-btn social-google">
                 <i class="fab fa-google"></i>
                 Continue with Google
             </a>
 
             <div class="auth-separator">OR</div>
+            {% endif %}
 
             <form method="POST" action="{% url 'users:login' %}" class="needs-validation" novalidate>
                 {% csrf_token %}
