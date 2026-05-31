@@ -45,9 +45,8 @@ export default function BikeDetailScreen() {
   if (loading) return <View style={s.center}><ActivityIndicator size="large" color="#3b82f6" /></View>;
   if (!bike) return <View style={s.center}><Text>Bike not found</Text></View>;
 
-  const imageUri = bike.image?.startsWith('http')
-    ? bike.image
-    : `${BASE_MEDIA_URL}${bike.image}`;
+  const imageUri = bike.image_url ||
+    (bike.image?.startsWith('http') ? bike.image : `${BASE_MEDIA_URL}${bike.image}`);
 
   const nextMaint = bike.next_maintenance_date;
   const isOverdue = nextMaint && new Date(nextMaint) < new Date();

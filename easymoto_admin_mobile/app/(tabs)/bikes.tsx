@@ -56,7 +56,7 @@ export default function BikesScreen() {
       activeOpacity={0.85}
     >
       <Image
-        source={{ uri: item.image?.startsWith('http') ? item.image : `${BASE_MEDIA_URL}${item.image}` }}
+        source={{ uri: item.image_url || (item.image?.startsWith('http') ? item.image : `${BASE_MEDIA_URL}${item.image}`) }}
         style={styles.bikeImage}
         defaultSource={{ uri: 'https://placehold.co/120x120/006875/ffffff?text=Bike' }}
       />

@@ -15,6 +15,19 @@ class BikeSerializer(serializers.ModelSerializer):
     total_maintenance_cost = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     maintenance_count = serializers.IntegerField(read_only=True)
     maintenance_records = MaintenanceRecordSerializer(many=True, read_only=True)
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        """Return an absolute URL for the bike image so the mobile app never needs to guess the host."""
+        if not obj.image:
+            return None
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(obj.image.url)
+        # Fallback: construct from ALLOWED_HOSTS / SITE_URL env var
+        from django.conf import settings
+        base_url = getattr(settings, 'SITE_URL', 'https://www.easymoto.com.np')
+        return f"{base_url.rstrip('/')}{obj.image.url}"
 
     class Meta:
         model = Bike

@@ -35,16 +35,27 @@ class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Try to find user by username or email
         user = None
+        db_user = None
+
         try:
             if '@' in login:
-                user_obj = User.objects.get(email__iexact=login)
-                user = authenticate(username=user_obj.username, password=password)
+                db_user = User.objects.get(email__iexact=login)
+                user = authenticate(username=db_user.username, password=password)
             else:
-                user = authenticate(username=login, password=password)
+                db_user = User.objects.filter(username__iexact=login).first()
+                if db_user:
+                    user = authenticate(username=db_user.username, password=password)
         except User.DoesNotExist:
             pass
 
         if not user:
+            # Check if the user exists but has no password (Google/social login only)
+            if db_user and not db_user.has_usable_password():
+                raise serializers.ValidationError(
+                    'This account uses Google Sign-In only and has no password. '
+                    'Please visit the EasyMoto website, go to your profile, and set a password '
+                    'to enable mobile app access.'
+                )
             raise serializers.ValidationError(
                 'No active admin account found with the given credentials. '
                 'You can log in with your username or email address.'
