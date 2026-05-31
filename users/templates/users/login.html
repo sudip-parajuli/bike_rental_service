@@ -309,14 +309,14 @@
             <h2 class="login-title">Welcome Back</h2>
             <p class="welcome-text">Sign in to your EasyMoto account</p>
 
-            {% if socialaccount_providers %}
-            <a href="{% provider_login_url 'google' process='login' %}" class="modern-btn social-google">
+            {# Google button always shown — uses the allauth direct URL so it works
+               even when the database Site domain hasn't been updated yet #}
+            <a href="/accounts/google/login/?process=login" class="modern-btn social-google">
                 <i class="fab fa-google"></i>
                 Continue with Google
             </a>
 
             <div class="auth-separator">OR</div>
-            {% endif %}
 
             <form method="POST" action="{% url 'users:login' %}" class="needs-validation" novalidate>
                 {% csrf_token %}
@@ -367,7 +367,7 @@
             </form>
 
             <div class="register-link">
-                <p>New to EasyMoto? Use <strong>Google Login</strong> to get started instantly.</p>
+                <p>New to EasyMoto? <a href="/accounts/google/login/?process=login"><strong>Sign in with Google</strong></a> to get started instantly.</p>
             </div>
         </div>
     </div>
