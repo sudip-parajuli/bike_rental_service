@@ -11,13 +11,14 @@ class MobileNumberRequiredMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.user.is_authenticated and not request.user.phone_number:
+        if request.user.is_authenticated and not (request.user.is_staff or request.user.is_superuser) and not request.user.phone_number:
             # List of paths to exclude from redirection to avoid infinite loops
             # or blocking essential functionality (like logout or admin)
             exempt_paths = [
                 reverse('users:add-phone-number'),
                 reverse('users:logout'),
-                '/admin/', # Allow admin access even if admin user has no phone (optional, but safer)
+                '/admin/',   # Allow admin access even if admin user has no phone
+                '/api/',     # Never interrupt API/JWT calls with an HTML redirect
                 '/static/',
                 '/media/',
             ]

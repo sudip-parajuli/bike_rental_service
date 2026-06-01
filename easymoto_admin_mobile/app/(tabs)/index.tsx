@@ -24,6 +24,7 @@ export default function DashboardScreen() {
   const [alerts, setAlerts] = useState<any[]>([]); // Maintenance alerts
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [alertModalVisible, setAlertModalVisible] = useState(false);
   const [isSuperuser, setIsSuperuser] = useState(false);
@@ -31,6 +32,7 @@ export default function DashboardScreen() {
   const router = useRouter();
 
   const fetchDashboardData = async () => {
+    setError(null);
     try {
       const [statsRes, alertsRes] = await Promise.all([
         api.get('/dashboard/'),
@@ -38,8 +40,19 @@ export default function DashboardScreen() {
       ]);
       setStats(statsRes.data);
       setAlerts(alertsRes.data || []);
-    } catch (error) {
-      console.log('Error fetching stats:', error);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.detail || err?.message || 'Unknown error';
+      if (status === 403) {
+        setError(`Access denied (403). Your account may not have staff/admin permissions on the server. Please ensure your account has is_staff=True in the Django admin.`);
+      } else if (status === 401) {
+        setError(`Session expired. Please log out and log in again.`);
+      } else if (!err?.response) {
+        setError(`Network error: Cannot reach the server. Check your internet connection.\n\nURL: https://www.easymoto.com.np/api/mobile/dashboard/`);
+      } else {
+        setError(`Server error (${status}): ${msg}`);
+      }
+      console.log('Dashboard fetch error:', status, msg, err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -73,6 +86,31 @@ export default function DashboardScreen() {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#006875" />
+      </View>
+    );
+  }
+
+  // Show error banner when data fetch failed
+  if (error && !stats) {
+    return (
+      <View style={styles.safeContainer}>
+        <View style={styles.customHeader}>
+          <View>
+            <Text style={styles.greetingText}>Namaste, {displayName}! 👋</Text>
+            <Text style={styles.brandTitle}>EasyMoto Hub</Text>
+          </View>
+        </View>
+        <ScrollView contentContainerStyle={{ padding: 20 }}>
+          <View style={styles.errorCard}>
+            <MaterialIcons name="error-outline" size={40} color="#dc2626" />
+            <Text style={styles.errorTitle}>Failed to Load Dashboard</Text>
+            <Text style={styles.errorMessage}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={() => { setLoading(true); fetchDashboardData(); }}>
+              <MaterialIcons name="refresh" size={18} color="#fff" />
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -1020,5 +1058,43 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#006875',
     fontWeight: '600',
+  },
+  errorCard: {
+    backgroundColor: '#fff1f2',
+    borderColor: '#fecdd3',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#991b1b',
+    marginTop: 12,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#7f1d1d',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#dc2626',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 8,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

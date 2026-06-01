@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import BasePermission
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.utils.crypto import get_random_string
 from django.utils import timezone
@@ -16,6 +16,24 @@ from io import BytesIO
 from xhtml2pdf import pisa
 from django.template.loader import get_template
 from .models import StaffActivityLog
+
+
+class IsStaffOrSuperuser(BasePermission):
+    """
+    Custom permission: allows access to users who are either is_staff OR is_superuser.
+
+    This fixes the mismatch where the login endpoint allows both is_staff and is_superuser
+    users, but Django's built-in IsAdminUser only checks is_staff — causing superuser-only
+    accounts (is_superuser=True, is_staff=False) to receive 403 on every API call.
+    """
+    message = 'This action requires admin or staff privileges.'
+
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and (request.user.is_staff or request.user.is_superuser)
+        )
 
 
 class QueryParamJWTAuthentication(JWTAuthentication):
@@ -52,7 +70,7 @@ from .serializers import (
 User = get_user_model()
 
 class AdminDashboardStatsView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def get(self, request):
         now = timezone.now()
@@ -156,20 +174,20 @@ class AdminDashboardStatsView(APIView):
 class AdminBikeListView(generics.ListCreateAPIView):
     queryset = Bike.objects.all().order_by('-created_at')
     serializer_class = BikeSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
 class AdminBikeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Bike.objects.all()
     serializer_class = BikeSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
 class AdminBookingListView(generics.ListAPIView):
     queryset = Booking.objects.all().order_by('-created_at')
     serializer_class = BookingSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
 class WalkInCustomerCreateView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def get(self, request):
         phone_number = request.query_params.get('phone')
@@ -250,7 +268,7 @@ class WalkInCustomerCreateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class WalkInBookingCreateView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def post(self, request):
         serializer = WalkInBookingSerializer(data=request.data)
@@ -477,7 +495,7 @@ def _generate_pdf_bytes(template_name, context):
     return None
 
 class MarkBookingPaidView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def post(self, request, pk):
         try:
@@ -489,7 +507,7 @@ class MarkBookingPaidView(APIView):
             return Response({"detail": "Booking not found."}, status=status.HTTP_404_NOT_FOUND)
 
 class AdminMaintenanceCreateView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def post(self, request, pk):
         try:
@@ -514,14 +532,14 @@ class AdminMaintenanceCreateView(APIView):
 
 class AdminBikeBookingHistoryView(generics.ListAPIView):
     serializer_class = BookingSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def get_queryset(self):
         bike_id = self.kwargs['pk']
         return Booking.objects.filter(bike_id=bike_id).order_by('-created_at')
 
 class UpcomingMaintenanceAlertsView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def get(self, request):
         now_date = timezone.now().date()
@@ -539,11 +557,11 @@ class UpcomingMaintenanceAlertsView(APIView):
 class AdminCustomerListView(generics.ListAPIView):
     queryset = User.objects.filter(is_staff=False, is_superuser=False).prefetch_related('bookings', 'bookings__bike').order_by('-date_joined')
     serializer_class = CustomerDetailSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
 class AdminBookingInvoiceView(APIView):
     authentication_classes = [QueryParamJWTAuthentication]
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def get(self, request, pk):
         from django.http import HttpResponse
@@ -583,7 +601,7 @@ class AdminBookingInvoiceView(APIView):
 class AdminBookingContractPDFView(APIView):
     """Serve the full rental agreement (contract + bill) as a PDF for a given booking."""
     authentication_classes = [QueryParamJWTAuthentication]
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def get(self, request, pk):
         from django.http import HttpResponse
@@ -634,7 +652,7 @@ class AdminBookingContractPDFView(APIView):
 
 class StaffActivityLogListView(APIView):
     """Admin-only view to list all staff activity logs (with optional ?unread=1 filter)."""
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def get(self, request):
         if not request.user.is_superuser:
@@ -667,7 +685,7 @@ class StaffActivityLogListView(APIView):
 
 class MarkNotificationsReadView(APIView):
     """Admin marks all (or specific) staff activity notifications as read."""
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsStaffOrSuperuser]
 
     def post(self, request):
         if not request.user.is_superuser:

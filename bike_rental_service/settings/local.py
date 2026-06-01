@@ -6,16 +6,25 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'bike_rental_service',
-        'USER': 'sudip',
-        'PASSWORD': 'sudip@123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+import sys
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'bike_rental_service',
+            'USER': 'sudip',
+            'PASSWORD': 'sudip@123',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' 
 
