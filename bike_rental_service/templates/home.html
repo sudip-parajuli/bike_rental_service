@@ -1,351 +1,128 @@
-{% extends "base.html" %}
-{% load static %}
-
+{% extends 'base.html' %}
 {% block content %}
-    <!-- Internal styles removed in favor of modern_ui.css -->
-
-<div style="position: relative; overflow-x: hidden;">
-    <!-- Particles Background -->
-    <div class="particles-bg" id="particles-bg"></div>
-
-    <!-- Hero Section -->
-    <section class="hero-wrapper">
-        <div class="container text-center hero-content">
-            <div class="magnifying-wrapper">
-                <h1 class="hero-title-3d reveal-text" id="hero-tagline">
-                    Convenient Rides for<br>Every Adventure
-                </h1>
-                <div class="magnifying-glass" id="magnifying-glass"></div>
-            </div>
-            <p class="hero-subtitle mx-auto reveal-text delay-100">
-                Rent the best bikes at affordable prices and explore Nepal on two wheels. 
-                Experience the freedom of the open road with EasyMoto.
-            </p>
-            <div class="reveal-text delay-200">
-                <a href="{% if not user.is_authenticated %}{% url 'users:register' %}{% else %}{% url 'bikes:bike-list' %}?availability_status=true{% endif %}"
-                    class="btn-gradient shadow-lg">
-                    <i class="fas fa-motorcycle me-2"></i>Get Started
-                </a>
-            </div>
-        </div>
-    </section>
-
-            <!-- Featured Bikes 3D Gallery -->
-    <section class="py-5" id="bikes" style="position: relative; z-index: 5;">
-        <div class="container">
-            <h2 class="section-heading gradient-text" data-aos="fade-up">Featured Fleet</h2>
-            
-            <div class="gallery-container">
-                <div class="gallery-wheel" id="gallery-wheel">
-                    <!-- Bikes loaded dynamically -->
-                </div>
-            </div>
-            
-            <!-- Controls moved below container -->
-            <div class="gallery-controls text-center mt-1" style="position: relative; transform: none; left: auto; bottom: auto; justify-content: center;">
-                <button class="gallery-btn" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
-                <button class="gallery-btn" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
-            </div>
-
-            <div class="text-center mt-5" data-aos="fade-up">
-                <a href="{% url 'bikes:bike-list' %}" class="btn-outline-gradient">
-                    View Full Inventory <i class="fas fa-arrow-right ms-2"></i>
-                </a>
-            </div>
-        </div>
-    </section>
-
-            <!-- About Section -->
-            <section class="py-5" id="about" style="position: relative; z-index: 2;">
-                <div class="container">
-                    <h2 class="section-heading gradient-text" data-aos="fade-up">About Us</h2>
-        
-                    <div class="glass-panel p-5 mb-5" data-aos="fade-up">
-                        <div class="row align-items-center">
-                            <div class="col-lg-6 mb-4 mb-lg-0 text-center">
-                                <img src="{% static 'images/brand-logo.png' %}" alt="About EasyMoto"
-                                    class="img-fluid rounded-4 shadow-sm" style="max-height: 200px;">
-                            </div>
-                            <div class="col-lg-6">
-                                <h4 class="fw-bold mb-3 text-dark">Welcome to EasyMoto</h4>
-                                <p class="text-secondary mb-4">At EasyMoto, we believe in making bike rentals simple, affordable, and hassle-free for every traveler, commuter, and adventure enthusiast in Nepal. Whether you need a ride for your daily commute, a weekend getaway, or an exciting road trip, we provide well-maintained motorbikes at competitive rates.</p>
-                                <div class="d-flex gap-4 justify-content-center justify-content-lg-start">
-                                    <div class="text-center">
-                                        <h3 class="text-primary fw-bold">50+</h3>
-                                        <p class="small text-muted">Bikes</p>
-                                    </div>
-                                    <div class="text-center">
-                                        <h3 class="text-primary fw-bold">1k+</h3>
-                                        <p class="small text-muted">Riders</p>
-                                    </div>
-                                    <div class="text-center">
-                                        <h3 class="text-primary fw-bold">24/7</h3>
-                                        <p class="small text-muted">Support</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-4">
-                        <div class="col-lg-6" data-aos="fade-right">
-                            <div class="glass-panel p-4 h-100">
-                                <h5 class="fw-bold mb-4 text-dark"><i class="fas fa-star text-primary me-2"></i>Why Choose EASYMOTO?</h5>
-                                <ul class="list-unstyled">
-                                    <li class="mb-3 d-flex"><i class="fas fa-check-circle text-success mt-1 me-2"></i> <span><b>Wide Selection</b> – From fuel-efficient scooters to high-performance motorcycles.</span></li>
-                                    <li class="mb-3 d-flex"><i class="fas fa-check-circle text-success mt-1 me-2"></i> <span><b>Seamless Booking</b> – Browse, book, and ride in just a few clicks.</span></li>
-                                    <li class="mb-3 d-flex"><i class="fas fa-check-circle text-success mt-1 me-2"></i> <span><b>Flexible Plans</b> – Hourly, daily, or weekly rentals with transparent pricing.</span></li>
-                                    <li class="mb-3 d-flex"><i class="fas fa-check-circle text-success mt-1 me-2"></i> <span><b>Verified & Secure</b> – Verified bike hosts and secure payment options.</span></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="col-lg-6" data-aos="fade-left">
-                            <div class="glass-panel p-4 h-100">
-                                <h5 class="fw-bold mb-4 text-dark"><i class="fas fa-bullseye text-primary me-2"></i>Our Mission</h5>
-                                <p class="text-secondary">To revolutionize bike rentals in Nepal by offering a convenient, reliable, and user-friendly service that caters to both locals and tourists.</p>
-                                <hr class="border-secondary my-4" style="opacity: 0.1;">
-                                <h5 class="fw-bold mb-2 text-dark">Join Us on the Road!</h5>
-                                <p class="text-secondary mb-0">Whether you're a local rider or a traveler exploring Nepal’s breathtaking landscapes, EasyMoto is your perfect riding partner.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-    <!-- Services Section -->
-    <section class="py-5" id="services" style="position: relative; z-index: 2;">
-        <div class="container">
-            <h2 class="section-heading gradient-text" data-aos="fade-up">Why Choose Us?</h2>
-            <div class="row g-4">
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="glass-panel p-4 h-100 text-center">
-                        <i class="fas fa-biking fa-3x text-primary mb-3"></i>
-                        <h4 class="fw-bold mb-3">Wide Range of Bikes</h4>
-                        <p class="text-muted">Choose from a variety of bikes for every type of adventure, maintained to the highest standards.</p>
-                    </div>
-                </div>
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="glass-panel p-4 h-100 text-center">
-                        <i class="fas fa-map-marked-alt fa-3x text-primary mb-3"></i>
-                        <h4 class="fw-bold mb-3">Flexible Locations</h4>
-                        <p class="text-muted">Pick up and drop off your bike at convenient locations across the city.</p>
-                    </div>
-                </div>
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="glass-panel p-4 h-100 text-center">
-                        <i class="fas fa-headset fa-3x text-primary mb-3"></i>
-                        <h4 class="fw-bold mb-3">24/7 Support</h4>
-                        <p class="text-muted">Our dedicated support team is always available to assist you with any queries, day or night.</p>
-                    </div>
-                </div>
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
-                    <div class="glass-panel p-4 h-100 text-center">
-                        <i class="fas fa-check-square fa-3x text-primary mb-3"></i>
-                        <h4 class="fw-bold mb-3">Seamless Booking</h4>
-                        <p class="text-muted">Our user-friendly platform lets you browse, book, and ride in just a few clicks.</p>
-                    </div>
-                </div>
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
-                    <div class="glass-panel p-4 h-100 text-center">
-                        <i class="fas fa-calendar-alt fa-3x text-primary mb-3"></i>
-                        <h4 class="fw-bold mb-3">Flexible Plans</h4>
-                        <p class="text-muted">Rent by the hour, day, or week with transparent pricing and no hidden fees.</p>
-                    </div>
-                </div>
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="600">
-                    <div class="glass-panel p-4 h-100 text-center">
-                        <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
-                        <h4 class="fw-bold mb-3">Insurance Included</h4>
-                        <p class="text-muted">Ride with peace of mind knowing that basic insurance coverage is included.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="py-5" id="testimonials" style="position: relative; z-index: 2;">
-        <div class="container">
-            <h2 class="section-heading gradient-text" data-aos="fade-up">Customer Stories</h2>
-            <div id="testimonials-container" class="row justify-content-center">
-                <!-- Testimonials will be loaded dynamically via JavaScript -->
-            </div>
-            <div class="d-flex justify-content-center mt-5">
-                <nav aria-label="Testimonials Pagination">
-                    <ul class="pagination" id="testimonials-pagination">
-                        <!-- Pagination will be populated dynamically -->
-                    </ul>
-                </nav>
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section class="py-5" id="contact" style="position: relative; z-index: 2;">
-        <div class="container">
-            <h2 class="section-heading gradient-text" data-aos="fade-up">Get in Touch</h2>
-
-            <div class="row g-4">
-                <div class="col-lg-5" data-aos="fade-right">
-                    <div class="glass-panel p-4 h-100">
-                        <h4 class="text-dark mb-4 fw-bold">Contact Info</h4>
-                        
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="bg-white p-3 rounded-circle shadow-sm me-3 text-primary">
-                                <i class="fas fa-phone fa-lg"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-bold">Phone</h6>
-                                <p class="text-muted mb-0">+977 9851401903</p>
-                            </div>
-                        </div>
-
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="bg-white p-3 rounded-circle shadow-sm me-3 text-primary">
-                                <i class="fas fa-envelope fa-lg"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-bold">Email</h6>
-                                <p class="text-muted mb-0">easymotoservices@gmail.com</p>
-                            </div>
-                        </div>
-
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="bg-white p-3 rounded-circle shadow-sm me-3 text-primary">
-                                <i class="fas fa-map-marker-alt fa-lg"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-0 fw-bold">Location</h6>
-                                <p class="text-muted mb-0">Budhanilkantha, Kathmandu</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-5 text-center">
-                            <div class="d-flex justify-content-center gap-3">
-                                <a href="https://www.facebook.com/easymoto.np/" target="_blank" class="btn btn-outline-primary rounded-circle"><i class="fab fa-facebook-f"></i></a>
-                                <a href="https://instagram.com/easymoto_np" target="_blank" class="btn btn-outline-primary rounded-circle"><i class="fab fa-instagram"></i></a>
-                                <a href="https://wa.me/9779851401903" target="_blank" class="btn btn-outline-primary rounded-circle"><i class="fab fa-whatsapp"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-7" data-aos="fade-left">
-                    <div class="glass-panel p-4 h-100">
-                        <h4 class="text-dark mb-4 fw-bold">Send Message</h4>
-                        <form method="POST" id="contactForm" class="needs-validation" novalidate>
-                            {% csrf_token %}
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="name" class="form-label text-muted small fw-bold">YOUR NAME</label>
-                                    <input type="text" class="form-control rounded-3" id="name" name="name" 
-                                        value="{{ user.get_full_name|default:user.username|default:'' }}" 
-                                        {% if user.is_authenticated %}readonly{% endif %} required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="email" class="form-label text-muted small fw-bold">YOUR EMAIL</label>
-                                    <input type="email" class="form-control rounded-3" id="email" name="email" 
-                                        value="{{ user.email|default:'' }}" 
-                                        {% if user.is_authenticated %}readonly{% endif %} required>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="contact_number" class="form-label text-muted small fw-bold">PHONE NUMBER</label>
-                                <input type="text" class="form-control rounded-3" id="contact_number" name="contact_number" 
-                                    value="{{ user.phone_number|default:'' }}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="message" class="form-label text-muted small fw-bold">MESSAGE</label>
-                                <textarea class="form-control rounded-3" id="message" name="message" rows="4" required></textarea>
-                            </div>
-                            <button type="submit" class="btn-primary-glow w-100 shadow-sm">Send Message</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-5" data-aos="fade-up">
-                <div class="col-12">
-                    <div class="glass-panel p-2 overflow-hidden shadow-sm">
-                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12778.469667538808!2d85.34134626388554!3d27.77382312881914!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb196b5a63f22b%3A0x29f1711c9b4954d5!2sEasymoto%20Rental%20Service!5e1!3m2!1sen!2snp!4v1742378842544!5m2!1sen!2snp" width="100%" height="350" style="border:0; border-radius: 16px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<main class="storefront" id="main-content">
+<section class="rental-hero container">
+<div>
+<p class="eyebrow">BUDHANILKANTHA, KATHMANDU</p>
+<h1>Rent a bike.<br>Explore Nepal.</h1>
+<p class="hero-copy">Rent a scooter or motorcycle in Kathmandu. Find your ride, tell us your dates, and arrange pickup with EasyMoto.</p>
+<div class="rental-actions">
+<a class="btn btn-primary" href="{% url 'bikes:bike-list' %}">Browse bikes →</a>
+<a class="btn btn-outline-primary" href="https://wa.me/9779851401903">WhatsApp us</a>
+</div>{% if starting_price %}
+<p class="mt-4">Rentals from <strong>NPR {{ starting_price|floatformat:'-2' }} / day</strong>
+</p>{% endif %}
+<p class="small text-secondary">Confirm your pickup time, return deadline, and total cost before booking.</p>
 </div>
-
-<!-- Pre-render URLs for JavaScript -->
-<script>
-    window.bikeDetailBaseUrl = "{% url 'bikes:bike-detail' 1 %}".replace('/1/', '/');
-    window.bookingCreateBaseUrl = "{% url 'bookings:booking-create' %}";
-</script>
-
-<!-- Scripts -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-
-<script>
-    // Particle Animation
-    function createParticles() {
-        const particlesContainer = document.getElementById('particles-bg');
-        const particleCount = 30;
-
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.top = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 6 + 's';
-            particle.style.animationDuration = (6 + Math.random() * 4) + 's';
-            particlesContainer.appendChild(particle);
-        }
-    }
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', function () {
-        createParticles();
-        AOS.init({
-            duration: 800,
-            once: true,
-            offset: 100
-        });
-
-        // Form Validation
-        const forms = document.querySelectorAll('.needs-validation');
-        Array.from(forms).forEach(form => {
-            form.addEventListener('submit', event => {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-    });
-
-    // CSRF Token
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
-</script>
-
-<!-- Load home.js -->
-<script src="{% static 'js/home.js' %}?v=3"></script>
+<div class="hero-photo">{% if featured_bikes.0.image %}
+<img src="{{ featured_bikes.0.image.url }}" alt="{{ featured_bikes.0.name }} from the EasyMoto fleet" fetchpriority="high" onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
+<div class="photo-placeholder" hidden>
+<i class="fas fa-motorcycle" aria-hidden="true">
+</i>
+<p>Ask us for current fleet photos.</p>
+</div>
+<p class="photo-caption">{{ featured_bikes.0.name }} · Explore the fleet below</p>{% else %}
+<div class="photo-placeholder">
+<i class="fas fa-motorcycle" aria-hidden="true">
+</i>
+<p>Your next ride starts here.</p>
+<a href="https://wa.me/9779851401903">Ask for fleet photos</a>
+</div>{% endif %}
+</div>
+</section>
+<section class="rental-section container" id="bikes">
+<div class="section-intro">
+<div>
+<p class="eyebrow">FIND YOUR RIDE</p>
+<h2>Scooters for the city. Bikes for the journey.</h2>
+</div>
+<a href="{% url 'bikes:bike-list' %}">View all bikes →</a>
+</div>
+<p class="text-secondary">Daily rates are shown for each vehicle. Availability depends on your rental dates.</p>
+<div class="fleet-grid">{% for bike in featured_bikes %}{% include 'bikes/_rental_card.html' %}{% empty %}
+<div class="rental-panel">
+<h3>Let us help you find a ride</h3>{% if inventory_unavailable %}
+<p>Our online fleet is temporarily unavailable. Contact us for current bikes, photos, and rates.</p>{% else %}
+<p>Contact us for current fleet options and rental rates.</p>{% endif %}
+<a class="btn btn-primary" href="https://wa.me/9779851401903">Check bikes on WhatsApp</a>
+</div>{% endfor %}
+</div>
+</section>
+<section class="rental-section process-section" id="services">
+<div class="container">
+<p class="eyebrow">A SIMPLE START</p>
+<h2>From choosing a bike to getting the keys.</h2>
+<div class="fleet-grid mt-4">
+<div>
+<span class="step-number">01</span>
+<h3>Choose your ride</h3>
+<p>Compare models and daily rates. Open a bike to see its specifications.</p>
+</div>
+<div>
+<span class="step-number">02</span>
+<h3>Confirm the details</h3>
+<p>Share your dates with us. Confirm availability, documents, deposit, and the final rental cost.</p>
+</div>
+<div>
+<span class="step-number">03</span>
+<h3>Collect and ride</h3>
+<p>Arrange pickup in Budhanilkantha, check the vehicle together, and agree on your return time.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="rental-section container" id="requirements">
+<p class="eyebrow">BEFORE YOU BOOK</p>
+<h2>Know the details before you ride.</h2>
+<div class="rental-panel mt-4">
+<p>Contact our team to confirm the requirements for your chosen bike and trip.</p>
+<ul>
+<li>Driving licence and identification requirements</li>
+<li>Security deposit, payment options, and cancellation terms</li>
+<li>Rental-day duration, late-return charges, and fuel policy</li>
+<li>Helmet, insurance coverage, and permitted routes</li>
+</ul>
+<a href="https://wa.me/9779851401903?text=Hello%20EasyMoto%2C%20please%20share%20your%20rental%20requirements%20and%20terms.">Ask for rental terms →</a>
+</div>
+</section>
+{% if reviews %}
+<section class="rental-section container" id="testimonials">
+<p class="eyebrow">FROM OUR RIDERS</p>
+<h2>Customer stories</h2>
+<div class="fleet-grid mt-4">{% for review in reviews %}
+<figure class="rental-panel">
+<p aria-label="{{ review.rating }} out of 5 stars">{{ review.rating }} / 5 ★</p>
+<blockquote>{{ review.content }}</blockquote>
+<figcaption>{{ review.user.get_full_name|default:review.user.username }}</figcaption>
+</figure>{% endfor %}
+</div>
+</section>{% endif %}
+<section class="rental-section container" id="about">
+<p class="eyebrow">EASYMOTO RENTAL SERVICES</p>
+<h2>A local starting point for your Nepal journey.</h2>
+<p class="hero-copy">Based in Budhanilkantha, Kathmandu, EasyMoto helps travellers and local riders arrange scooter and motorcycle rentals. Talk to our team about the ride that fits your plans.</p>
+</section>
+<section class="rental-section process-section" id="contact">
+<div class="container">
+<p class="eyebrow">LET’S GET YOU MOVING</p>
+<h2>Plan your pickup.</h2>
+<p>Budhanilkantha, Kathmandu. Contact us to confirm the exact meeting point and pickup time.</p>
+<div class="rental-actions">
+<a class="btn btn-primary" href="https://wa.me/9779851401903">WhatsApp EasyMoto</a>
+<a class="btn btn-outline-primary" href="tel:+9779851401903">Call +977 9851401903</a>
+</div>
+<p class="mt-4">
+<a href="mailto:easymotoservices@gmail.com">easymotoservices@gmail.com</a> · <a href="https://www.google.com/maps/search/?api=1&amp;query=Easymoto+Rental+Service+Budhanilkantha">Find us on Google Maps</a>
+</p>
+</div>
+</section>
+<footer class="container rental-footer">
+<a href="{% url 'public-home' %}">EasyMoto Rental Services</a>
+<div>
+<a href="https://www.facebook.com/Easymoto.np" target="_blank" rel="noopener noreferrer">Facebook</a>
+<a href="https://www.instagram.com/easymoto_np/" target="_blank" rel="noopener noreferrer">Instagram</a>
+<a href="https://easymoto.linkypot.com/" target="_blank" rel="noopener noreferrer">More links</a>
+</div>
+</footer>
+</main>
 {% endblock %}

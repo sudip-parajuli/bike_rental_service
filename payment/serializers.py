@@ -6,12 +6,15 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
-        read_only_fields = ['id', 'amount', 'transaction_id', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'amount', 'transaction_id', 'transaction_uuid', 'status', 'created_at', 'updated_at']
 
     def validate(self, data):
         """Set amount from booking and validate."""
         booking = data.get('booking')
         if booking:
+            request = self.context.get('request')
+            if request and booking.user_id != request.user.pk:
+                raise serializers.ValidationError('You can only pay for your own booking.')
             # Automatically set amount from Booking.total_price
             data['amount'] = booking.total_price
         else:

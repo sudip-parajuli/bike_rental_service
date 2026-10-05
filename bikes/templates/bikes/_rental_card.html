@@ -1,0 +1,29 @@
+<article class="rental-card">
+<div class="rental-card-photo">{% if bike.image %}
+<img src="{{ bike.image.url }}" alt="{{ bike.name }}{% if bike.color %}, {{ bike.color }}{% endif %}" loading="lazy" width="640" height="420" onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
+<div class="photo-placeholder" hidden>
+<i class="fas fa-motorcycle" aria-hidden="true">
+</i>
+<p>Photo unavailable. Ask us for a current photo.</p>
+</div>{% else %}
+<div class="photo-placeholder">
+<i class="fas fa-motorcycle" aria-hidden="true">
+</i>
+<p>Ask us for a current photo.</p>
+</div>{% endif %}
+</div>
+<div class="rental-card-body">
+<p class="eyebrow">{{ bike.get_type_display }}</p>
+<h3>{{ bike.name }}</h3>
+<p class="text-secondary">{% if bike.color %}{{ bike.color }} · {% endif %}{% if bike.model_year %}{{ bike.model_year }} · {% endif %}Fleet #{{ bike.pk }}</p>
+<p>{% if bike.displacement %}{{ bike.displacement }}{% endif %}{% if bike.transmission %} · {{ bike.transmission }}{% endif %}
+</p>
+<p class="rental-price">NPR {{ bike.price_per_day|floatformat:'-2' }} <span>/ day</span>
+</p>
+<p class="small text-secondary">Confirm dates and rental terms with our team.</p>
+<div class="rental-actions">
+<a class="btn btn-primary" href="{% url 'bikes:bike-detail' bike.pk %}">View bike</a>
+<a href="https://wa.me/9779851401903?text=Hello%20EasyMoto%2C%20is%20{{ bike.name|urlencode }}%20%28fleet%20%23{{ bike.pk }}%29%20available%20for%20my%20dates%3F" target="_blank" rel="noopener noreferrer">Check availability</a>
+</div>
+</div>
+</article>

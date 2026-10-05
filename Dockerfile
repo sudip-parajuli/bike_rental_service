@@ -25,7 +25,7 @@ RUN pip install gunicorn
 COPY . /app/
 
 # Collect static files
-RUN python manage.py collectstatic --noinput
+RUN DJANGO_ENV=local python manage.py collectstatic --noinput
 
 # Expose port
 EXPOSE 8000

@@ -40,7 +40,7 @@ def check_availability(start_date_str: str, end_date_str: str, bike_type: str = 
         # Find bikes that are NOT booked during this period
         overlapping_bookings = Booking.objects.filter(
             status='confirmed',
-            payment_status='paid'
+            payment_status__in=['paid', 'partial']
         ).filter(
             Q(start_date__lt=end_date) & Q(end_date__gt=start_date)
         )

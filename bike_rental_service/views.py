@@ -2,6 +2,26 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.http import JsonResponse
 from django.utils import timezone
+from django.db import DatabaseError
+from django.db.models import Min
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def storefront_context():
+    from bikes.models import Bike
+    from testimonials.models import Testimonial
+    try:
+        bikes = Bike.objects.filter(is_approved=True, availability_status=True)
+        return {
+            'featured_bikes': list(bikes.order_by('-is_featured', 'name', 'pk')[:3]),
+            'starting_price': bikes.aggregate(price=Min('price_per_day'))['price'],
+            'reviews': list(Testimonial.approved.select_related('user').order_by('-is_featured', '-created_at')[:3]),
+        }
+    except DatabaseError:
+        logger.exception('Could not load storefront inventory')
+        return {'inventory_unavailable': True}
 
 class HomeView(View):
     """
@@ -11,7 +31,7 @@ class HomeView(View):
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('users:dashboard')
-        return render(request, 'home.html')
+        return render(request, 'home.html', storefront_context())
 
 class PublicHomeView(View):
     """
@@ -19,7 +39,7 @@ class PublicHomeView(View):
     Used only when clicking the logo.
     """
     def get(self, request):
-        return render(request, 'home.html')
+        return render(request, 'home.html', storefront_context())
 
 
 class PingView(View):

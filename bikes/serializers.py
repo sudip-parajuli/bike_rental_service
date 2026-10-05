@@ -14,7 +14,7 @@ class BikehostCreateSerializer(serializers.ModelSerializer):
     def validate_model_year(self, value):
         """Ensure the bike's model year is reasonable."""
         current_year = datetime.now().year
-        if value < 2000 or value > current_year:
+        if value is not None and (value < 2000 or value > current_year):
             raise serializers.ValidationError("Invalid model year.")
         return value
 
@@ -50,7 +50,7 @@ class BikeSerializer(serializers.ModelSerializer):
     def validate_model_year(self, value):
         """Ensure the bike's model year is reasonable."""
         current_year = datetime.now().year
-        if value < 2000 or value > current_year:
+        if value is not None and (value < 2000 or value > current_year):
             raise serializers.ValidationError("Invalid model year.")
         return value
 
@@ -73,6 +73,17 @@ class BikeSerializer(serializers.ModelSerializer):
         """Sanitize description to prevent basic XSS."""
         from django.utils.html import escape
         return escape(value) if value else value
+
+class PublicBikeSerializer(serializers.ModelSerializer):
+    """Public fleet data excludes internal vehicle and owner identifiers."""
+    class Meta:
+        model = Bike
+        fields = ['id', 'name', 'type', 'brand', 'model_year', 'mileage',
+                  'description', 'price_per_day', 'availability_status',
+                  'is_featured', 'image', 'slug', 'average_rating', 'color',
+                  'engine_type', 'displacement', 'max_power', 'torque',
+                  'transmission', 'brakes', 'dimensions', 'fuel_capacity']
+
 
 class BikeRecommendationSerializer(serializers.ModelSerializer):
     """

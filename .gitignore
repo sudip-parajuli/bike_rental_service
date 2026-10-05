@@ -1,11 +1,75 @@
-# Django
-*.sqlite3
-*.pyc
-__pycache__/
+# Environment files and local credentials
 .env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+credentials*.json
+service-account*.json
 
-# Static Files
-bike_rental_service/staticfiles/
+# Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
 
-# IDE Files
+# Generated assets, local databases, uploads, and verification output
+staticfiles/
+media/
+*.sqlite3
+*.sqlite3-*
+*.sql
+*.dump
+*.backup
+.test-deps/
+.verification-static/
+.verification/
+
+# Node / Expo build output
+node_modules/
+.expo/
+dist/
+build/
+*.apk
+*.aab
+*.ipa
+
+# Editor and operating-system files
 .idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local diagnostics and old screenshots
+*.log
+/debug*.txt
+/error*.txt
+/register_search_results.txt
+/bikes/append_views.txt
+/data
+/img*.png
+
+# One-off local maintenance and debugging scripts
+/check_payments.py
+/create_google_app.py
+/debug_esewa.py
+/list_models.py
+/reset_admin_password.py
+/reset_data.py
+/scratch_test.py
+/setup_initial_data.py
+/test_generation_only.py
+/test_models.py

@@ -134,7 +134,7 @@ class BookingCreateView(generics.CreateAPIView):
                         elif payment_method == 'esewa':
                             payment_url = reverse('payment:esewa-process',
                                                   kwargs={'booking_id': booking.id, 'amount': str(booking.total_price)})
-                        response_data['payment_url'] = f"http://{host}{payment_url}"
+                        response_data['payment_url'] = request.build_absolute_uri(payment_url)
                         return Response({
                             "success": True,
                             "message": f"Booking created. Redirect to {payment_method} payment.",
@@ -144,7 +144,7 @@ class BookingCreateView(generics.CreateAPIView):
                                      "errors": payment_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
                 elif payment_option == 'cash_on_delivery':
                     booking.payment_method = 'cash_on_delivery'
-                    booking.payment_status = False
+                    booking.payment_status = 'unpaid'
                     booking.save()
                     return Response({
                         "success": True,

@@ -2,6 +2,10 @@
 from .base import *
 
 DEBUG = True
+STORAGES = {
+    **STORAGES,
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+}
 
 ALLOWED_HOSTS = ['*']
 
@@ -18,15 +22,12 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'bike_rental_service',
-            'USER': 'sudip',
-            'PASSWORD': 'sudip@123',
-            'HOST': 'localhost',
-            'PORT': '5432',
+            'NAME': config('DB_NAME', default='bike_rental_service'),
+            'USER': config('DB_USER', default='postgres'),
+            'PASSWORD': config('DB_PASSWORD', default=''),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
         }
     }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' 
-
-# Disable WhiteNoise in development (optional, but good for debugging static files)
-# STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

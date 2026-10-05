@@ -1,8 +1,10 @@
 
 from .base import *
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 DEBUG = False
+SECRET_KEY = config('SECRET_KEY')
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
@@ -22,7 +24,6 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
 # Static Files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Cloudinary Storage for media files in production
 CLOUDINARY_STORAGE = {
@@ -32,5 +33,10 @@ CLOUDINARY_STORAGE = {
 }
 
 if CLOUDINARY_STORAGE['CLOUD_NAME'] and CLOUDINARY_STORAGE['API_KEY'] and CLOUDINARY_STORAGE['API_SECRET']:
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES = {
+        **STORAGES,
+        'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'},
+    }
+else:
+    raise ImproperlyConfigured('Production requires CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET for persistent uploads.')
 

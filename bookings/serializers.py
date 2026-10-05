@@ -57,7 +57,7 @@ class BookingSerializer(serializers.ModelSerializer):
             start_date__lt=data['end_date'],
             end_date__gt=data['start_date'],
             status='confirmed',
-            payment_status='paid'
+            payment_status__in=['paid', 'partial']
         )
         if overlapping_bookings.exists():
             raise serializers.ValidationError("This bike is already booked for the selected dates.")

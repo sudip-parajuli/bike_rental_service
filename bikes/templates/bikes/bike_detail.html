@@ -304,7 +304,7 @@
                         <img src="{{ bike.image.url|default:'/static/images/default-bike.png' }}"
                              class="bike-main-image"
                              alt="{{ bike.name }}"
-                             onerror="this.src='/static/images/default-bike.png';">
+                             onerror="this.onerror=null; this.src='/static/images/default-bike.png';">
                     </div>
 
                     <!-- Description Section -->
@@ -328,7 +328,7 @@
                             <i class="fas fa-circle me-2 {{ bike.availability_status|yesno:'text-success,text-danger' }}"></i>
                             <strong>Status:</strong>
                             <span class="ms-2 {{ bike.availability_status|yesno:'status-available,status-booked' }}">
-                                {{ bike.availability_status|yesno:"✅ Available,❌ Booked" }}
+                                {{ bike.availability_status|yesno:"Check your dates,Not accepting bookings" }}
                             </span>
                         </div>
                     </div>
@@ -437,6 +437,7 @@
 
                     <!-- Actions -->
                     <div class="action-section">
+                        <a class="btn btn-outline-primary mb-3" href="https://wa.me/9779851401903?text=Hello%20EasyMoto%2C%20please%20confirm%20availability%20for%20{{ bike.name|urlencode }}%20%28fleet%20%23{{ bike.pk }}%29.">Check dates on WhatsApp</a>
                         <a href="{% if not user.is_authenticated %}{% url 'users:login' %}{% else %}{% url 'bookings:booking-create' %}?bike_id={{ bike.id }}{% endif %}"
                            class="book-now-btn {% if not bike.availability_status %}disabled{% endif %}">
                             <i class="fas fa-calendar-check me-2"></i>

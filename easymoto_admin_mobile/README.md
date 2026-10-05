@@ -1,50 +1,32 @@
-# Welcome to your Expo app 👋
+# EasyMoto staff mobile app
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This Expo / React Native application connects to the Django staff API for inventory, customers, bookings, maintenance and rental documents. It is separate from the public rental website.
 
-## Get started
+## Run locally
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```powershell
+cd easymoto_admin_mobile
+npm ci
+npm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Use the available `npm run android`, `npm run ios`, or `npm run web` scripts for your development target. `npm run lint` runs Expo's lint checks. Keep `package-lock.json` committed; ignore `node_modules/`, `.expo/`, generated builds, and signing credentials.
 
-## Learn more
+## Backend connection
 
-To learn more about developing your project with Expo, look at the following resources:
+API configuration is in `api/index.ts`. A web app running on `localhost` selects `http://localhost:8000/api/mobile`; other platforms currently select `https://www.easymoto.com.np/api/mobile`. A physical phone cannot reach your development computer through `localhost`. For local device development, deliberately configure your computer's reachable LAN address and the Django allowed hosts.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Login uses `POST /api/mobile/auth/login/` with a username or email and password. Only active staff/admin accounts may use the app. The client stores access tokens and attaches a Bearer authorization header to requests. Never embed the Django secret key, database credentials, cloud secrets, SMTP passwords, or merchant keys in the app.
 
-## Join the community
+## Build profiles
 
-Join our community of developers creating universal apps.
+`eas.json` defines development, preview and production profiles. Review the actual file before selecting a profile. Configure Expo/EAS credentials through its credential tooling, not committed key files. Build output (`.apk`, `.aab`, `.ipa`) and signing material are ignored.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Related documentation
+
+- [Backend development](../docs/DEVELOPMENT.md)
+- [Staff API routes](../docs/API.md)
+- [Security and repository hygiene](../docs/SECURITY.md)
+- [Known production limitations](../PROJECT_REVIEW.md)
+
+The storefront regression suite does not test the native app. Verify mobile login, the selected backend, staff permissions, and document access separately before releasing a build.

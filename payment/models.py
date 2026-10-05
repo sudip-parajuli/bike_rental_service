@@ -103,6 +103,8 @@ class Payment(models.Model):
         """
         Mark the payment as failed.
         """
+        if self.status in ['completed', 'partial']:
+            return
         self.status = 'failed'
         self.save()
 

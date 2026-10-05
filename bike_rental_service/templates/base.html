@@ -1,5 +1,5 @@
 {% load static %}
-{% static 'images/default-logo.png' as default_logo_url %}
+{% static 'images/brand-logo.png' as default_logo_url %}
 {% static 'images/default-user.jpg' as default_user_url %}
 <!DOCTYPE html>
 <html lang="en">
@@ -7,16 +7,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bike Rental Service</title>
+    <title>{% block title %}EasyMoto | Scooter & Motorcycle Rental in Kathmandu{% endblock %}</title>
+    <meta name="description" content="Browse EasyMoto scooters and motorcycles in Budhanilkantha, Kathmandu. Compare daily rates and contact our team to confirm your dates and pickup.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=3">
     <link rel="stylesheet" href="{% static 'css/modern_ui.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/storefront.css' %}">
 </head>
 
 <body class="light-theme" style="background-color: #f8fafc; min-height: 100vh; color: #1e293b;">
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="fluid-bg-container">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
@@ -36,6 +39,9 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link modern-nav-item" href="{% url 'bikes:bike-list' %}">Browse bikes</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link modern-nav-item" href="{% url 'public-home' %}#about">About</a>
                     </li>
@@ -75,13 +81,10 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link modern-nav-item" href="{% url 'bikes:bike-list' %}">Bikes</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link modern-nav-item" href="{% url 'users:login' %}">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link modern-nav-item" href="{% url 'users:login' %}">Join Now</a>
+                        <a class="nav-link modern-nav-item" href="{% url 'users:register' %}">Register</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -101,7 +104,7 @@
         crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script>
-        AOS.init();
+        if (window.AOS) AOS.init();
 
         // Smooth scrolling for navbar links
         document.addEventListener('DOMContentLoaded', function() {
@@ -170,7 +173,7 @@
                     <i class="fas fa-robot me-2"></i>
                     <span>EasyMoto Assistant</span>
                 </div>
-                <button class="btn-close btn-close-white" id="closeChatBtn"></button>
+                <button class="btn-close btn-close-white" id="closeChatBtn" aria-label="Close assistant"></button>
             </div>
             <div class="chatbot-messages" id="chatbotMessages">
                 <div class="message bot-message">
@@ -179,15 +182,15 @@
             </div>
             <div class="chatbot-input-area">
                 <form id="chatbotForm" class="d-flex gap-2">
-                    <input type="text" id="chatbotInput" class="form-control" placeholder="Type your message..."
+                    <input type="text" id="chatbotInput" class="form-control" aria-label="Message EasyMoto assistant" placeholder="Type your message..."
                         required>
-                    <button type="submit" class="btn btn-primary rounded-circle">
+                    <button type="submit" class="btn btn-primary rounded-circle" aria-label="Send message">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </form>
             </div>
         </div>
-        <button class="chatbot-toggle" id="chatbotToggle">
+        <button class="chatbot-toggle" id="chatbotToggle" aria-label="Open EasyMoto assistant">
             <i class="fas fa-comment-dots"></i>
         </button>
     </div>

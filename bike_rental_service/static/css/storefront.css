@@ -1,0 +1,42 @@
+:root { --rental-blue: #174de5; --rental-ink: #16263b; }
+body.light-theme { background: #fafaf7 !important; color: var(--rental-ink) !important; }
+.fluid-bg-container, .gooey-nav-container { display: none !important; }
+.modern-transparent-nav { background: #fff !important; border-bottom: 1px solid #e0e5ea; box-shadow: none !important; }
+.storefront { font-family: system-ui, sans-serif; }
+.storefront h1 { font-size: clamp(2.8rem, 6vw, 5.5rem); font-weight: 750; line-height: 1.03; letter-spacing: -.045em; margin: 1.2rem 0; }
+.storefront h2 { font-size: clamp(1.7rem, 3.3vw, 2.6rem); font-weight: 700; letter-spacing: -.03em; max-width: 760px; }
+.storefront h3, .rental-card h3 { font-size: 1.35rem; font-weight: 700; }
+.eyebrow { font-size: .75rem; letter-spacing: .12em; font-weight: 700; color: #3156a0; text-transform: uppercase; }
+.rental-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; padding-top: 5rem; padding-bottom: 5rem; align-items: center; }
+.hero-copy { max-width: 600px; font-size: 1.15rem; line-height: 1.75; color: #526175; }
+.hero-photo { background: #edf1f5; border-radius: 24px; overflow: hidden; position: relative; }
+.hero-photo img { width: 100%; height: 450px; object-fit: contain; }
+.photo-caption { padding: 1rem 1.5rem; margin: 0; background: white; }
+.photo-placeholder { min-height: 250px; padding: 2rem; text-align: center; display: flex; align-items: center; justify-content: center; flex-direction: column; background: #edf1f5; color: #53647b; }
+.photo-placeholder[hidden], img[hidden] { display: none !important; }
+.photo-placeholder i { font-size: 4rem; margin-bottom: 1rem; }
+.rental-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+.storefront .btn, .rental-card .btn { border-radius: 9px; padding: .85rem 1.2rem; font-weight: 600; }
+.storefront .btn-primary, .rental-card .btn-primary { background: var(--rental-blue); border-color: var(--rental-blue); }
+.rental-section { padding-top: 4rem; padding-bottom: 4rem; }
+.section-intro { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
+.fleet-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+.rental-card, .rental-panel { background: white; border: 1px solid #dfe5ec; border-radius: 16px; overflow: hidden; }
+.rental-card-photo img { width: 100%; height: 240px; object-fit: contain; background: #edf1f5; }
+.rental-card-body, .rental-panel { padding: 1.5rem; }
+.rental-price { font-size: 1.3rem; font-weight: 750; }
+.rental-price span { font-size: .9rem; font-weight: 400; color: #526175; }
+.process-section { background: #eef3fa; }
+.step-number { display: block; font-size: 2.4rem; color: #3156a0; margin-bottom: 1rem; }
+.rental-panel li { margin-bottom: .7rem; }
+.rental-footer { padding-top: 2rem; padding-bottom: 2rem; display: flex; justify-content: space-between; gap: 1rem; }
+.rental-footer div { display: flex; flex-wrap: wrap; gap: 1rem; }
+a:focus-visible, button:focus-visible { outline: 3px solid #174de5; outline-offset: 4px; }
+.skip-link { position: absolute; top: -80px; left: 16px; z-index: 9999; background: white; padding: 12px; }
+.skip-link:focus { top: 8px; }
+@media (max-width: 991px) { .rental-hero { gap: 2rem; } .fleet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .rental-hero { grid-template-columns: 1fr; padding-top: 2rem; padding-bottom: 2rem; } .hero-photo img { height: 300px; } .fleet-grid { grid-template-columns: 1fr; } .section-intro, .rental-footer { align-items: flex-start; flex-direction: column; } .rental-section { padding-top: 2.5rem; padding-bottom: 2.5rem; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+.bike-detail-title { background: none !important; -webkit-text-fill-color: #16263b !important; color: #16263b !important; }
+.chatbot-toggle, .chatbot-header, .user-message, .book-now-btn { background: #174de5 !important; }
+@media (max-width: 640px) { .chatbot-container { right: 12px !important; bottom: 12px !important; } .chatbot-window { width: min(350px, calc(100vw - 24px)) !important; max-height: 75vh; } }

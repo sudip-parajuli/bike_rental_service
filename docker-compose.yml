@@ -1,6 +1,4 @@
 
-version: '3.8'
-
 services:
   web:
     build: .
@@ -11,8 +9,12 @@ services:
       - "8000:8000"
     environment:
       - DJANGO_ENV=local
-      - DATABASE_URL=postgres://sudip:sudip@123@db:5432/bike_rental_service
-      - SECRET_KEY=django-insecure-docker-dev-key
+      - DB_NAME=${DB_NAME:-bike_rental_service}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in your local .env}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in your local .env}
       - DEBUG=True
     depends_on:
       - db
@@ -22,9 +24,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=bike_rental_service
-      - POSTGRES_USER=sudip
-      - POSTGRES_PASSWORD=sudip@123
+      - POSTGRES_DB=${DB_NAME:-bike_rental_service}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in your local .env}
 
 volumes:
   postgres_data:

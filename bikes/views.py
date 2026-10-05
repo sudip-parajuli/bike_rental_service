@@ -7,11 +7,12 @@ from rest_framework.response import Response
 
 from .forms import BikehostCreateForm
 from .models import Bike
-from .serializers import BikeSerializer, BikehostCreateSerializer, BikeRecommendationSerializer
+from .serializers import BikeSerializer, BikehostCreateSerializer, BikeRecommendationSerializer, PublicBikeSerializer
 from .permissions import IshostOrAdmin
 from .filters import BikeFilter
 from .recommendations import get_recommendations_for_user, get_popular_bikes, get_similar_bikes
 from django.contrib import messages
+from django.core.paginator import Paginator
 
 class CustomPagination(PageNumberPagination):
     page_size = 6  # Default page size
@@ -25,7 +26,7 @@ class BikeListView(generics.ListAPIView):
     * Requires: None (public access)
     * Returns: List of bike data (JSON for API, template for non-API)
     """
-    serializer_class = BikeSerializer
+    serializer_class = PublicBikeSerializer
     permission_classes = [permissions.AllowAny]  # Public access
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = BikeFilter
@@ -42,9 +43,8 @@ class BikeListView(generics.ListAPIView):
             return super().get(request, *args, **kwargs)
         # Render template for non-API requests (e.g., /bike/)
         bikes = self.filter_queryset(self.get_queryset())
-        paginator = self.pagination_class()
-        page = paginator.paginate_queryset(bikes, request)
-        return render(request, 'bikes/bike_list.html', {'bikes': page})
+        page = Paginator(bikes, 6).get_page(request.GET.get('page'))
+        return render(request, 'bikes/bike_list.html', {'bikes': page, 'page_obj': page})
 
 class BikeDetailView(generics.RetrieveAPIView):
     """
@@ -53,7 +53,7 @@ class BikeDetailView(generics.RetrieveAPIView):
     * Requires: None (public access)
     * Returns: JSON bike data for API, renders template for non-API
     """
-    serializer_class = BikeSerializer
+    serializer_class = PublicBikeSerializer
     permission_classes = [permissions.AllowAny]
     queryset = Bike.objects.filter(is_approved=True)
 

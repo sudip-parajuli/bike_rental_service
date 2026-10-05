@@ -2,7 +2,8 @@ import requests
 import hmac
 import hashlib
 import base64
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.shortcuts import redirect, render, get_object_or_404
 from paypal.standard.forms import PayPalPaymentsForm
@@ -34,6 +35,11 @@ class PaymentListView(generics.ListCreateAPIView):
     serializer_class = PaymentSerializer
     throttle_scope = 'payments'
 
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Payment.objects.order_by('-created_at', '-pk')
+        return Payment.objects.filter(booking__user=self.request.user).order_by('-created_at', '-pk')
+
     def create(self, request, *args, **kwargs):
         try:
             serializer = self.get_serializer(data=request.data)
@@ -59,9 +65,7 @@ class PaymentListView(generics.ListCreateAPIView):
             )
 
     def get_permissions(self):
-        if self.request.method == "GET":
-            return [IsAuthenticated()]
-        return [IshostOrAdmin()]
+        return [IsAuthenticated()]
 
 class PaymentDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -71,18 +75,25 @@ class PaymentDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    permission_classes = [IsAuthenticated, IshostOrAdmin]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'head', 'options']
     lookup_field = 'booking_id'
 
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Payment.objects.all()
+        return Payment.objects.filter(booking__user=self.request.user)
 
+
+@login_required
 def payment_process(request, booking_id, amount):
-    payment = get_object_or_404(Payment, booking_id=booking_id)
-    amount_float = float(amount)
+    payment = get_object_or_404(Payment, booking_id=booking_id, booking__user=request.user, payment_method='paypal')
+    amount_float = payment.amount
     host = request.get_host()
     
     # Currency Conversion: NPR to USD
     # Assuming 1 USD = 135 NPR (Fixed Rate for now)
-    exchange_rate = 135
+    exchange_rate = Decimal('135')
     amount_usd = amount_float / exchange_rate
     
     paypal_dict = {
@@ -92,9 +103,9 @@ def payment_process(request, booking_id, amount):
         "invoice": str(booking_id),
         "custom": str(booking_id),
         "currency_code": "USD",
-        "notify_url": f"http://{host}{reverse('payment:paypal-ipn')}",
-        "return_url": f"http://{host}{reverse('payment:payment-done')}?booking_id={booking_id}",
-        "cancel_return": f"http://{host}{reverse('payment:payment-canceled')}",
+        "notify_url": request.build_absolute_uri(reverse('payment:paypal-ipn')),
+        "return_url": request.build_absolute_uri(reverse('payment:payment-done')) + f'?booking_id={booking_id}',
+        "cancel_return": request.build_absolute_uri(reverse('payment:payment-canceled')),
     }
 
     form = PayPalPaymentsForm(initial=paypal_dict)
@@ -103,15 +114,18 @@ def payment_process(request, booking_id, amount):
     return render(request, "payment/payment_process.html", context)
 
 
+@login_required
 def esewa_payment_process(request, booking_id, amount):
-    payment = get_object_or_404(Payment, booking_id=booking_id)
+    payment = get_object_or_404(Payment, booking_id=booking_id, booking__user=request.user, payment_method='esewa')
     host = request.get_host()
     
     # Use hyphens instead of underscores for transaction_uuid to be safe
     transaction_uuid = f"txn-{payment.id}-{int(now().timestamp())}"
+    payment.transaction_uuid = transaction_uuid
+    payment.save(update_fields=['transaction_uuid'])
 
     # Convert str amount to Decimal for processing
-    amount_decimal = Decimal(amount)
+    amount_decimal = payment.amount
     
     # Amount is already in NPR, so no conversion needed
     total_amount_npr = amount_decimal
@@ -153,10 +167,7 @@ def esewa_payment_process(request, booking_id, amount):
         "signature": signature,
     }
     
-    print(f"DEBUG: eSewa Dict: {json.dumps(esewa_dict, indent=2)}")
-    logger.info(f"eSewa request parameters: {esewa_dict}")
-    logger.info(f"eSewa signature message: {message}")
-    logger.info(f"eSewa signature: {signature}")
+    logger.info('Initiated eSewa payment %s', payment.pk)
 
     context = {
         "esewa_dict": esewa_dict,
@@ -172,7 +183,7 @@ def esewa_payment_success(request):
     booking_id = request.GET.get('booking_id')
     data_param = request.GET.get('data')
 
-    logger.info(f"eSewa success callback: booking_id={booking_id}, data={data_param}")
+    logger.info('Received eSewa callback for booking %s', booking_id)
 
     if not booking_id or not data_param:
         logger.error("Missing booking_id or no data parameter")
@@ -189,7 +200,6 @@ def esewa_payment_success(request):
         signature = esewa_data.get('signature', '')
         signed_field_names = esewa_data.get('signed_field_names', '')
 
-        logger.info(f"eSewa data: {esewa_data}")
 
         if status != 'COMPLETED':
             logger.warning(f"Transaction not completed: status={status}")
@@ -204,6 +214,16 @@ def esewa_payment_success(request):
 
         logger.info(f"Found payment: id={payment.id}, current_status={payment.status}")
 
+        # Require signed gateway data and bind it to the stored payment attempt.
+        required_fields = {'status', 'total_amount', 'transaction_uuid', 'product_code', 'transaction_code'}
+        if not signature or not required_fields.issubset(set(signed_field_names.split(','))):
+            return render(request, "payment/esewa_payment_failure.html", {'error': 'Missing signed payment details.'})
+        if (payment.payment_method != 'esewa'
+                or transaction_uuid != payment.transaction_uuid
+                or esewa_data.get('product_code') != settings.ESEWA_PRODUCT_CODE
+                or Decimal(str(total_amount).replace(',', '')) != payment.amount
+                or not transaction_code):
+            return render(request, "payment/esewa_payment_failure.html", {'error': 'Payment details do not match.'})
         # Verify signature
         if signature and signed_field_names:
             signed_fields = {key: esewa_data[key] for key in signed_field_names.split(',') if key in esewa_data}
@@ -216,18 +236,14 @@ def esewa_payment_success(request):
                 ).digest()
             ).decode('utf-8')
 
-            logger.info(f"Signature check: message={message}, expected={expected_signature}, received={signature}")
 
-            if signature != expected_signature:
+            if not hmac.compare_digest(signature, expected_signature):
                 logger.error("Signature verification failed")
                 return render(request, "payment/esewa_payment_failure.html", {'error': "Invalid signature from eSewa."})
 
         payment.mark_as_completed(transaction_id=transaction_code, transaction_uuid=transaction_uuid)
         logger.info(f"Payment updated: id={payment.id}, status={payment.status}")
 
-        payment.booking.status = 'confirmed'
-        payment.booking.payment_status = True
-        payment.booking.save(update_fields=['status', 'payment_status'])
         logger.info(f"Booking updated: id={payment.booking.id}, status={payment.booking.status}")
 
         return render(request, "payment/esewa_payment_success.html", {'payment': payment})
@@ -291,21 +307,11 @@ def payment_done(request):
                 'warning': "Payment may have been completed. Awaiting confirmation. Please check your booking dashboard or contact support."
             })
 
-        # ✅ Mark as completed manually (fallback)
-        payment.mark_as_completed(
-            transaction_id=payment_id or f"paypal_pending_{token}",
-            transaction_uuid=payment_id or token
-        )
-        logger.info("Marked payment as completed.")
-
-        payment.booking.status = 'confirmed'
-        payment.booking.payment_status = True
-        payment.booking.save(update_fields=['status', 'payment_status'])
-
-        if 'booking_id' in request.session:
-            del request.session['booking_id']
-
-        return render(request, "payment/payment_done.html", {'payment': payment})
+        # Browser return parameters are not proof of payment. Wait for verified IPN.
+        return render(request, 'payment/payment_pending.html', {
+            'payment': payment,
+            'warning': 'Awaiting verified confirmation from PayPal.'
+        })
 
     except Payment.DoesNotExist:
         logger.error(f"Payment not found for booking_id={booking_id}")
@@ -347,7 +353,14 @@ def handle_ipn(sender, **kwargs):
         # Common statuses: "Completed", "Pending", "Denied", "Failed", "Refunded"
         
         if ipn_obj.payment_status == "Completed":
-            # Check amounts match, currency, etc. (omitted for brevity but recommended)
+            expected_amount = (payment.amount / Decimal('135')).quantize(Decimal('0.01'))
+            if (payment.payment_method != 'paypal'
+                    or ipn_obj.mc_currency != 'USD'
+                    or Decimal(str(ipn_obj.mc_gross)) != expected_amount
+                    or ipn_obj.receiver_email.lower() != settings.PAYPAL_RECEIVER_EMAIL.lower()
+                    or bool(ipn_obj.test_ipn) != settings.PAYPAL_TEST):
+                logger.warning('Rejected PayPal IPN with mismatched payment details')
+                return
             payment.mark_as_completed(transaction_id=ipn_obj.txn_id)
             
             # Payment model's save() hook will update Booking automatically:
@@ -359,7 +372,7 @@ def handle_ipn(sender, **kwargs):
              logger.warning(f"IPN payment failed/canceled: {ipn_obj.payment_status}")
         else:
             logger.warning(f"IPN payment status unhandled: status={ipn_obj.payment_status}")
-    except Payment.DoesNotExist:
+    except (Payment.DoesNotExist, InvalidOperation, ValueError):
         logger.error(f"IPN payment not found: booking_id={booking_id}, payment_id={payment_id}")
 
 valid_ipn_received.connect(handle_ipn)
