@@ -1,5 +1,13 @@
 /* Rental enquiries share a regular-page fallback across the fleet and bike detail. */
 (() => {
+  const navigation = document.querySelector('.modern-transparent-nav');
+  const desktop = matchMedia('(min-width: 992px)');
+  function updateNavigation() {
+    navigation?.classList.toggle('is-floating', desktop.matches && window.scrollY > 160);
+  }
+  window.addEventListener('scroll', updateNavigation, {passive: true});
+  desktop.addEventListener('change', updateNavigation);
+  updateNavigation();
   const mobileMenu = document.getElementById('navbarNav');
   document.querySelectorAll('#navbarNav a').forEach(link => {
     link.addEventListener('click', () => {

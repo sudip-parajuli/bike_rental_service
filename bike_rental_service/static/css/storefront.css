@@ -811,10 +811,12 @@ to{
 @media (min-width: 992px) {
   html { scroll-padding-top: 25px; }
   body.light-theme { padding-bottom: 115px; }
-  .desktop-masthead { display: flex; align-items: center; justify-content: space-between; padding-top: 24px; padding-bottom: 10px; }
+  .desktop-masthead { display: none; }
   .desktop-masthead img { width: 180px; height: auto; }
   .desktop-masthead > a:last-child { color: #526175; font-size: .85rem; text-decoration: none; }
-  .modern-transparent-nav { position: fixed !important; top: auto !important; bottom: 22px; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 180px); padding: 10px 14px !important; border-radius: 24px; border: 1px solid #ffffff !important; background: #fffffff2 !important; box-shadow: 0 12px 55px #11285730 !important; animation: dock-arrival .8s .25s both; }
+  .navigation-shell { height: 104px; padding-top: 16px; }
+  .modern-transparent-nav { position: relative !important; top: auto !important; bottom: auto; left: auto; transform: none; margin: 0 auto; width: calc(100% - 96px); max-width: 1140px; padding: 10px 14px !important; border-radius: 24px; border: 1px solid #ffffff !important; background: #fffffff2 !important; box-shadow: 0 12px 55px #11285730 !important; }
+  .modern-transparent-nav.is-floating { position: fixed !important; bottom: 22px; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 180px); animation: dock-arrival .35s both; }
   .modern-transparent-nav .container-fluid { padding: 0; flex-wrap: nowrap; }
   .modern-transparent-nav .navbar-brand { margin: 0 14px 0 0; }
   .modern-transparent-nav .navbar-brand img { height: 32px !important; }
@@ -822,13 +824,15 @@ to{
   .modern-transparent-nav .modern-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 9px 11px !important; border-radius: 14px; font-size: .74rem; white-space: nowrap; }
   .modern-transparent-nav .modern-nav-item:hover, .modern-transparent-nav .modern-nav-item:focus-visible { background: #e9efff; color: #2454e6 !important; }
   .modern-transparent-nav .nav-icon { margin: 0; font-size: 1.05rem; }
-  .modern-transparent-nav .dropdown-menu { top: auto; bottom: calc(100% + 18px); }
+  .modern-transparent-nav .dropdown-menu { top: 100%; bottom: auto; }
+  .modern-transparent-nav.is-floating .dropdown-menu { top: auto; bottom: calc(100% + 18px); }
   .modern-transparent-nav #userDropdown { max-width: 130px; }
   .modern-transparent-nav #userDropdown img { width: 24px !important; height: 24px !important; }
   .rental-hero { padding-top: 2.5rem; }
 }
 @keyframes dock-arrival { from { opacity: 0; translate: 0 25px; } to { opacity: 1; translate: 0 0; } }
 @media (max-width: 991px) {
+  .navigation-shell { position: sticky; top: 0; z-index: 1030; }
   .modern-transparent-nav { top: 0 !important; bottom: auto; left: auto; transform: none; width: auto; border-radius: 0; }
   .fleet-track .rental-card { flex-basis: 48%; }
 }

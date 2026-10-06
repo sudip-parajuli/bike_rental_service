@@ -39,6 +39,7 @@
         <a href="{% url 'public-home' %}"><img src="{% static 'images/brand-logo.png' %}" alt="EasyMoto home" width="180" height="57"></a>
         <a href="tel:+9779860702780"><i class="fas fa-phone" aria-hidden="true"></i> +977 9860702780</a>
     </header>
+    <div class="navigation-shell">
     <nav class="navbar navbar-expand-lg modern-transparent-nav" aria-label="Main navigation">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'public-home' %}">
@@ -103,6 +104,7 @@
             </div>
         </div>
     </nav>
+    </div>
 
     <!-- Main Content -->
     {% block content %}{% endblock %}
