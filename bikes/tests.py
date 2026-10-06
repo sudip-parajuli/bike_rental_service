@@ -179,3 +179,58 @@ class ExternalImagesAndPublicInfoTests(TestCase):
             response = self.client.get(reverse('google-reviews'))
         self.assertEqual(response.json()['reviews'][0]['author'], 'Rider')
         self.assertNotContains(response, 'test-private-key')
+
+class AvailabilityEnquiryTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user(username='enquiry-rider', phone_number='+9779800000001')
+        cls.bike = Bike.objects.create(name='Honda Dio & City', type='scooter', host=cls.user, is_approved=True, price_per_day=1500)
+        cls.private = Bike.objects.create(name='Unapproved', type='scooter', host=cls.user, price_per_day=1500)
+
+    def dates(self):
+        from bikes.availability import nepal_today
+        start = nepal_today() + timedelta(days=2)
+        return start.isoformat(), (start + timedelta(days=3)).isoformat()
+
+    def test_no_javascript_enquiry_contains_selected_dates_and_vehicle(self):
+        from urllib.parse import urlparse, parse_qs
+        start, end = self.dates()
+        response = self.client.get(reverse('availability'), {'bike': self.bike.pk, 'start': start, 'end': end})
+        self.assertEqual(response.status_code, 200)
+        message = parse_qs(urlparse(response.context['whatsapp_url']).query)['text'][0]
+        self.assertIn(self.bike.name, message)
+        self.assertIn(f'Pickup: {start}', message)
+        self.assertIn(f'Return: {end} by 7 PM (Nepal time).', message)
+        self.assertContains(response, 'Open WhatsApp')
+        self.assertContains(response, 'noindex, nofollow')
+
+    def test_enquiry_requires_dates_and_rejects_backwards_or_past_dates(self):
+        from bikes.availability import nepal_today
+        start, end = self.dates()
+        for data in ({'start': start}, {'start': end, 'end': start}, {'start': (nepal_today()-timedelta(days=1)).isoformat(), 'end': end}, {'start': 'invalid', 'end': end}):
+            response = self.client.get(reverse('availability'), {'bike': self.bike.pk, **data})
+            self.assertIsNone(response.context['whatsapp_url'])
+            self.assertTrue(response.context['form'].errors)
+
+    def test_same_day_daily_rental_is_allowed(self):
+        start, _ = self.dates()
+        response = self.client.get(reverse('availability'), {'bike': self.bike.pk, 'start': start, 'end': start})
+        self.assertIsNotNone(response.context['whatsapp_url'])
+
+    def test_unapproved_or_invalid_bike_cannot_be_enquired_about(self):
+        for pk in [self.private.pk, 'not-a-number', '999999999999999999999999']:
+            self.assertEqual(self.client.get(reverse('availability'), {'bike': pk}).status_code, 404)
+
+    def test_fleet_links_to_date_selection_instead_of_undated_whatsapp_draft(self):
+        response = self.client.get(reverse('public-home'))
+        self.assertContains(response, 'fleet-carousel')
+        self.assertContains(response, 'availability-trigger')
+        self.assertContains(response, 'images/linkypot.png')
+        self.assertNotContains(response, 'YOUR KATHMANDU STARTING POINT')
+        self.assertNotContains(response, 'available%20for%20my%20dates')
+
+    def test_nepal_date_is_used_even_when_server_date_is_previous_day(self):
+        from datetime import datetime, timezone as dt_timezone
+        from bikes.availability import nepal_today
+        with patch('bikes.availability.timezone.now', return_value=datetime(2026, 10, 6, 20, tzinfo=dt_timezone.utc)):
+            self.assertEqual(nepal_today().isoformat(), '2026-10-07')

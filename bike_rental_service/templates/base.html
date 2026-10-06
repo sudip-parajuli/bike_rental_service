@@ -35,8 +35,11 @@
         <div class="blob blob-2"></div>
         <div class="blob blob-3"></div>
     </div>
-    <!-- Modern Transparent Navbar -->
-    <nav class="navbar navbar-expand-lg modern-transparent-nav">
+    <header class="desktop-masthead container">
+        <a href="{% url 'public-home' %}"><img src="{% static 'images/brand-logo.png' %}" alt="EasyMoto home" width="180" height="57"></a>
+        <a href="tel:+9779860702780"><i class="fas fa-phone" aria-hidden="true"></i> +977 9860702780</a>
+    </header>
+    <nav class="navbar navbar-expand-lg modern-transparent-nav" aria-label="Main navigation">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'public-home' %}">
                 <img src="{% static 'images/brand-logo.png' %}" alt="EasyMoto logo"
@@ -50,17 +53,17 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link modern-nav-item" href="{% url 'bikes:bike-list' %}">Browse bikes</a>
+                        <a class="nav-link modern-nav-item" href="{% url 'bikes:bike-list' %}"><i class="fas fa-motorcycle nav-icon" aria-hidden="true"></i> Browse bikes</a>
                     </li>
-                    <li class="nav-item"><a class="nav-link modern-nav-item" href="{% url 'public-home' %}#requirements">Requirements</a></li>
-                    <li class="nav-item"><a class="nav-link modern-nav-item" href="{% url 'public-home' %}#faq">FAQ</a></li>
+                    <li class="nav-item"><a class="nav-link modern-nav-item" href="{% url 'public-home' %}#requirements"><i class="far fa-id-card nav-icon" aria-hidden="true"></i> Requirements</a></li>
+                    <li class="nav-item"><a class="nav-link modern-nav-item" href="{% url 'public-home' %}#faq"><i class="far fa-question-circle nav-icon" aria-hidden="true"></i> FAQ</a></li>
                     <li class="nav-item">
-                        <a class="nav-link modern-nav-item" href="{% url 'public-home' %}#contact">Contact Us</a>
+                        <a class="nav-link modern-nav-item" href="{% url 'public-home' %}#contact"><i class="far fa-comment-dots nav-icon" aria-hidden="true"></i> Contact Us</a>
                     </li>
 
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link modern-nav-item" href="{% url 'users:dashboard' %}">Dashboard</a>
+                        <a class="nav-link modern-nav-item" href="{% url 'users:dashboard' %}"><i class="fas fa-th-large nav-icon" aria-hidden="true"></i> Dashboard</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle modern-nav-item" href="#" id="userDropdown" role="button"
@@ -90,10 +93,10 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link modern-nav-item" href="{% url 'users:login' %}">Login</a>
+                        <a class="nav-link modern-nav-item" href="{% url 'users:login' %}"><i class="far fa-user nav-icon" aria-hidden="true"></i> Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link modern-nav-item" href="{% url 'users:register' %}">Register</a>
+                        <a class="nav-link modern-nav-item" href="{% url 'users:register' %}"><i class="fas fa-user-plus nav-icon" aria-hidden="true"></i> Register</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -103,6 +106,27 @@
 
     <!-- Main Content -->
     {% block content %}{% endblock %}
+
+    <dialog id="availability-dialog" aria-labelledby="availability-title" class="availability-dialog">
+        <button type="button" class="dialog-close" aria-label="Close date enquiry"><i class="fas fa-times" aria-hidden="true"></i></button>
+        <p class="eyebrow">YOUR RENTAL DATES</p>
+        <h2 id="availability-title">When would you like to ride?</h2>
+        <p id="availability-bike"></p>
+        <form method="get" action="{% url 'availability' %}" id="availability-form">
+            <input type="hidden" name="bike" id="availability-bike-id">
+            <div class="date-fields">
+                <div><label for="availability-start">Pickup date</label><input type="date" id="availability-start" name="start" required class="form-control"></div>
+                <div><label for="availability-end">Return date</label><input type="date" id="availability-end" name="end" required class="form-control"></div>
+            </div>
+            <p class="small mt-3">Return by 7 PM Nepal time. NPR 500 night or late-return charge after that. Daily rentals only.</p>
+            <button type="submit" class="btn btn-primary"><i class="fab fa-whatsapp" aria-hidden="true"></i> Prepare WhatsApp enquiry</button>
+        </form>
+        <div id="availability-result" hidden role="status">
+            <p id="availability-summary"></p>
+            <a id="availability-whatsapp" class="btn btn-primary" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp" aria-hidden="true"></i> Open WhatsApp</a>
+            <p class="small mt-3">Review and send the message in WhatsApp. Our team will confirm availability and the total cost.</p>
+        </div>
+    </dialog>
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -133,7 +157,7 @@
                             if (target && (path === '' || path === currentPath || path === currentPath.slice(1) || window.location.href.includes(path))) {
                                 e.preventDefault();
                                 target.scrollIntoView({
-                                    behavior: 'smooth'
+                                    behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
                                 });
                             }
                         }
@@ -463,6 +487,7 @@
         </defs>
     </svg>
 
+    <script src="{% static 'js/rental-interactions.js' %}" defer></script>
     {% block extra_scripts %}{% endblock %}
 </body>
 

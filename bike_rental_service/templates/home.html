@@ -3,19 +3,228 @@
 {% block content %}
 <main class="storefront" id="main-content">
 <section class="rental-hero container">
-<div class="hero-editorial"><p class="eyebrow"><span class="live-dot"></span> YOUR KATHMANDU STARTING POINT</p><h1>Less waiting.<br>More <em>wandering.</em></h1><p class="hero-copy">Scooter & motorcycle rentals in Kathmandu. From everyday city rides to your next Nepal adventure, start with EasyMoto.</p><div class="rental-actions"><a class="btn btn-primary" href="{% url 'bikes:bike-list' %}">Find your ride ↗</a><a class="btn btn-outline-primary" href="https://wa.me/9779851401903">Talk to a local</a></div><p class="hero-note">{% if starting_price %}From <strong>NPR {{ starting_price|floatformat:'-2' }} / day</strong> · {% endif %}Budhanilkantha-03, Kathmandu</p></div>
-<figure class="ride-scene" data-tilt><img src="{% static 'images/nepal-ride-3d.webp' %}" alt="Illustrated blue motorcycle on a winding road in the Himalayan foothills" width="1536" height="1024" fetchpriority="high"><div class="scene-badge"><span>YOUR NEXT CHAPTER</span><strong>Two wheels. Open roads.</strong></div><figcaption>Campaign illustration · actual rental bikes shown below</figcaption><span class="scene-orbit" aria-hidden="true"></span></figure>
+<div class="hero-editorial">
+<h1 class="hero-title">
+<span class="hero-line">
+<span>Kathmandu.</span>
+</span>
+<span class="hero-line">
+<span>At your</span>
+</span>
+<span class="hero-line">
+<em>own pace.</em>
+</span>
+</h1>
+<p class="hero-copy">Scooter & motorcycle rentals in Kathmandu. From everyday city rides to your next Nepal adventure, start with EasyMoto.</p>
+<div class="rental-actions">
+<a class="btn btn-primary" href="{% url 'bikes:bike-list' %}">Find your ride <i class="fas fa-arrow-up-right-from-square" aria-hidden="true">
+</i>
+</a>
+<a class="btn btn-outline-primary" href="https://wa.me/9779851401903"><i class="fab fa-whatsapp" aria-hidden="true"></i> Talk to a local</a>
+</div>
+<p class="hero-note">{% if starting_price %}From <strong>NPR {{ starting_price|floatformat:'-2' }} / day</strong> · {% endif %}Budhanilkantha-03, Kathmandu</p>
+</div>
+<figure class="ride-scene" data-tilt>
+<img src="{% static 'images/nepal-ride-3d.webp' %}" alt="Illustrated blue motorcycle on a winding road in the Himalayan foothills" width="1536" height="1024" fetchpriority="high">
+<div class="scene-badge">
+<span>PICKUP · BUDHANILKANTHA</span>
+<strong>Scooters &amp; motorcycles</strong>
+</div>
+<figcaption>Campaign illustration · actual rental bikes shown below</figcaption>
+<span class="scene-orbit" aria-hidden="true">
+</span>
+</figure>
 </section>
-<div class="ride-strip"><div class="container"><span>01 / CHOOSE YOUR RIDE</span><span>02 / CONFIRM YOUR DATES</span><span>03 / PICK UP & EXPLORE</span></div></div>
-<section class="rental-section container" id="bikes"><div class="section-intro"><div><p class="eyebrow">THE FLEET</p><h2>A ride for your kind<br>of journey.</h2></div><a class="text-link" href="{% url 'bikes:bike-list' %}">Explore all bikes ↗</a></div><p class="hero-copy">Compare daily rates and specifications. Share your dates to confirm availability and the full rental cost.</p><div class="fleet-grid">{% for bike in featured_bikes %}{% include 'bikes/_rental_card.html' %}{% empty %}<div class="rental-panel"><h3>Let's find your ride</h3><p>{% if inventory_unavailable %}Our online fleet is temporarily unavailable.{% else %}Ask us about our current fleet.{% endif %} Contact us for bikes, photos and rates.</p><a class="btn btn-primary" href="https://wa.me/9779851401903">Check available bikes</a></div>{% endfor %}</div></section>
-<section class="rental-section journey-section" id="services"><div class="container"><p class="eyebrow">MAKE THE MOST OF THE RIDE</p><h2>Small errands.<br>Big possibilities.</h2><div class="journey-grid"><article><span class="journey-icon" aria-hidden="true">↗</span><h3>Move around the city</h3><p>A scooter can suit everyday Kathmandu travel. Compare available models. We provide a helmet; fuel is paid for by the renter.</p></article><article><span class="journey-icon" aria-hidden="true">⌁</span><h3>Plan a scenic escape</h3><p>Tell us your route and riding experience. We will help you discuss a suitable motorcycle and confirm permitted destinations.</p></article><article><span class="journey-icon" aria-hidden="true">∞</span><h3>Stay a little longer</h3><p>Daily rentals, with return due by 7 PM. A NPR 500 night or late-return charge applies after that. Share your itinerary for a full quote.</p></article></div></div></section>
-<section class="rental-section container" id="requirements"><div class="section-intro"><div><p class="eyebrow">READY WHEN YOU ARE</p><h2>Your pickup checklist.</h2></div><span class="section-label">Bring these to the shop</span></div><div class="document-grid"><article class="document-card"><span class="document-tag">01 / NATIONAL CUSTOMERS</span><h3>For riders from Nepal</h3><ul><li>National ID, citizenship certificate or passport</li><li>Valid driving licence for verification</li><li>Blank cheque or cash deposit</li></ul></article><article class="document-card"><span class="document-tag">02 / INTERNATIONAL CUSTOMERS</span><h3>For visiting riders</h3><ul><li>Passport</li><li>Valid driving licence for verification</li><li>International Driving Permit (IDP)</li><li>Security deposit in cash</li><li>Letter of accommodation or guarantor from Nepal</li></ul></article></div><p class="terms-note">The deposit is usually <strong>NPR 5,000</strong>, varying by vehicle and rental duration. Confirm the exact deposit, licence category, insurance, cancellation and refund terms before booking. <a href="https://wa.me/9779851401903">Ask our team ↗</a></p></section>
-<section class="rental-section container" id="testimonials"><p class="eyebrow">RIDERS, IN THEIR OWN WORDS</p><div class="section-intro"><h2>Good rides start<br>with real conversations.</h2><a href="https://share.google/iGOVRN5QGg3pxlHIp">Read our Google reviews ↗</a></div><div id="google-reviews" data-logo="{% static 'images/google-maps-attribution.png' %}" {% if google_reviews_enabled %}data-endpoint="{% url 'google-reviews' %}"{% endif %}><p class="text-secondary">Explore customer experiences on our Google business profile.</p></div>{% if reviews %}<div class="fleet-grid">{% for review in reviews %}<figure class="rental-panel"><p aria-label="{{ review.rating }} out of 5 stars">{{ review.rating }} / 5 ★</p><blockquote>{{ review.content }}</blockquote><figcaption>{{ review.user.get_full_name|default:review.user.username }} · EasyMoto website review</figcaption></figure>{% endfor %}</div>{% endif %}</section>
-<section class="rental-section faq-section" id="faq"><div class="container faq-layout"><div><p class="eyebrow">GOOD TO KNOW</p><h2>Before you<br>hit the road.</h2><p>Clear answers for a smoother pickup.</p><label for="faq-search">Find an answer</label><input class="form-control" type="search" id="faq-search" placeholder="Try documents, deposit or pickup"><p id="faq-status" role="status" class="small mt-3"></p></div><div class="faq-list">{% for faq in rental_faqs %}<details class="faq-item"><summary>{{ faq.question }}</summary><p>{{ faq.answer }}</p><span class="faq-category">{{ faq.category }}</span></details>{% endfor %}</div></div></section>
-<section class="rental-section container" id="about"><p class="eyebrow">LOCAL ROOTS. OPEN ROADS.</p><h2>Your journey starts<br>in Budhanilkantha.</h2><p class="hero-copy">EasyMoto Rental Services offers scooter and motorcycle rentals for local riders and visitors to Nepal. Our shop is opposite Park Village Resort in Budhanilkantha-03, Kathmandu. Meet the team, check the vehicle together and agree on your return time before setting off.</p></section>
-<section class="contact-section" id="contact"><div class="container contact-grid"><div><p class="eyebrow">LET'S GET YOU MOVING</p><h2>The next ride<br>starts here.</h2><a class="btn btn-light" href="https://wa.me/9779851401903">Plan it on WhatsApp ↗</a></div><div class="contact-details"><h3>Visit EasyMoto</h3><p>Budhanilkantha-03, Kathmandu<br>Opposite Park Village Resort</p><a href="https://www.google.com/maps/search/?api=1&amp;query=Easymoto+Rental+Service+Budhanilkantha">Get directions ↗</a><p class="mt-4">Sun–Fri: 7:00 AM–6:30 PM<br>Sat: 8:30 AM–4:00 PM<br><small>Confirm holiday hours and your pickup appointment.</small></p><p><a href="tel:+9779851401903">+977 9851401903</a><br><a href="tel:+9779860702780">+977 9860702780</a><br><a href="mailto:easymotoservices@gmail.com">easymotoservices@gmail.com</a></p></div></div></section>
-<footer class="container rental-footer"><a href="{% url 'public-home' %}">EasyMoto Rental Services</a><div><a href="https://www.facebook.com/Easymoto.np">Facebook</a><a href="https://www.instagram.com/easymoto_np/">Instagram</a><a href="https://easymoto.linkypot.com/">More links</a><a href="{% url 'privacy' %}">Privacy</a><a href="{% url 'terms' %}">Terms</a></div></footer>
+<div class="ride-strip">
+<div class="container">
+<span>01 / CHOOSE YOUR RIDE</span>
+<span>02 / CONFIRM YOUR DATES</span>
+<span>03 / PICK UP & EXPLORE</span>
+</div>
+</div>
+<section class="rental-section container" id="bikes">
+<div class="section-intro">
+<div>
+<p class="eyebrow">THE FLEET</p>
+<h2>A ride for your kind<br>of journey.</h2>
+</div>
+<a class="text-link" href="{% url 'bikes:bike-list' %}">Explore all bikes <i class="fas fa-arrow-up-right-from-square" aria-hidden="true">
+</i>
+</a>
+</div>
+<p class="hero-copy">Compare daily rates and specifications. Share your dates to confirm availability and the full rental cost.</p>
+<div class="fleet-carousel" role="region" aria-roledescription="carousel" aria-label="EasyMoto fleet">
+<div class="fleet-carousel-tools" hidden>
+<p class="fleet-position" aria-live="polite" aria-atomic="true">
+</p>
+<div>
+<button type="button" class="fleet-prev" aria-label="Previous bike">
+<i class="fas fa-chevron-left" aria-hidden="true">
+</i>
+</button>
+<button type="button" class="fleet-next" aria-label="Next bike">
+<i class="fas fa-chevron-right" aria-hidden="true">
+</i>
+</button>
+</div>
+</div>
+<div class="fleet-track" tabindex="0" aria-label="Bike cards: scroll or use the arrow keys">{% for bike in featured_bikes %}{% include 'bikes/_rental_card.html' %}{% empty %}<div class="rental-panel">
+<h3>Let's find your ride</h3>
+<p>{% if inventory_unavailable %}Our online fleet is temporarily unavailable.{% else %}Ask us about our current fleet.{% endif %} Contact us for bikes, photos and rates.</p>
+<a class="btn btn-primary" href="https://wa.me/9779851401903">Check available bikes</a>
+</div>{% endfor %}</div>
+</div>
+</section>
+<section class="rental-section journey-section" id="services">
+<div class="container">
+<p class="eyebrow">MAKE THE MOST OF THE RIDE</p>
+<h2>Small errands.<br>Big possibilities.</h2>
+<div class="journey-grid">
+<article>
+<span class="journey-icon">
+<i class="fas fa-city" aria-hidden="true">
+</i>
+</span>
+<h3>Move around the city</h3>
+<p>A scooter can suit everyday Kathmandu travel. Compare available models. We provide a helmet; fuel is paid for by the renter.</p>
+</article>
+<article>
+<span class="journey-icon">
+<i class="fas fa-mountain" aria-hidden="true">
+</i>
+</span>
+<h3>Plan a scenic escape</h3>
+<p>Tell us your route and riding experience. We will help you discuss a suitable motorcycle and confirm permitted destinations.</p>
+</article>
+<article>
+<span class="journey-icon">
+<i class="far fa-calendar-alt" aria-hidden="true">
+</i>
+</span>
+<h3>Stay a little longer</h3>
+<p>Daily rentals, with return due by 7 PM. A NPR 500 night or late-return charge applies after that. Share your itinerary for a full quote.</p>
+</article>
+</div>
+</div>
+</section>
+<section class="rental-section container" id="requirements">
+<div class="section-intro">
+<div>
+<p class="eyebrow">READY WHEN YOU ARE</p>
+<h2>Your pickup checklist.</h2>
+</div>
+<span class="section-label">Bring these to the shop</span>
+</div>
+<div class="document-grid">
+<article class="document-card">
+<span class="document-tag">01 / NATIONAL CUSTOMERS</span>
+<h3>For riders from Nepal</h3>
+<ul>
+<li>National ID, citizenship certificate or passport</li>
+<li>Valid driving licence for verification</li>
+<li>Blank cheque or cash deposit</li>
+</ul>
+</article>
+<article class="document-card">
+<span class="document-tag">02 / INTERNATIONAL CUSTOMERS</span>
+<h3>For visiting riders</h3>
+<ul>
+<li>Passport</li>
+<li>Valid driving licence for verification</li>
+<li>International Driving Permit (IDP)</li>
+<li>Security deposit in cash</li>
+<li>Letter of accommodation or guarantor from Nepal</li>
+</ul>
+</article>
+</div>
+<p class="terms-note">The deposit is usually <strong>NPR 5,000</strong>, varying by vehicle and rental duration. Confirm the exact deposit, licence category, insurance, cancellation and refund terms before booking. <a href="https://wa.me/9779851401903">Ask our team <i class="fas fa-arrow-up-right-from-square" aria-hidden="true">
+</i>
+</a>
+</p>
+</section>
+<section class="rental-section container" id="testimonials">
+<p class="eyebrow">RIDERS, IN THEIR OWN WORDS</p>
+<div class="section-intro">
+<h2>Good rides start<br>with real conversations.</h2>
+<a href="https://share.google/iGOVRN5QGg3pxlHIp"><i class="fab fa-google" aria-hidden="true"></i> Read our Google reviews <i class="fas fa-arrow-up-right-from-square" aria-hidden="true">
+</i>
+</a>
+</div>
+<div id="google-reviews" data-logo="{% static 'images/google-maps-attribution.png' %}" {% if google_reviews_enabled %}data-endpoint="{% url 'google-reviews' %}"{% endif %}>
+<p class="text-secondary">Explore customer experiences on our Google business profile.</p>
+</div>{% if reviews %}<div class="fleet-grid">{% for review in reviews %}<figure class="rental-panel">
+<p aria-label="{{ review.rating }} out of 5 stars">{{ review.rating }} / 5 <i class="fas fa-star" aria-hidden="true"></i></p>
+<blockquote>{{ review.content }}</blockquote>
+<figcaption>{{ review.user.get_full_name|default:review.user.username }} · EasyMoto website review</figcaption>
+</figure>{% endfor %}</div>{% endif %}</section>
+<section class="rental-section faq-section" id="faq">
+<div class="container faq-layout">
+<div>
+<p class="eyebrow">GOOD TO KNOW</p>
+<h2>Before you<br>hit the road.</h2>
+<p>Clear answers for a smoother pickup.</p>
+<label for="faq-search">Find an answer</label>
+<input class="form-control" type="search" id="faq-search" placeholder="Try documents, deposit or pickup">
+<p id="faq-status" role="status" class="small mt-3">
+</p>
+</div>
+<div class="faq-list">{% for faq in rental_faqs %}<details class="faq-item">
+<summary>{{ faq.question }}</summary>
+<p>{{ faq.answer }}</p>
+<span class="faq-category">{{ faq.category }}</span>
+</details>{% endfor %}</div>
+</div>
+</section>
+<section class="rental-section container" id="about">
+<p class="eyebrow">LOCAL ROOTS. OPEN ROADS.</p>
+<h2>Your journey starts<br>in Budhanilkantha.</h2>
+<p class="hero-copy">EasyMoto Rental Services offers scooter and motorcycle rentals for local riders and visitors to Nepal. Our shop is opposite Park Village Resort in Budhanilkantha-03, Kathmandu. Meet the team, check the vehicle together and agree on your return time before setting off.</p>
+</section>
+<section class="contact-section" id="contact">
+<div class="container contact-grid">
+<div>
+<p class="eyebrow">LET'S GET YOU MOVING</p>
+<h2>The next ride<br>starts here.</h2>
+<a class="btn btn-light" href="https://wa.me/9779851401903"><i class="fab fa-whatsapp" aria-hidden="true"></i> Plan it on WhatsApp <i class="fas fa-arrow-up-right-from-square" aria-hidden="true">
+</i>
+</a>
+</div>
+<div class="contact-details">
+<h3>Visit EasyMoto</h3>
+<p>Budhanilkantha-03, Kathmandu<br>Opposite Park Village Resort</p>
+<a href="https://www.google.com/maps/search/?api=1&amp;query=Easymoto+Rental+Service+Budhanilkantha">Get directions <i class="fas fa-arrow-up-right-from-square" aria-hidden="true">
+</i>
+</a>
+<p class="mt-4">Sun–Fri: 7:00 AM–6:30 PM<br>Sat: 8:30 AM–4:00 PM<br>
+<small>Confirm holiday hours and your pickup appointment.</small>
+</p>
+<p>
+<a href="tel:+9779851401903">+977 9851401903</a>
+<br>
+<a href="tel:+9779860702780">+977 9860702780</a>
+<br>
+<a href="mailto:easymotoservices@gmail.com">easymotoservices@gmail.com</a>
+</p>
+</div>
+</div>
+</section>
+<footer class="container rental-footer">
+<a href="{% url 'public-home' %}">EasyMoto Rental Services</a>
+<div>
+<a href="https://www.facebook.com/Easymoto.np">
+<i class="fab fa-facebook" aria-hidden="true">
+</i> Facebook</a>
+<a href="https://www.instagram.com/easymoto_np/">
+<i class="fab fa-instagram" aria-hidden="true">
+</i> Instagram</a>
+<a href="https://easymoto.linkypot.com/">
+<img class="social-brand-icon" src="{% static 'images/linkypot.png' %}" alt="" width="28" height="28"> Linkypot</a>
+<a href="{% url 'privacy' %}">Privacy</a>
+<a href="{% url 'terms' %}">Terms</a>
+</div>
+</footer>
 </main>
 <script type="application/ld+json">{{ storefront_schema|safe }}</script>
 {% endblock %}
-{% block extra_scripts %}<script src="{% static 'js/storefront.js' %}" defer></script>{% endblock %}
+{% block extra_scripts %}<script src="{% static 'js/storefront.js' %}" defer>
+</script>{% endblock %}

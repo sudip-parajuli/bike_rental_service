@@ -769,3 +769,90 @@ to{
   width:auto;
   margin:10px 10px 5px
 }
+
+/* Editorial type: one readable heading, revealed in three timed lines. */
+.hero-title { margin-top: 0 !important; }
+.hero-line { display: block; overflow: hidden; padding: 0 .05em .08em 0; margin-bottom: -.08em; }
+.hero-line > span, .hero-line > em { display: block; animation: hero-typeset 900ms cubic-bezier(.2,.7,.2,1) both; }
+.hero-line:nth-child(2) > span { animation-delay: 130ms; }
+.hero-line:nth-child(3) > em { animation-delay: 260ms; }
+@keyframes hero-typeset { from { transform: translateY(105%) rotate(2deg); } to { transform: translateY(0) rotate(0); } }
+.desktop-masthead { display: none; }
+.nav-icon { margin-right: .4rem; }
+.fleet-track { position: relative; display: flex; gap: 1.2rem; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: 28px 10px 38px; scrollbar-width: thin; scrollbar-color: #2454e6 #e4eaf5; perspective: 1400px; }
+.fleet-track .rental-card { flex: 0 0 36%; min-width: 310px; scroll-snap-align: center; transform: scale(.96); transition: transform .45s ease, box-shadow .45s ease; }
+.fleet-track .rental-card.is-featured-slide { transform: scale(1); box-shadow: 0 20px 40px #17387624; border-color: #b7c9ef; }
+.fleet-track .rental-card:focus-within { outline: 2px solid #2454e6; outline-offset: 2px; }
+.fleet-track .rental-card-photo img { height: 235px; object-fit: contain; }
+.fleet-track .rental-card-body { padding: 1.25rem; }
+.fleet-track .rental-card-body > p.text-secondary { font-size: .8rem; }
+.fleet-carousel-tools { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.fleet-carousel-tools[hidden] { display: none; }
+.fleet-position { margin: 0; font-size: .8rem; color: #526175; }
+.fleet-carousel-tools > div { display: flex; gap: .6rem; }
+.fleet-carousel-tools button { border: 1px solid #d5dfef; background: #fff; color: #17345d; border-radius: 50%; width: 44px; height: 44px; transition: background .2s, color .2s; }
+.fleet-carousel-tools button:hover:not(:disabled) { background: #2454e6; color: white; }
+.fleet-carousel-tools button:disabled { opacity: .35; }
+.social-brand-icon { width: 28px; height: 28px; object-fit: contain; }
+.rental-footer > div > a { display: inline-flex; align-items: center; gap: .45rem; }
+.storefront .fas.fa-arrow-up-right-from-square { font-size: .72em; margin-left: .25em; }
+.journey-icon > i { font-size: 1.7rem; }
+.availability-dialog { width: min(560px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow-y: auto; padding: 2.5rem; border: 1px solid #d9e2f0; border-radius: 24px; color: #16263b; background: #fff; box-shadow: 0 30px 100px #07173340; }
+.availability-dialog:not([open]) { display: none; }
+.availability-dialog::backdrop { background: #0e234b88; backdrop-filter: blur(6px); }
+.availability-dialog h2 { font-size: 1.9rem; letter-spacing: -.04em; font-weight: 700; }
+.dialog-close { position: absolute; right: 16px; top: 12px; border: 0; background: #f0f4fb; border-radius: 50%; width: 34px; height: 34px; color: #16263b; }
+.date-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.date-fields label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: .5rem; }
+#availability-result[hidden] { display: none; }
+#availability-result { border-top: 1px solid #d9e2f0; padding-top: 1.2rem; margin-top: 1.5rem; }
+.availability-page { max-width: 700px; }
+.availability-page h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 750; letter-spacing: -.04em; }
+@media (min-width: 992px) {
+  html { scroll-padding-top: 25px; }
+  body.light-theme { padding-bottom: 115px; }
+  .desktop-masthead { display: flex; align-items: center; justify-content: space-between; padding-top: 24px; padding-bottom: 10px; }
+  .desktop-masthead img { width: 180px; height: auto; }
+  .desktop-masthead > a:last-child { color: #526175; font-size: .85rem; text-decoration: none; }
+  .modern-transparent-nav { position: fixed !important; top: auto !important; bottom: 22px; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 180px); padding: 10px 14px !important; border-radius: 24px; border: 1px solid #ffffff !important; background: #fffffff2 !important; box-shadow: 0 12px 55px #11285730 !important; animation: dock-arrival .8s .25s both; }
+  .modern-transparent-nav .container-fluid { padding: 0; flex-wrap: nowrap; }
+  .modern-transparent-nav .navbar-brand { margin: 0 14px 0 0; }
+  .modern-transparent-nav .navbar-brand img { height: 32px !important; }
+  .modern-transparent-nav .navbar-nav { align-items: center; gap: 2px; }
+  .modern-transparent-nav .modern-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 9px 11px !important; border-radius: 14px; font-size: .74rem; white-space: nowrap; }
+  .modern-transparent-nav .modern-nav-item:hover, .modern-transparent-nav .modern-nav-item:focus-visible { background: #e9efff; color: #2454e6 !important; }
+  .modern-transparent-nav .nav-icon { margin: 0; font-size: 1.05rem; }
+  .modern-transparent-nav .dropdown-menu { top: auto; bottom: calc(100% + 18px); }
+  .modern-transparent-nav #userDropdown { max-width: 130px; }
+  .modern-transparent-nav #userDropdown img { width: 24px !important; height: 24px !important; }
+  .rental-hero { padding-top: 2.5rem; }
+}
+@keyframes dock-arrival { from { opacity: 0; translate: 0 25px; } to { opacity: 1; translate: 0 0; } }
+@media (max-width: 991px) {
+  .modern-transparent-nav { top: 0 !important; bottom: auto; left: auto; transform: none; width: auto; border-radius: 0; }
+  .fleet-track .rental-card { flex-basis: 48%; }
+}
+@media (max-width: 600px) {
+  .fleet-track .rental-card { flex-basis: 87%; min-width: 0; }
+  .fleet-track { gap: .7rem; padding-left: 0; padding-right: 0; }
+  .fleet-track .rental-card-body { padding: 1.1rem; }
+  .fleet-position { font-size: .72rem; }
+  .availability-dialog { padding: 2.5rem 1.4rem 1.5rem; }
+  .date-fields { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-line > span, .hero-line > em, .modern-transparent-nav { animation: none !important; }
+  .fleet-track { scroll-behavior: auto; }
+  .fleet-track .rental-card { transform: none !important; transition: none; }
+}
+@media (min-width: 992px) {
+  .fleet-track .rental-card { transform: rotateY(var(--slide-angle, 0deg)) scale(.96); }
+  .fleet-track .rental-card.is-featured-slide { transform: rotateY(0deg) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .fleet-track .rental-card { transform: none !important; } }
+/* End spacing lets the first and last card reach the same centered position. */
+.fleet-track::before, .fleet-track::after { content: ''; flex: 0 0 max(0px, calc((100% - max(310px, 36%)) / 2 - 1.2rem)); }
+@media (max-width: 991px) { .fleet-track::before, .fleet-track::after { flex-basis: max(0px, calc((100% - max(310px, 48%)) / 2 - 1.2rem)); } }
+@media (max-width: 600px) { .fleet-track::before, .fleet-track::after { flex-basis: max(0px, calc(6.5% - .7rem)); } }
+@media (max-width: 600px) { .rental-section.container { padding-left: 12px; padding-right: 12px; } }
+@media (min-width: 992px) { .modern-transparent-nav #userDropdown span { max-width: 110px; overflow: hidden; text-overflow: ellipsis; } }

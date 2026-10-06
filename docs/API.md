@@ -68,3 +68,5 @@ Bike creation/editing through the web staff forms and the bike model serializers
 `GET /api/reviews/google/` is an optional public, throttled display endpoint. Unconfigured or failed upstream requests return `{"available": false}`. Configured responses include author and source attribution for up to five relevant Google Places reviews. The response is not cached. The current release uses only the Google profile link, per the owner's choice; credentials remain optional. Setup is documented in [STOREFRONT.md](STOREFRONT.md).
 
 `/sitemap.xml`, `/robots.txt`, `/privacy/` and `/terms/` are public website resources.
+
+`GET /availability/?bike=<approved-bike-id>` renders a public date enquiry form. Supplying valid `start` and `end` ISO dates (`YYYY-MM-DD`) prepares a WhatsApp draft link; no booking or message is created. Same-day rentals are allowed, past pickup dates and returns before pickup are rejected. Non-public or invalid bike IDs return 404.

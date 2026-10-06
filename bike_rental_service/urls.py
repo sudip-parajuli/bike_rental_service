@@ -9,6 +9,7 @@ from rest_framework import permissions
 from .views import HomeView, PublicHomeView, PingView
 from users.views import RegisterView
 from . import public_info
+from bikes.availability import availability_request
 
 # Configure Swagger schema
 schema_view = get_schema_view(
@@ -25,6 +26,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    path('availability/', availability_request, name='availability'),
     path('api/reviews/google/', public_info.google_reviews, name='google-reviews'),
     path('robots.txt', public_info.robots, name='robots'),
     path('sitemap.xml', public_info.sitemap, name='sitemap'),

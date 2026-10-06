@@ -34,7 +34,7 @@ def seo_context(request):
     path = '/' if request.path == '/public-home/' else request.path
     return {'canonical_url': origin + path,
             'google_reviews_enabled': bool(settings.GOOGLE_PLACES_API_KEY and settings.GOOGLE_PLACE_ID),
-            'private_page': request.path.startswith(('/admin', '/users/', '/accounts/', '/bookings/', '/api/')),
+            'private_page': request.path.startswith(('/admin', '/users/', '/accounts/', '/bookings/', '/api/', '/availability/')),
             'storefront_schema': json.dumps(schema).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026'),
             'public_origin': origin}
 

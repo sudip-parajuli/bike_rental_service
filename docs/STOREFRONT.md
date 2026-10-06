@@ -53,3 +53,15 @@ Structured data does not promise rankings or rich results. [Google's AI search g
 
 Run Django tests for bikes and payment, migration drift checks, a production-style static asset collection and `scripts/check_secrets.py --staged` before pushing. Browser-check desktop and mobile widths, the navigation, fleet image behavior, FAQ search and contact links. Local previews must use isolated fixtures rather than changing real customer/booking data.
 Current release choice: the owner requested the Google profile link only. Leave the optional Places credentials unset; the homepage then makes no embedded-review request. No Google reviews have been copied into the local testimonials database.
+
+## Fleet carousel, navigation and dated enquiries
+
+The homepage fleet is a single-row, centered carousel with a subtle dimensional treatment, previous/next buttons, a current-bike indicator, native touch/trackpad scrolling, and Arrow/Home/End keyboard support when the track is focused. The full searchable catalogue remains a grid. There is no autoplay. First/last slide spacing lets every bike reach the center. Images and card links remain readable and usable without JavaScript.
+
+The hero no longer uses the generic location eyebrow with a dot. Its readable heading reveals three lines with staggered CSS animation. The desktop navigation is a floating bottom dock with professional icons; at widths below 992px it becomes a collapsible top navigation and leaves the chatbot at the bottom. Reduced-motion preferences disable the animation and dimensional movement. No GSAP dependency is required for these effects.
+
+Fleet and bike-detail **Check dates** links open an accessible native dialog. Customers select pickup and return dates, prepare the enquiry, then open WhatsApp to review and send it. The draft includes the vehicle/fleet ID, both dates, the 7 PM Nepal-time return deadline, and a request to confirm availability and the total cost. This flow does not send messages automatically, create bookings or claim availability.
+
+Without JavaScript or native dialog support, the links go to `/availability/?bike=<id>`. Server-side validation also rejects missing, malformed, past or reversed dates and non-public bikes; same-day daily rentals are valid. The current Nepal date is computed explicitly, independently of the server's timezone. Enquiry pages have `noindex` metadata.
+
+Facebook, Instagram, Google and WhatsApp links use Font Awesome brand glyphs. The Linkypot logo is the unmodified PNG supplied by the project owner, stored as `bike_rental_service/static/images/linkypot.png`. The supplied ICO is not needed for this inline brand icon. Sample preview bike photos and all screenshots remain in ignored verification folders and are not deployment data.

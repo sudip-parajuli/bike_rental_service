@@ -23,7 +23,7 @@
 <p class="small text-secondary">Confirm dates and rental terms with our team.</p>
 <div class="rental-actions">
 <a class="btn btn-primary" href="{% url 'bikes:bike-detail' bike.pk %}">View bike</a>
-<a href="https://wa.me/9779851401903?text=Hello%20EasyMoto%2C%20is%20{{ bike.name|urlencode }}%20%28fleet%20%23{{ bike.pk }}%29%20available%20for%20my%20dates%3F" target="_blank" rel="noopener noreferrer">Check availability</a>
+<a href="{% url 'availability' %}?bike={{ bike.pk }}" class="availability-trigger" data-bike-id="{{ bike.pk }}" data-bike-name="{{ bike.name }}"><i class="far fa-calendar-alt" aria-hidden="true"></i> Check dates</a>
 </div>
 </div>
 </article>
