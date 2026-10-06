@@ -76,6 +76,12 @@ class BikeSerializer(serializers.ModelSerializer):
 
 class PublicBikeSerializer(serializers.ModelSerializer):
     """Public fleet data excludes internal vehicle and owner identifiers."""
+    image = serializers.SerializerMethodField()
+
+    def get_image(self, obj):
+        url = obj.display_image_url
+        request = self.context.get('request')
+        return request.build_absolute_uri(url) if request and url else url
     class Meta:
         model = Bike
         fields = ['id', 'name', 'type', 'brand', 'model_year', 'mileage',
@@ -92,6 +98,12 @@ class BikeRecommendationSerializer(serializers.ModelSerializer):
     recommendation_score = serializers.FloatField(read_only=True, required=False)
     recommendation_reason = serializers.CharField(read_only=True, required=False)
     host_name = serializers.CharField(source='host.username', read_only=True)
+    image = serializers.SerializerMethodField()
+
+    def get_image(self, obj):
+        url = obj.display_image_url
+        request = self.context.get('request')
+        return request.build_absolute_uri(url) if request and url else url
     
     class Meta:
         model = Bike

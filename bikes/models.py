@@ -5,6 +5,10 @@ from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from datetime import datetime
 from django.utils.timezone import now
+from django.core.validators import URLValidator
+
+
+validate_image_url = URLValidator(schemes=['https'])
 
 User = get_user_model()
 
@@ -27,7 +31,9 @@ class Bike(models.Model):
     availability_status = models.BooleanField(default=True, help_text="Indicates whether the bike is available for booking.")
     is_approved = models.BooleanField(default=False, help_text="Indicates whether the bike is approved by the admin.")
     is_featured = models.BooleanField(default=False, help_text="Mark this bike as featured on the homepage.")
-    image = models.ImageField(upload_to='bikes/', default='default_bike.png', help_text="Image of the bike.")
+    image = models.ImageField(upload_to='bikes/', default='default_bike.png', blank=True, help_text="Upload a photo, or use the external image URL below.")
+    image_url = models.URLField(max_length=1000, blank=True, validators=[validate_image_url],
+                                help_text="Optional direct HTTPS image URL. Takes priority over an upload. Use a source you own or have permission to display, not a Google search-page URL.")
     slug = models.SlugField(unique=True, blank=True, null=True, help_text="SEO-friendly URL slug for the bike.")
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bikes', help_text="host of the bike.")
     created_at = models.DateTimeField(auto_now_add=True, help_text="Timestamp for when the bike was added.")
@@ -52,6 +58,15 @@ class Bike(models.Model):
 
     # Maintenance
     next_maintenance_date = models.DateField(null=True, blank=True, help_text="Automatically calculated date for the next maintenance.")
+
+    @property
+    def display_image_url(self):
+        """Resolve a display URL without fetching remote files on the server."""
+        if self.image_url:
+            return self.image_url
+        if self.image and self.image.name not in ('default_bike.png', 'default-bike.png'):
+            return self.image.url
+        return ''
 
     def is_booked_for_dates(self, start_date, end_date):
         """

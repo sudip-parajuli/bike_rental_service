@@ -44,3 +44,4 @@ debug*.txt
 /setup_initial_data.py
 /test_generation_only.py
 /test_models.py
+/bike_rental_service/static/images/nepal-ride-3d.png

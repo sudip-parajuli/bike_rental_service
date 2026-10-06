@@ -91,3 +91,91 @@ class StorageConfigurationTests(SimpleTestCase):
         )
         url = subprocess.check_output([sys.executable, '-c', script], text=True).strip()
         self.assertTrue(url.startswith('https://res.cloudinary.com/easymoto-test/'))
+
+class ExternalImagesAndPublicInfoTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user(username='rider', email='rider@example.com', phone_number='+9779800000000')
+        cls.bike = Bike.objects.create(name='Honda Dio', type='scooter', host=cls.user, is_approved=True, price_per_day=1500)
+        Bike.objects.create(name='Private bike', type='motorcycle', host=cls.user, price_per_day=100)
+
+    def test_admin_form_accepts_url_without_upload(self):
+        from admin_panel.forms import AdminBikeForm
+        from django.forms.models import model_to_dict
+        data = model_to_dict(self.bike)
+        data['image_url'] = 'https://images.example.org/ride.jpg'
+        form = AdminBikeForm(data=data, instance=self.bike)
+        self.assertFalse(form.fields['image'].required)
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.save().image_url, data['image_url'])
+
+    def test_mobile_api_preserves_external_url(self):
+        from mobile_api.serializers import BikeSerializer
+        self.bike.image_url = 'https://images.example.org/ride.jpg'
+        self.assertEqual(BikeSerializer(self.bike).data['image_url'], self.bike.image_url)
+
+    def test_google_timeout_preserves_profile_fallback(self):
+        import requests
+        from django.test import override_settings
+        with override_settings(GOOGLE_PLACES_API_KEY='test-private-key', GOOGLE_PLACE_ID='test-place'), patch('bike_rental_service.public_info.requests.get', side_effect=requests.Timeout):
+            response = self.client.get(reverse('google-reviews'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'available': False})
+
+    def test_profile_only_mode_does_not_schedule_live_review_request(self):
+        from django.test import override_settings
+        with override_settings(GOOGLE_PLACES_API_KEY='', GOOGLE_PLACE_ID=''):
+            response = self.client.get(reverse('public-home'))
+        self.assertContains(response, 'https://share.google/iGOVRN5QGg3pxlHIp')
+        self.assertNotContains(response, 'data-endpoint=')
+
+    def test_external_image_has_priority_and_is_used_in_public_api(self):
+        self.bike.image_url = 'https://images.example.org/ride.jpg'
+        self.bike.save()
+        self.assertEqual(self.bike.display_image_url, self.bike.image_url)
+        response = self.client.get(reverse('bikes:bike-detail', args=[self.bike.pk]), HTTP_ACCEPT='application/json')
+        self.assertEqual(response.json()['image'], self.bike.image_url)
+        self.assertContains(self.client.get(reverse('public-home')), self.bike.image_url)
+
+    def test_image_url_rejects_insecure_and_script_schemes(self):
+        from django.core.exceptions import ValidationError
+        field = Bike._meta.get_field('image_url')
+        for url in ['http://images.example.org/bike.jpg', 'javascript:alert(1)']:
+            with self.assertRaises(ValidationError):
+                field.clean(url, self.bike)
+        self.assertEqual(self.bike.display_image_url, '')
+
+    def test_schema_matches_visible_document_and_price_information(self):
+        import json
+        import re
+        response = self.client.get(reverse('public-home'))
+        html = response.content.decode()
+        data = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', html).group(1))
+        self.assertEqual(data['@graph'][0]['address']['addressLocality'], 'Kathmandu')
+        self.assertContains(response, 'International Driving Permit (IDP)')
+        self.assertContains(response, 'NPR 5,000')
+        self.assertContains(response, 'NPR 500')
+        self.assertNotIn('aggregateRating', data['@graph'][0])
+
+    def test_sitemap_excludes_unapproved_bikes(self):
+        response = self.client.get(reverse('sitemap'))
+        self.assertContains(response, reverse('bikes:bike-detail', args=[self.bike.pk]))
+        self.assertNotContains(response, reverse('bikes:bike-detail', args=[Bike.objects.get(name='Private bike').pk]))
+
+    def test_google_disabled_does_not_contact_upstream(self):
+        from django.test import override_settings
+        with override_settings(GOOGLE_PLACES_API_KEY='', GOOGLE_PLACE_ID=''), patch('bike_rental_service.public_info.requests.get') as get:
+            response = self.client.get(reverse('google-reviews'))
+        get.assert_not_called()
+        self.assertEqual(response.json(), {'available': False})
+        self.assertEqual(response['Cache-Control'], 'no-store')
+
+    def test_google_reviews_keep_attribution_and_hide_key(self):
+        from django.test import override_settings
+        from unittest.mock import Mock
+        upstream = Mock()
+        upstream.json.return_value = {'rating': 4.9, 'userRatingCount': 18, 'googleMapsUri': 'https://maps.google.com/', 'reviews': [{'rating': 5, 'text': {'text': '<script>customer text</script>'}, 'authorAttribution': {'displayName': 'Rider', 'uri': 'https://maps.google.com/author'}, 'googleMapsUri': 'https://maps.google.com/review'}]}
+        with override_settings(GOOGLE_PLACES_API_KEY='test-private-key', GOOGLE_PLACE_ID='test-place'), patch('bike_rental_service.public_info.requests.get', return_value=upstream):
+            response = self.client.get(reverse('google-reviews'))
+        self.assertEqual(response.json()['reviews'][0]['author'], 'Rider')
+        self.assertNotContains(response, 'test-private-key')

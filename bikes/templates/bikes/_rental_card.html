@@ -1,6 +1,6 @@
 <article class="rental-card">
-<div class="rental-card-photo">{% if bike.image %}
-<img src="{{ bike.image.url }}" alt="{{ bike.name }}{% if bike.color %}, {{ bike.color }}{% endif %}" loading="lazy" width="640" height="420" onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
+<div class="rental-card-photo">{% if bike.display_image_url %}
+<img src="{{ bike.display_image_url }}" alt="{{ bike.name }}{% if bike.color %}, {{ bike.color }}{% endif %}" loading="lazy" width="640" height="420" onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
 <div class="photo-placeholder" hidden>
 <i class="fas fa-motorcycle" aria-hidden="true">
 </i>

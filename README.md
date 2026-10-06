@@ -69,3 +69,11 @@ Before enabling live payments, resolve the outstanding issues described in the r
 ## Contributing
 
 Keep source assets, migration files, and dependency lockfiles in Git. Keep environment files, uploads, database exports, generated assets, logs, and build output outside Git. Back up media and data separately. Use a feature branch for new work, run the checks above, and review the staged diff before pushing.
+
+## Storefront and external photos
+
+The public website now uses an original compressed campaign illustration, subtle pointer depth, floating artwork, scroll reveals, responsive fleet cards and searchable native FAQ disclosures. Motion is disabled for users who prefer reduced motion. Core fleet, business details, requirements and FAQ content render on the server and remain readable without JavaScript.
+
+Admins can add a **direct HTTPS image URL** in the bike editor instead of uploading a file. It takes priority over the uploaded image and is returned consistently by public and mobile bike APIs. See [storefront operations](docs/STOREFRONT.md) for image guidance, business copy and live Google reviews setup. Hosting is **Render**, with PostgreSQL on **Neon**; uploaded bike photos continue to use Cloudinary.
+
+The homepage publishes document checklists including IDP for international customers, the usual NPR 5,000 variable deposit, daily rentals with a 7 PM return deadline, NPR 500 night/late-return charge, provided helmets and renter-paid fuel. These are customer information; this update does not introduce automatic deposit collection or late-fee billing.

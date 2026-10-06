@@ -15,6 +15,7 @@ class BikehostCreateForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Detailed description of the bike'}),
             'price_per_day': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Rental price per day'}),
             'image': forms.FileInput(attrs={'class': 'form-control', 'placeholder': 'Image of the bike'}),
+            'image_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://your-image-host.example/bike.jpg'}),
             'engine_type': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Type of engine (e.g., 4-stroke, 2-stroke)'}),
             'displacement': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Engine displacement (e.g., 125 cc)'}),
             'max_power': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Maximum power output (e.g., 8.5 hp)'}),
@@ -31,7 +32,14 @@ class BikehostCreateForm(forms.ModelForm):
         self.fields['name'].required = True
         self.fields['type'].required = True
         self.fields['price_per_day'].required = True
-        self.fields['image'].required = True
+        self.fields['image'].required = False
+
+    def clean(self):
+        data = super().clean()
+        image = data.get('image')
+        if not data.get('image_url') and (not image or image.name == 'default_bike.png'):
+            raise forms.ValidationError('Provide a bike photo upload or a direct HTTPS image URL.')
+        return data
 
     def clean_model_year(self):
         model_year = self.cleaned_data.get('model_year')

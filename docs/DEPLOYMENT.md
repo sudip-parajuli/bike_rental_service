@@ -1,6 +1,6 @@
 # Deployment and media recovery
 
-The project contains Django/Gunicorn, Docker and Procfile deployment support. Existing settings also reference Render. No root Vercel application configuration is supplied. Verify the actual hosting project, connected Git branch, domain, and deployment command before applying these instructions. A Git push may trigger an automatic deployment when the connected branch is configured that way.
+EasyMoto is hosted on Render, as confirmed by the project owner. The project contains Django/Gunicorn, Docker and Procfile deployment support. PostgreSQL is supplied by Neon. Verify the connected Git branch, domain, and deployment command in the Render service before release. A Git push may trigger an automatic deployment when the connected branch is configured that way.
 
 ## Production configuration
 
@@ -36,7 +36,7 @@ The supplied Procfile also runs `create_superuser_from_env`. That command can up
 
 - Source CSS, JavaScript, logos and application assets live in source-controlled static directories.
 - WhiteNoise serves generated, hashed files in `STATIC_ROOT` after `collectstatic`.
-- Bike photos use Cloudinary in production through `STORAGES['default']`.
+- Uploaded bike photos use Cloudinary in production through `STORAGES['default']`.
 - Neon stores image references and business records, not the photo bytes.
 - Host ID, insurance and registration documents need private persistent storage with authenticated downloads. Their current explicit local storage is still an unresolved production issue; do not move them to a public CDN.
 
@@ -48,7 +48,7 @@ Django 5.1 removed the old `DEFAULT_FILE_STORAGE` and `STATICFILES_STORAGE` opti
 2. Confirm all three Cloudinary variables are set for the production deployment.
 3. Open an affected image URL. If bike records load but the image URL fails, investigate media storage independently of Neon.
 4. Back up the database and original images before editing references. Local media copies are ignored by Git and must be preserved separately.
-5. Locate the original photo and verify it matches the listed vehicle. Upload it through the existing admin editor, then verify the resulting Cloudinary URL.
+5. Locate the original photo and verify it matches the listed vehicle. Upload it through the admin editor, or enter a stable direct HTTPS image URL in Image URL. The external URL takes priority; clear it to use the upload again.
 6. Repeat only after confirming each corrected image. Missing files that existed solely on ephemeral hosting storage require a backup or a new photo.
 
 `/ping/` reports application liveness; it does not establish database or media health. Add separate database and image monitoring.
@@ -56,3 +56,12 @@ Django 5.1 removed the old `DEFAULT_FILE_STORAGE` and `STATICFILES_STORAGE` opti
 ## Launch limitations
 
 See [the project review](../PROJECT_REVIEW.md) for unsupported Django version, fixed PayPal exchange rate, partial-payment behavior, rental-day definition, concurrent booking confirmation, private documents, and remaining security work. Local tests and a successful static build do not validate live merchant settings.
+
+
+## Render release for the storefront update
+
+Run migration `bikes.0005_bike_image_url` before serving the new application: `python manage.py migrate --noinput`. It adds an optional URL field and makes uploads optional; it does not modify existing photo references. Deploy static assets with `collectstatic`. Configure `SITE_URL=https://www.easymoto.com.np` to generate canonical URLs and the sitemap. Run the migration in a pre-deploy step when your Render plan supports it, or in the release/start sequence before Gunicorn accepts traffic.
+
+Google reviews are optional. In Render's private environment settings configure `GOOGLE_PLACES_API_KEY` and `GOOGLE_PLACE_ID`; enable Places API (New) and billing in the Google Cloud project. Restrict the key to the required API and apply quotas/budget alerts. Never put the key in HTML, Git, mobile client configuration or a `NEXT_PUBLIC`/`EXPO_PUBLIC` variable. See [STOREFRONT.md](STOREFRONT.md).
+
+Render's ephemeral filesystem is unsuitable for durable uploads. Neon keeps database references, while Cloudinary or the external image provider serves the image bytes. A missing image alone does not prove that the database expired. External links also fail if providers block hotlinking or remove files. This release does not move existing uploads or verify the live Render deployment.

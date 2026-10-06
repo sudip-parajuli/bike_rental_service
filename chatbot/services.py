@@ -10,7 +10,6 @@ from bookings.models import Booking
 
 # Configure Gemini API
 api_key = os.environ.get("GEMINI_API_KEY")
-print(f"DEBUG: GEMINI_API_KEY loaded: {bool(api_key)}")
 genai.configure(api_key=api_key)
 
 # ==================== FUNCTION IMPLEMENTATIONS ====================
@@ -252,45 +251,12 @@ def get_payment_methods():
 
 
 def get_required_documents():
-    """
-    Get information about documents required to rent a bike.
-    
-    Returns:
-        dict: List of required documents and additional information.
-    """
+    """Use the same confirmed requirements as the public storefront."""
+    from bike_rental_service.rental_content import FAQS
     return {
-        "required_documents": [
-            {
-                "document": "Valid Government ID",
-                "description": "Citizenship card, passport, or driving license",
-                "mandatory": True
-            },
-            {
-                "document": "Valid Driving License",
-                "description": "Appropriate license for the bike category you're renting",
-                "mandatory": True
-            },
-            {
-                "document": "Blank Cheque or Cash Deposit",
-                "description": "Blank cheque or cash deposit of 5000 rupees",
-                "mandatory": True
-            },
-            {
-                "document": "Contact Information",
-                "description": "Valid phone number and email address",
-                "mandatory": True
-            },
-            {
-                "document": "Emergency Contact",
-                "description": "Name and phone number of an emergency contact person",
-                "mandatory": True
-            }
-        ],
-        "additional_info": [
-            "All documents must be valid and not expired",
-            "You may need to show original documents during bike pickup",
-            "For international tourists, passport and international driving permit are required"
-        ]
+        "national_customers": ["National ID, citizenship certificate or passport", "Valid driving licence for verification", "Blank cheque or cash deposit"],
+        "international_customers": ["Passport", "Valid driving licence for verification", "International Driving Permit (IDP)", "Security deposit in cash", "Letter of accommodation or guarantor from Nepal"],
+        "rental_information": [{"question": q, "answer": a} for c, q, a in FAQS if c in ('Documents', 'Pricing', 'Pickup', 'Booking')],
     }
 
 
@@ -341,47 +307,22 @@ def get_host_info():
             "Set your own pricing and availability",
             "EasyMoto handles payment processing securely",
             "Insurance coverage during rental period",
-            "24/7 customer support"
+            "Contact our team during shop hours"
         ]
     }
 
 
 def get_easymoto_info():
-    """
-    Get general information about EasyMoto service.
-    
-    Returns:
-        dict: Company information and how the service works.
-    """
+    """Business details confirmed from EasyMoto's public profile and owner."""
+    from bike_rental_service.rental_content import FAQS
     return {
-        "about": "EasyMoto is a peer-to-peer bike rental platform that connects bike owners with people who need bikes for short-term rentals. We make it easy and affordable to rent bikes for daily commutes, weekend trips, or special occasions.",
-        "how_it_works": {
-            "for_renters": [
-                "Browse available bikes on our platform",
-                "Select your preferred bike and rental dates",
-                "Complete the booking with secure online payment",
-                "Pick up the bike at the specified location",
-                "Enjoy your ride and return the bike on time"
-            ],
-            "for_hosts": [
-                "List your bike with photos and details",
-                "Set your own pricing and availability",
-                "Get bookings from verified renters",
-                "Earn money from your idle bike",
-                "Receive payments securely through the platform"
-            ]
-        },
-        "features": [
-            "Wide variety of bikes (scooters, motorcycles, electric bikes)",
-            "Flexible rental periods with attractive discounts",
-            "Secure payment options (eSewa, PayPal, Cash)",
-            "Verified users and bikes for safety",
-            "24/7 customer support",
-            "Easy booking and cancellation process"
-        ],
-        "mission": "To provide affordable and convenient bike rental solutions while helping bike owners monetize their assets.",
-        "contact": "For support or inquiries, please contact us through the website contact form or customer support.",
-        "location": "We are physically located in Budhanilkantha-03, Kathmandu, Nepal opposite to Park Village Resort."
+        "about": "EasyMoto Rental Services provides scooter and motorcycle rentals in Budhanilkantha, Kathmandu, for local riders and visitors to Nepal.",
+        "location": "Budhanilkantha-03, Kathmandu, opposite Park Village Resort",
+        "phone": ["+9779851401903", "+9779860702780"],
+        "email": "easymotoservices@gmail.com",
+        "whatsapp": "https://wa.me/9779851401903",
+        "faq": [{"question": q, "answer": a} for _, q, a in FAQS],
+        "note": "Confirm availability, the full price, cancellation, insurance and permitted routes with our team. Do not invent unspecified terms or promise 24/7 support.",
     }
 
 
@@ -511,8 +452,7 @@ def get_chatbot_response(user_message):
         # Reload API key to ensure it's picked up
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
-            print("DEBUG: GEMINI_API_KEY is missing.")
-            return "Configuration Error: GEMINI_API_KEY is missing. Please check your .env file."
+            return "Our assistant is temporarily unavailable. Please contact EasyMoto on WhatsApp at +977 9851401903."
         
         genai.configure(api_key=api_key)
 
@@ -528,7 +468,7 @@ You can help users with:
 - Understanding how to become a bike host
 - General information about EasyMoto service
 
-Always be helpful, concise, and friendly. When presenting bike information, format it nicely. When users want to book, guide them through checking availability first. If they ask about features or details of a specific bike, use the get_bike_details function.
+Use get_required_documents and get_easymoto_info for current rental requirements and terms. Do not invent cancellation policies, refund terms, insurance coverage or support hours. Do not ask for identity documents, payment credentials or sensitive personal data in chat. Always be helpful, concise, and friendly. When presenting bike information, format it nicely. When users want to book, guide them through checking availability first. If they ask about features or details of a specific bike, use the get_bike_details function.
 
 For date-related queries, always use YYYY-MM-DD format. Today's date is """ + timezone.now().strftime("%Y-%m-%d") + "."
 

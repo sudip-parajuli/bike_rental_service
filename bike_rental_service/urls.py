@@ -8,6 +8,7 @@ from drf_yasg import openapi
 from rest_framework import permissions
 from .views import HomeView, PublicHomeView, PingView
 from users.views import RegisterView
+from . import public_info
 
 # Configure Swagger schema
 schema_view = get_schema_view(
@@ -24,6 +25,11 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    path('api/reviews/google/', public_info.google_reviews, name='google-reviews'),
+    path('robots.txt', public_info.robots, name='robots'),
+    path('sitemap.xml', public_info.sitemap, name='sitemap'),
+    path('privacy/', public_info.policy, {'kind': 'privacy'}, name='privacy'),
+    path('terms/', public_info.policy, {'kind': 'terms'}, name='terms'),
     path('admin/', admin.site.urls),
     path('ping/', PingView.as_view(), name='ping'),  # Health check for cron jobs / uptime monitors
     path('api/bike/', include('bikes.urls', namespace='bikes-api')),  # API routing for bikes (JSON)

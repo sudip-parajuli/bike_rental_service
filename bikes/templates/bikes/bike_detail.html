@@ -301,10 +301,12 @@
                 <div class="bike-image-section">
                     <!-- Bike Image -->
                     <div class="bike-image-container">
-                        <img src="{{ bike.image.url|default:'/static/images/default-bike.png' }}"
+                        {% if bike.display_image_url %}<img src="{{ bike.display_image_url }}"
                              class="bike-main-image"
                              alt="{{ bike.name }}"
-                             onerror="this.onerror=null; this.src='/static/images/default-bike.png';">
+                             onerror="this.hidden=true;this.nextElementSibling.hidden=false;">
+                        <div class="photo-placeholder" hidden><p>Photo unavailable. Ask EasyMoto for a current photo.</p></div>
+                        {% else %}<div class="photo-placeholder"><p>Ask EasyMoto for a current photo of {{ bike.name }}.</p></div>{% endif %}
                     </div>
 
                     <!-- Description Section -->

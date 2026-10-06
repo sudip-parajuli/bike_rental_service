@@ -10,18 +10,20 @@ logger = logging.getLogger(__name__)
 
 
 def storefront_context():
+    from .rental_content import public_context
+    content = public_context()
     from bikes.models import Bike
     from testimonials.models import Testimonial
     try:
         bikes = Bike.objects.filter(is_approved=True, availability_status=True)
-        return {
-            'featured_bikes': list(bikes.order_by('-is_featured', 'name', 'pk')[:3]),
+        return {**content,
+            'featured_bikes': list(bikes.order_by('-is_featured', 'name', 'pk')[:6]),
             'starting_price': bikes.aggregate(price=Min('price_per_day'))['price'],
             'reviews': list(Testimonial.approved.select_related('user').order_by('-is_featured', '-created_at')[:3]),
         }
     except DatabaseError:
         logger.exception('Could not load storefront inventory')
-        return {'inventory_unavailable': True}
+        return {**content, 'inventory_unavailable': True}
 
 class HomeView(View):
     """

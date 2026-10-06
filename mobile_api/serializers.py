@@ -19,15 +19,17 @@ class BikeSerializer(serializers.ModelSerializer):
 
     def get_image_url(self, obj):
         """Return an absolute URL for the bike image so the mobile app never needs to guess the host."""
-        if not obj.image:
+        url = obj.display_image_url
+        if not url:
             return None
         request = self.context.get('request')
         if request:
-            return request.build_absolute_uri(obj.image.url)
+            return request.build_absolute_uri(url)
         # Fallback: construct from ALLOWED_HOSTS / SITE_URL env var
         from django.conf import settings
         base_url = getattr(settings, 'SITE_URL', 'https://www.easymoto.com.np')
-        return f"{base_url.rstrip('/')}{obj.image.url}"
+        from urllib.parse import urljoin
+        return urljoin(base_url.rstrip('/') + '/', url)
 
     class Meta:
         model = Bike
@@ -100,4 +102,3 @@ class CustomerDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'full_name', 'phone_number', 'nationality', 'address', 'profile_picture', 'booking_count', 'bookings']
-

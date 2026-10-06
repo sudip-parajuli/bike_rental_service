@@ -60,3 +60,11 @@ The `/api/mobile/` namespace includes dashboard statistics, bikes, maintenance, 
 `/`, `/public-home/`, `/bikes/`, `/users/login/`, `/users/register/`, `/users/dashboard/`, `/users/dashboard/host/`, `/bookings/`, `/admin/`, and `/admin-panel/` provide website interfaces. `/ping/` is a liveness endpoint.
 
 Swagger and ReDoc are available at `/api/swagger/` and `/api/redoc/`. They describe DRF routes, but do not capture all template/form overrides. Verify a view's implementation before relying on generated method or request-body information.
+
+## External images and Google review display
+
+Bike creation/editing through the web staff forms and the bike model serializers accept optional `image_url` (direct HTTPS only, max 1,000 characters). The upload is optional. Public `image` and mobile `image_url` responses use the external URL first, then the uploaded file, and otherwise return an empty/null value. The mobile `image_url` is a computed display field; use the web editor to change the image source.
+
+`GET /api/reviews/google/` is an optional public, throttled display endpoint. Unconfigured or failed upstream requests return `{"available": false}`. Configured responses include author and source attribution for up to five relevant Google Places reviews. The response is not cached. The current release uses only the Google profile link, per the owner's choice; credentials remain optional. Setup is documented in [STOREFRONT.md](STOREFRONT.md).
+
+`/sitemap.xml`, `/robots.txt`, `/privacy/` and `/terms/` are public website resources.

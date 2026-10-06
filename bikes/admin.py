@@ -21,7 +21,7 @@ class BikeAdmin(admin.ModelAdmin):
             'fields': ('vehicle_number', 'color', 'chassis_no', 'engine_no')
         }),
         ('Details', {
-            'fields': ('mileage', 'description', 'price_per_day', 'image', 'engine_type', 'displacement',
+            'fields': ('mileage', 'description', 'price_per_day', 'image', 'image_url', 'engine_type', 'displacement',
                        'max_power', 'torque', 'transmission', 'brakes', 'dimensions', 'fuel_capacity')
         }),
         ('Status', {
