@@ -56,6 +56,8 @@ Current release choice: the owner requested the Google profile link only. Leave 
 
 ## Fleet carousel, navigation and dated enquiries
 
+A visible swipe hint and directional icon introduce the fleet carousel. Its scrollbar is hidden while touch scrolling, arrow controls and keyboard navigation remain available.
+
 The homepage fleet is a single-row, centered carousel with a subtle dimensional treatment, previous/next buttons, a current-bike indicator, native touch/trackpad scrolling, and Arrow/Home/End keyboard support when the track is focused. The full searchable catalogue remains a grid. There is no autoplay. First/last slide spacing lets every bike reach the center. Images and card links remain readable and usable without JavaScript.
 
 The hero no longer uses the generic location eyebrow with a dot. Its readable heading reveals three lines with staggered CSS animation. Desktop navigation starts at the top and becomes a floating bottom dock after scrolling more than 160px; returning to the top restores it. A reserved header space prevents layout shifts. At widths below 992px it remains a collapsible top navigation and leaves the chatbot at the bottom. Reduced-motion preferences disable the animation and dimensional movement. No GSAP dependency is required for these effects.

@@ -54,6 +54,7 @@
 </div>
 <p class="hero-copy">Compare daily rates and specifications. Share your dates to confirm availability and the full rental cost.</p>
 <div class="fleet-carousel" role="region" aria-roledescription="carousel" aria-label="EasyMoto fleet">
+{% if featured_bikes %}<p class="fleet-slide-hint" id="fleet-slide-hint"><i class="fas fa-arrows-alt-h" aria-hidden="true"></i> Swipe to explore the fleet <span>or use the arrow controls</span></p>{% endif %}
 <div class="fleet-carousel-tools" hidden>
 <p class="fleet-position" aria-live="polite" aria-atomic="true">
 </p>
@@ -68,7 +69,7 @@
 </button>
 </div>
 </div>
-<div class="fleet-track" tabindex="0" aria-label="Bike cards: scroll or use the arrow keys">{% for bike in featured_bikes %}{% include 'bikes/_rental_card.html' %}{% empty %}<div class="rental-panel">
+<div class="fleet-track" tabindex="0" aria-label="Bike cards: scroll or use the arrow keys"{% if featured_bikes %} aria-describedby="fleet-slide-hint"{% endif %}>{% for bike in featured_bikes %}{% include 'bikes/_rental_card.html' %}{% empty %}<div class="rental-panel">
 <h3>Let's find your ride</h3>
 <p>{% if inventory_unavailable %}Our online fleet is temporarily unavailable.{% else %}Ask us about our current fleet.{% endif %} Contact us for bikes, photos and rates.</p>
 <a class="btn btn-primary" href="https://wa.me/9779851401903">Check available bikes</a>

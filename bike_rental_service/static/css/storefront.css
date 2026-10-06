@@ -779,7 +779,11 @@ to{
 @keyframes hero-typeset { from { transform: translateY(105%) rotate(2deg); } to { transform: translateY(0) rotate(0); } }
 .desktop-masthead { display: none; }
 .nav-icon { margin-right: .4rem; }
-.fleet-track { position: relative; display: flex; gap: 1.2rem; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: 28px 10px 38px; scrollbar-width: thin; scrollbar-color: #2454e6 #e4eaf5; perspective: 1400px; }
+.fleet-track { position: relative; display: flex; gap: 1.2rem; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: 28px 10px 38px; scrollbar-width: none; -ms-overflow-style: none; perspective: 1400px; }
+.fleet-track::-webkit-scrollbar { display: none; }
+.fleet-slide-hint { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; margin: 0 0 .8rem; color: #17345d; font-size: .85rem; font-weight: 600; }
+.fleet-slide-hint i { margin-right: .2rem; color: #2454e6; }
+.fleet-slide-hint span { color: #526175; font-weight: 400; }
 .fleet-track .rental-card { flex: 0 0 36%; min-width: 310px; scroll-snap-align: center; transform: scale(.96); transition: transform .45s ease, box-shadow .45s ease; }
 .fleet-track .rental-card.is-featured-slide { transform: scale(1); box-shadow: 0 20px 40px #17387624; border-color: #b7c9ef; }
 .fleet-track .rental-card:focus-within { outline: 2px solid #2454e6; outline-offset: 2px; }
