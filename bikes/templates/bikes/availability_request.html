@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Check rental dates | EasyMoto{% endblock %}
+{% block title %}Check availability | EasyMoto{% endblock %}
 {% block content %}
 <main id="main-content" class="container rental-section availability-page">
   <p class="eyebrow">PLAN YOUR RENTAL</p>
@@ -9,14 +9,8 @@
   <form method="get">
     <input type="hidden" name="bike" value="{{ bike.pk }}">
     {{ form.as_p }}
-    <button class="btn btn-primary" type="submit">Prepare WhatsApp enquiry</button>
+    <button class="btn btn-primary" type="submit">Continue to WhatsApp</button>
   </form>
-  {% if whatsapp_url %}
-  <div class="rental-panel mt-4" role="status">
-    <p>Your enquiry for {{ bike.name }} includes pickup on {{ form.cleaned_data.start|date:'Y-m-d' }} and return on {{ form.cleaned_data.end|date:'Y-m-d' }} by 7 PM Nepal time.</p>
-    <a class="btn btn-primary" href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp" aria-hidden="true"></i> Open WhatsApp</a>
-    <p class="small mt-3">Review and send the message in WhatsApp. Your rental is confirmed only after our team checks availability.</p>
-  </div>
-  {% endif %}
+  <p class="small mt-3">Your selected dates are included in the message. Send it in WhatsApp and our team will confirm availability.</p>
 </main>
 {% endblock %}

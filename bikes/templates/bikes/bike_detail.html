@@ -439,7 +439,7 @@
 
                     <!-- Actions -->
                     <div class="action-section">
-                        <a class="btn btn-outline-primary mb-3 availability-trigger" href="{% url 'availability' %}?bike={{ bike.pk }}" data-bike-id="{{ bike.pk }}" data-bike-name="{{ bike.name }}"><i class="far fa-calendar-alt" aria-hidden="true"></i> Check dates on WhatsApp</a>
+                        <a class="btn btn-outline-primary mb-3 availability-trigger" href="{% url 'availability' %}?bike={{ bike.pk }}" data-bike-id="{{ bike.pk }}" data-bike-name="{{ bike.name }}"><i class="far fa-calendar-alt" aria-hidden="true"></i> Check availability</a>
                         <a href="{% if not user.is_authenticated %}{% url 'users:login' %}{% else %}{% url 'bookings:booking-create' %}?bike_id={{ bike.id }}{% endif %}"
                            class="book-now-btn {% if not bike.availability_status %}disabled{% endif %}">
                             <i class="fas fa-calendar-check me-2"></i>

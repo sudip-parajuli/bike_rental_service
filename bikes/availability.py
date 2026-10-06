@@ -2,7 +2,7 @@
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 from django import forms
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.http import Http404
 from django.utils import timezone
 from .models import Bike
@@ -46,4 +46,5 @@ def availability_request(request):
                    f'Pickup: {start.isoformat()}\nReturn: {end.isoformat()} by 7 PM (Nepal time).\n'
                    'Please confirm availability and the total rental cost.')
         whatsapp_url = 'https://wa.me/9779851401903?' + urlencode({'text': message})
+        return redirect(whatsapp_url)
     return render(request, 'bikes/availability_request.html', {'bike': bike, 'form': form, 'whatsapp_url': whatsapp_url})

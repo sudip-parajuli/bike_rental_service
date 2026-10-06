@@ -196,13 +196,15 @@ class AvailabilityEnquiryTests(TestCase):
         from urllib.parse import urlparse, parse_qs
         start, end = self.dates()
         response = self.client.get(reverse('availability'), {'bike': self.bike.pk, 'start': start, 'end': end})
-        self.assertEqual(response.status_code, 200)
-        message = parse_qs(urlparse(response.context['whatsapp_url']).query)['text'][0]
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith('https://wa.me/9779851401903?'))
+        message = parse_qs(urlparse(response.url).query)['text'][0]
         self.assertIn(self.bike.name, message)
         self.assertIn(f'Pickup: {start}', message)
         self.assertIn(f'Return: {end} by 7 PM (Nepal time).', message)
-        self.assertContains(response, 'Open WhatsApp')
-        self.assertContains(response, 'noindex, nofollow')
+        form_page = self.client.get(reverse('availability'), {'bike': self.bike.pk})
+        self.assertContains(form_page, 'Continue to WhatsApp')
+        self.assertContains(form_page, 'noindex, nofollow')
 
     def test_enquiry_requires_dates_and_rejects_backwards_or_past_dates(self):
         from bikes.availability import nepal_today
@@ -215,7 +217,8 @@ class AvailabilityEnquiryTests(TestCase):
     def test_same_day_daily_rental_is_allowed(self):
         start, _ = self.dates()
         response = self.client.get(reverse('availability'), {'bike': self.bike.pk, 'start': start, 'end': start})
-        self.assertIsNotNone(response.context['whatsapp_url'])
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith('https://wa.me/9779851401903?'))
 
     def test_unapproved_or_invalid_bike_cannot_be_enquired_about(self):
         for pk in [self.private.pk, 'not-a-number', '999999999999999999999999']:

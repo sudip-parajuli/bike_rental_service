@@ -29,7 +29,7 @@ Document requirements come from the owner's supplied required-documents poster, 
 
 The FAQ source is `bike_rental_service/rental_content.py`. The chatbot reads the same FAQ source. The visible checklist and terms page must also be updated when policies change. Deposit collection and late-return charges are informational here; the existing booking/payment calculations do not automatically enforce these policies. Confirm the quote with the team, and reconcile billing rules before enabling automatic penalty calculations.
 
-Location, phones and email were checked against the [Linkypot profile](https://easymoto.linkypot.com/), the supplied poster and the [Google business profile](https://share.google/iGOVRN5QGg3pxlHIp). Google listed Sun–Fri 7 AM–6:30 PM and Sat 8:30 AM–4 PM when checked on 2026-10-06; pickup appointments and holiday hours need confirmation. Cancellation, insurance, damage liability and deposit refund conditions remain unconfirmed, so the website directs riders to ask instead of inventing policies.
+Location, phones and email were checked against the [Linkypot profile](https://easymoto.linkypot.com/), the supplied poster and the [Google business profile](https://share.google/iGOVRN5QGg3pxlHIp). Google listed Sunâ€“Fri 7 AMâ€“6:30 PM and Sat 8:30 AMâ€“4 PM when checked on 2026-10-06; pickup appointments and holiday hours need confirmation. Cancellation, insurance, damage liability and deposit refund conditions remain unconfirmed, so the website directs riders to ask instead of inventing policies.
 
 ## Live Google reviews
 
@@ -62,7 +62,7 @@ The homepage fleet is a single-row, centered carousel with a subtle dimensional 
 
 The hero no longer uses the generic location eyebrow with a dot. Its readable heading reveals three lines with staggered CSS animation. Desktop navigation starts at the top and becomes a floating bottom dock after scrolling more than 160px; returning to the top restores it. A reserved header space prevents layout shifts. At widths below 992px it remains a collapsible top navigation and leaves the chatbot at the bottom. Reduced-motion preferences disable the animation and dimensional movement. No GSAP dependency is required for these effects.
 
-Fleet and bike-detail **Check dates** links open an accessible native dialog. Customers select pickup and return dates, prepare the enquiry, then open WhatsApp to review and send it. The draft includes the vehicle/fleet ID, both dates, the 7 PM Nepal-time return deadline, and a request to confirm availability and the total cost. This flow does not send messages automatically, create bookings or claim availability.
+Fleet and bike-detail **Check availability** links open an accessible native dialog. Customers select pickup and return dates and click **Continue to WhatsApp**, which immediately opens the prepared message without an intermediate preview step. The server validates the dates before redirecting to WhatsApp. The draft includes the vehicle/fleet ID, both dates, the 7 PM Nepal-time return deadline, and a request to confirm availability and the total cost. This flow does not send messages automatically, create bookings or claim availability.
 
 Without JavaScript or native dialog support, the links go to `/availability/?bike=<id>`. Server-side validation also rejects missing, malformed, past or reversed dates and non-public bikes; same-day daily rentals are valid. The current Nepal date is computed explicitly, independently of the server's timezone. Enquiry pages have `noindex` metadata.
 
