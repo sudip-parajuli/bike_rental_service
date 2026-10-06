@@ -29,7 +29,7 @@ Document requirements come from the owner's supplied required-documents poster, 
 
 The FAQ source is `bike_rental_service/rental_content.py`. The chatbot reads the same FAQ source. The visible checklist and terms page must also be updated when policies change. Deposit collection and late-return charges are informational here; the existing booking/payment calculations do not automatically enforce these policies. Confirm the quote with the team, and reconcile billing rules before enabling automatic penalty calculations.
 
-Location, phones and email were checked against the [Linkypot profile](https://easymoto.linkypot.com/), the supplied poster and the [Google business profile](https://share.google/iGOVRN5QGg3pxlHIp). Google listed Sunâ€“Fri 7 AMâ€“6:30 PM and Sat 8:30 AMâ€“4 PM when checked on 2026-10-06; pickup appointments and holiday hours need confirmation. Cancellation, insurance, damage liability and deposit refund conditions remain unconfirmed, so the website directs riders to ask instead of inventing policies.
+Location, phones and email were checked against the [Linkypot profile](https://easymoto.linkypot.com/), the supplied poster and the [Google business profile](https://share.google/iGOVRN5QGg3pxlHIp). Google listed SunÃ¢â‚¬“Fri 7 AMÃ¢â‚¬“6:30 PM and Sat 8:30 AMÃ¢â‚¬“4 PM when checked on 2026-10-06; pickup appointments and holiday hours need confirmation. Cancellation, insurance, damage liability and deposit refund conditions remain unconfirmed, so the website directs riders to ask instead of inventing policies.
 
 ## Live Google reviews
 
@@ -56,7 +56,7 @@ Current release choice: the owner requested the Google profile link only. Leave 
 
 ## Fleet carousel, navigation and dated enquiries
 
-A visible swipe hint and directional icon introduce the fleet carousel. Its scrollbar is hidden while touch scrolling, arrow controls and keyboard navigation remain available.
+A directional icon and “Slide to explore the fleet” hint sit in the empty left side of the carousel before scrolling; arrow controls sit below the cards. On narrow screens the hint sits at the upper left inside the carousel to avoid overlapping cards. Its scrollbar is hidden while touch scrolling, arrow controls and keyboard navigation remain available.
 
 The homepage fleet is a single-row, centered carousel with a subtle dimensional treatment, previous/next buttons, a current-bike indicator, native touch/trackpad scrolling, and Arrow/Home/End keyboard support when the track is focused. The full searchable catalogue remains a grid. There is no autoplay. First/last slide spacing lets every bike reach the center. Images and card links remain readable and usable without JavaScript.
 

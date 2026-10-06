@@ -37,6 +37,7 @@
     let active = 0;
     let frame;
     function update() {
+      carousel.querySelector('.fleet-viewport').classList.toggle('has-scrolled', track.scrollLeft > 8);
       const bounds = track.getBoundingClientRect();
       const center = bounds.left + bounds.width / 2;
       let closest = Infinity;

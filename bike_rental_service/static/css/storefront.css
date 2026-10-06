@@ -781,16 +781,24 @@ to{
 .nav-icon { margin-right: .4rem; }
 .fleet-track { position: relative; display: flex; gap: 1.2rem; overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: 28px 10px 38px; scrollbar-width: none; -ms-overflow-style: none; perspective: 1400px; }
 .fleet-track::-webkit-scrollbar { display: none; }
-.fleet-slide-hint { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; margin: 0 0 .8rem; color: #17345d; font-size: .85rem; font-weight: 600; }
-.fleet-slide-hint i { margin-right: .2rem; color: #2454e6; }
-.fleet-slide-hint span { color: #526175; font-weight: 400; }
+a, a:visited, a:hover, a:focus, a:active { text-decoration: none !important; }
+.fleet-viewport { position: relative; }
+.fleet-slide-hint { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); z-index: 1; display: flex; flex-direction: column; gap: .75rem; max-width: calc(32% - 2rem); margin: 0; color: #526175; font-size: .95rem; line-height: 1.6; pointer-events: none; }
+.fleet-slide-hint i { color: #2454e6; font-size: 1.6rem; }
+.fleet-viewport.has-scrolled .fleet-slide-hint { visibility: hidden; }
+@media (max-width: 991px) {
+  .fleet-slide-hint { top: 0; left: 10px; transform: none; flex-direction: row; align-items: center; gap: .6rem; max-width: none; font-size: .8rem; }
+  .fleet-slide-hint br { display: none; }
+  .fleet-slide-hint i { font-size: 1rem; }
+  .fleet-viewport .fleet-track { padding-top: 52px; }
+}
 .fleet-track .rental-card { flex: 0 0 36%; min-width: 310px; scroll-snap-align: center; transform: scale(.96); transition: transform .45s ease, box-shadow .45s ease; }
 .fleet-track .rental-card.is-featured-slide { transform: scale(1); box-shadow: 0 20px 40px #17387624; border-color: #b7c9ef; }
 .fleet-track .rental-card:focus-within { outline: 2px solid #2454e6; outline-offset: 2px; }
 .fleet-track .rental-card-photo img { height: 235px; object-fit: contain; }
 .fleet-track .rental-card-body { padding: 1.25rem; }
 .fleet-track .rental-card-body > p.text-secondary { font-size: .8rem; }
-.fleet-carousel-tools { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.fleet-carousel-tools { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .65rem; margin-top: .5rem; }
 .fleet-carousel-tools[hidden] { display: none; }
 .fleet-position { margin: 0; font-size: .8rem; color: #526175; }
 .fleet-carousel-tools > div { display: flex; gap: .6rem; }
