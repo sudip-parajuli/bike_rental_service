@@ -206,22 +206,23 @@
                 </div>
                 <button class="btn-close btn-close-white" id="closeChatBtn" aria-label="Close assistant"></button>
             </div>
-            <div class="chatbot-messages" id="chatbotMessages">
+            <div class="chatbot-messages" id="chatbotMessages" role="log" aria-live="polite" aria-label="Assistant conversation">
                 <div class="message bot-message">
                     Hello! I'm your EasyMoto assistant. How can I help you today?
                 </div>
             </div>
             <div class="chatbot-input-area">
-                <form id="chatbotForm" class="d-flex gap-2">
-                    <input type="text" id="chatbotInput" class="form-control" aria-label="Message EasyMoto assistant" placeholder="Type your message..."
-                        required>
+                <form id="chatbotForm" class="d-flex gap-2" data-chat-endpoint="{% url 'chat' %}">
+                    <input type="text" id="chatbotInput" class="form-control" aria-label="Message EasyMoto assistant" placeholder="Ask about your rental..."
+                        maxlength="800" required>
                     <button type="submit" class="btn btn-primary rounded-circle" aria-label="Send message">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </form>
+                <a class="small d-inline-block mt-2" href="https://wa.me/9779851401903" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp" aria-hidden="true"></i> Talk to our team</a>
             </div>
         </div>
-        <button class="chatbot-toggle" id="chatbotToggle" aria-label="Open EasyMoto assistant">
+        <button class="chatbot-toggle" id="chatbotToggle" aria-label="Open EasyMoto assistant" aria-expanded="false" aria-controls="chatbotWindow">
             <i class="fas fa-comment-dots"></i>
         </button>
     </div>
@@ -388,89 +389,6 @@
                 });
             }
 
-            // Chatbot Logic
-            const chatToggle = document.getElementById('chatbotToggle');
-            const chatWindow = document.getElementById('chatbotWindow');
-            const closeChat = document.getElementById('closeChatBtn');
-            const chatForm = document.getElementById('chatbotForm');
-            const chatInput = document.getElementById('chatbotInput');
-            const chatMessages = document.getElementById('chatbotMessages');
-
-            function toggleChat() {
-                chatWindow.classList.toggle('active');
-            }
-
-            chatToggle?.addEventListener('click', toggleChat);
-            closeChat?.addEventListener('click', toggleChat);
-
-            function addMessage(text, isUser) {
-                const div = document.createElement('div');
-                div.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-                div.textContent = text;
-                chatMessages.appendChild(div);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-
-            chatForm?.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const message = chatInput.value.trim();
-                if (!message) return;
-
-                // Add user message
-                addMessage(message, true);
-                chatInput.value = '';
-
-                // Show loading indicator (optional)
-                const loadingDiv = document.createElement('div');
-                loadingDiv.className = 'message bot-message';
-                loadingDiv.innerHTML = '<i class="fas fa-ellipsis-h fa-fade"></i>';
-                chatMessages.appendChild(loadingDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                try {
-                    const response = await fetch("{% url 'chat' %}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCookie('csrftoken')
-                        },
-                        body: JSON.stringify({ message: message })
-                    });
-
-                    const data = await response.json();
-
-                    // Remove loading indicator
-                    chatMessages.removeChild(loadingDiv);
-
-                    if (data.response) {
-                        addMessage(data.response, false);
-                    } else {
-                        addMessage("Sorry, I couldn't process that request.", false);
-                    }
-                } catch (error) {
-                    console.error('Chatbot error:', error);
-                    try {
-                        chatMessages.removeChild(loadingDiv);
-                    } catch (e) { }
-                    addMessage("Sorry, something went wrong. Please try again.", false);
-                }
-            });
-
-            // Helper to get CSRF token
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
-            }
         });
     </script>
 
@@ -486,6 +404,7 @@
     </svg>
 
     <script src="{% static 'js/rental-interactions.js' %}" defer></script>
+    <script src="{% static 'js/chatbot.js' %}" defer></script>
     {% block extra_scripts %}{% endblock %}
 </body>
 

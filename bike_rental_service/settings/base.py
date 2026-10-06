@@ -10,6 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SITE_URL = config('SITE_URL', default='https://www.easymoto.com.np')
 GOOGLE_PLACES_API_KEY = config('GOOGLE_PLACES_API_KEY', default='')
 GOOGLE_PLACE_ID = config('GOOGLE_PLACE_ID', default='')
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-3.5-flash-lite')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -184,6 +186,7 @@ REST_FRAMEWORK = {
         'payments': '5/minute',
         'testimonials': '5/hour',
         'admin_contact_messages': '100/day',
+        'chatbot': '6/minute',
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 6,

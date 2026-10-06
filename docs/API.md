@@ -27,7 +27,7 @@ Staff mobile clients obtain JWTs from `POST /api/mobile/auth/login/` using `logi
 | `GET /api/payment/<booking_id>/` | Read-only payment detail, looked up by booking ID |
 | `GET /api/testimonial/` | Public approved reviews |
 | `/api/user/` | User/account and contact routes; permissions vary by view |
-| `POST /api/chatbot/chat/` | Optional chatbot; requires configured Gemini access |
+| `POST /api/chatbot/chat/` | Public rental assistant; local FAQs plus optional Gemini access; 6 requests/minute per client |
 
 Public fleet responses omit chassis numbers, engine numbers and internal owner/maintenance identifiers. API permission and pagination defaults live in `bike_rental_service/settings/base.py`. Do not interpret the fleet's `availability_status` flag as date-specific availability.
 
@@ -70,3 +70,7 @@ Bike creation/editing through the web staff forms and the bike model serializers
 `/sitemap.xml`, `/robots.txt`, `/privacy/` and `/terms/` are public website resources.
 
 `GET /availability/?bike=<approved-bike-id>` renders a public date enquiry form. Supplying valid `start` and `end` ISO dates (`YYYY-MM-DD`) returns a 302 redirect to WhatsApp with the prepared message; no booking or message is created. Same-day rentals are allowed, past pickup dates and returns before pickup are rejected. Non-public or invalid bike IDs return 404.
+
+### Public rental chat
+
+`POST /api/chatbot/chat/` accepts a JSON object containing a nonempty string `message` (maximum 800 characters). Success returns `{ "response": "..." }`, including local FAQ answers or the provider fallback. Invalid messages return 400 with a helpful `response`; malformed JSON returns 400. The endpoint requires no login/CSRF token because it only returns public rental information and performs no account or booking actions. Throttled requests return 429 with `Retry-After`. It does not expose provider credentials, raw exceptions, customer bookings or host identities. See [assistant deployment and free-tier configuration](DEPLOYMENT.md#rental-assistant-and-gemini-free-tier).

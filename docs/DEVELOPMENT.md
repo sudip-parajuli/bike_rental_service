@@ -64,7 +64,7 @@ Local static files use Django's development storage. Production uses WhiteNoise'
 | `testimonials/` | Reviews and approval |
 | `admin_panel/` | Staff portal, contracts and administrative workflows |
 | `mobile_api/` | Staff JWT authentication and mobile endpoints |
-| `chatbot/` | Gemini integration and fleet lookups |
+| `chatbot/` | Public rental FAQs, bounded Gemini REST integration and public fleet context |
 | `easymoto_admin_mobile/` | Expo staff application |
 | `docs/`, `scripts/` | Maintainer guides and repository checks |
 
