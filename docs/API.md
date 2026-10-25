@@ -74,3 +74,38 @@ Bike creation/editing through the web staff forms and the bike model serializers
 ### Public rental chat
 
 `POST /api/chatbot/chat/` accepts a JSON object containing a nonempty string `message` (maximum 800 characters). Success returns `{ "response": "..." }`, including local FAQ answers or the provider fallback. Invalid messages return 400 with a helpful `response`; malformed JSON returns 400. The endpoint requires no login/CSRF token because it only returns public rental information and performs no account or booking actions. Throttled requests return 429 with `Retry-After`. It does not expose provider credentials, raw exceptions, customer bookings or host identities. See [assistant deployment and free-tier configuration](DEPLOYMENT.md#rental-assistant-and-gemini-free-tier).
+
+## Staff rental operations API
+
+All routes below require an active staff/administrator JWT, except login/refresh/logout and the separately secret-gated scheduler. Customer tokens cannot read or change rentals.
+
+| Method and path | Purpose |
+| --- | --- |
+| POST /api/mobile/auth/login/ | Username/email plus password; staff only |
+| POST /api/mobile/auth/refresh/ | Rotate the refresh token after verifying current staff privileges |
+| POST /api/mobile/auth/logout/ | Revoke the supplied refresh token |
+| GET /api/mobile/me/ | Current role, profile, business timezone and reminder mode |
+| GET /api/mobile/rental-board/ | Counts and urgent return queue, including unpaid and overdue confirmed rentals |
+| GET /api/mobile/rentals/ | Paginated staff list with search, status and due filters |
+| GET, PATCH /api/mobile/bookings/<id>/ | Detail, dates, notes, deposits and explicit price recalculation |
+| POST /api/mobile/bookings/<id>/return/ | Record physical return separately from payment/deposit |
+| POST /api/mobile/bookings/<id>/mark-paid/ | Record full payment actually received; preserves returned status |
+| POST /api/mobile/bookings/<id>/whatsapp-reminder/ | Prepare customer WhatsApp draft, without claiming delivery |
+| POST, DELETE /api/mobile/devices/ | Register/disable the current staff member's push device |
+| POST /api/mobile/reminders/run/ | Cron secret header plus enabled feature flag; never accepts JWT or query-secret as substitute |
+
+The staff rental list accepts `search`, `status` (pending/confirmed/completed/cancelled), `due` (active/overdue/today/soon/upcoming), `page` and `page_size` (maximum 100). New default page size is 25. Clients must follow pagination; the prior app silently displayed only the first six rows.
+
+PATCH, payment-recording and physical-return requests require `expected_updated_at`, copied unchanged from the latest detail response. A stale version returns 409. Date edits preserve the agreed total unless `recalculate_price=true`; deposits are separate from income. Returned dates/prices are locked but handover notes and deposit-return status can be updated later.
+
+Examples:
+
+```json
+{"expected_updated_at":"2026-10-25T10:30:00Z","end_date":"2026-10-27T13:15:00Z","recalculate_price":false,"notes":"Extension agreed with customer"}
+```
+
+```json
+{"expected_updated_at":"2026-10-25T10:31:00Z","deposit_returned":false,"notes":"Bike physically returned; balance outstanding"}
+```
+
+13:15 UTC is 19:00 Nepal time. Invoice/contract endpoints now require the Authorization header and reject bearer tokens in URLs. See [mobile operations](MOBILE_OPERATIONS.md) for scheduling, delivery receipts and release requirements.

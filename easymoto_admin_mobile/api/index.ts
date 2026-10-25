@@ -1,52 +1,11 @@
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
+import { createStaffClient } from './client';
+import { tokens } from './tokens';
 
-// In a real app, use an environment variable or Expo Constants.
-// If you are using a physical device, 127.0.0.1 WILL NOT WORK.
-// You MUST replace 127.0.0.1 with your computer's local Wi-Fi IP address.
-import { Platform } from 'react-native';
-
-// Detect local vs production environment dynamically
-const isLocalWeb = Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hostname === 'localhost';
-
-const API_URL = isLocalWeb
-  ? 'http://localhost:8000/api/mobile'
-  : 'https://www.easymoto.com.np/api/mobile'; // Canonical production URL (uses www to prevent redirect header stripping)
-
-export const BASE_MEDIA_URL = isLocalWeb
-  ? 'http://localhost:8000'
-  : 'https://www.easymoto.com.np';
-
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-api.interceptors.request.use(
-  async (config) => {
-    const token = await AsyncStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response && error.response.status === 401) {
-      // Token is invalid or expired, logout user
-      await AsyncStorage.removeItem('access_token');
-      await AsyncStorage.removeItem('refresh_token');
-      router.replace('/');
-    }
-    return Promise.reject(error);
-  }
-);
-
+// This public build setting is an API address, never a credential.
+export const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://www.easymoto.com.np/api/mobile').replace(/\/$/, '');
+export const BASE_MEDIA_URL = API_URL.replace(/\/api\/mobile$/, '');
+const listeners = new Set<() => void>();
+export function onSessionExpired(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; }
+const api = createStaffClient(API_URL, tokens, () => listeners.forEach(listener => listener()));
+export { errorMessage } from './client';
 export default api;

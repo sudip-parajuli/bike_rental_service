@@ -16,47 +16,11 @@ from io import BytesIO
 from xhtml2pdf import pisa
 from django.template.loader import get_template
 from .models import StaffActivityLog
+from .rental_views import StaffPagination
 
 
-class IsStaffOrSuperuser(BasePermission):
-    """
-    Custom permission: allows access to users who are either is_staff OR is_superuser.
+from .permissions import IsStaffOrSuperuser
 
-    This fixes the mismatch where the login endpoint allows both is_staff and is_superuser
-    users, but Django's built-in IsAdminUser only checks is_staff — causing superuser-only
-    accounts (is_superuser=True, is_staff=False) to receive 403 on every API call.
-    """
-    message = 'This action requires admin or staff privileges.'
-
-    def has_permission(self, request, view):
-        return bool(
-            request.user
-            and request.user.is_authenticated
-            and (request.user.is_staff or request.user.is_superuser)
-        )
-
-
-class QueryParamJWTAuthentication(JWTAuthentication):
-    """Allow JWT token to be passed as a ?token= query parameter.
-    This is needed so mobile browsers can open authenticated PDF links
-    without requiring custom Authorization headers."""
-
-    def authenticate(self, request):
-        # Try the standard header-based auth first
-        header_result = super().authenticate(request)
-        if header_result is not None:
-            return header_result
-
-        # Fall back to ?token= query param
-        raw_token = request.query_params.get('token')
-        if raw_token is None:
-            return None
-        try:
-            validated_token = self.get_validated_token(raw_token)
-            user = self.get_user(validated_token)
-            return (user, validated_token)
-        except Exception:
-            return None
 
 from .serializers import (
     BikeSerializer,
@@ -172,6 +136,7 @@ class AdminDashboardStatsView(APIView):
 
 
 class AdminBikeListView(generics.ListCreateAPIView):
+    pagination_class = StaffPagination
     queryset = Bike.objects.all().order_by('-created_at')
     serializer_class = BikeSerializer
     permission_classes = [IsStaffOrSuperuser]
@@ -190,299 +155,43 @@ class WalkInCustomerCreateView(APIView):
     permission_classes = [IsStaffOrSuperuser]
 
     def get(self, request):
-        phone_number = request.query_params.get('phone')
-        if not phone_number:
-            return Response({"detail": "Phone parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        user = User.objects.filter(phone_number=phone_number).first()
+        from .operations import customer_for_phone
+        from admin_panel.models import RentalContract
+        user = customer_for_phone(request.query_params.get('phone', ''))
         if not user:
-            return Response({"detail": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
-            
-        return Response({
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "full_name": user.get_full_name() or user.username,
-            "phone_number": user.phone_number,
-            "nationality": getattr(user, 'nationality', '') or 'Nepali',
-            "driving_license_no": getattr(user, 'driving_license_no', '') or '',
-            "passport_no": getattr(user, 'passport_no', '') or '',
-        }, status=status.HTTP_200_OK)
+            return Response({'detail': 'Customer not found.'}, status=404)
+        contract = RentalContract.objects.filter(booking__user=user).order_by('-created_at').first()
+        return Response({'id': user.pk, 'user_id': user.pk, 'full_name': user.get_full_name() or user.username,
+            'phone_number': user.phone_number, 'email': user.email, 'nationality': user.nationality,
+            'driving_license_no': contract.driving_license_no if contract else (user.driving_license_no or ''),
+            'passport_no': contract.passport_no if contract else (user.passport_no or '')})
 
     def post(self, request):
+        from .operations import customer_for_phone, audit
         serializer = WalkInCustomerSerializer(data=request.data)
-        if serializer.is_valid():
-            phone_number = serializer.validated_data['phone_number']
-            full_name = serializer.validated_data['full_name']
-            email = serializer.validated_data.get('email', '')
-            nationality = serializer.validated_data['nationality']
-
-            # Check if user already exists
-            user = User.objects.filter(phone_number=phone_number).first()
-            if user:
-                return Response({
-                    "detail": "Customer already exists.",
-                    "user_id": user.id,
-                    "phone_number": user.phone_number
-                }, status=status.HTTP_200_OK)
-
-            # Generate random password
-            temp_password = get_random_string(10)
-            
-            # Create user
-            fallback_email = email if email else f"{phone_number}@example.com"
-            user = User.objects.create_user(
-                username=phone_number, # username is phone number
-                email=fallback_email,
-                password=temp_password,
-                first_name=full_name.split(' ')[0],
-                last_name=' '.join(full_name.split(' ')[1:]) if ' ' in full_name else '',
-                phone_number=phone_number,
-                nationality=nationality,
-                is_active=True
-            )
-
-            # Send Email/SMS
-            if email:
-                try:
-                    send_mail(
-                        'Welcome to EasyMoto Rental Service',
-                        f'Hello {full_name},\n\nYour account has been created successfully!\n\n'
-                        f'You can log in to our website to track your rentals using these credentials:\n'
-                        f'Username / Phone: {phone_number}\n'
-                        f'Password: {temp_password}\n\n'
-                        f'Please change your password after logging in.\n\nThank you for choosing EasyMoto.',
-                        settings.DEFAULT_FROM_EMAIL,
-                        [email],
-                        fail_silently=True,
-                    )
-                except Exception as e:
-                    print(f"Failed to send email: {e}")
-
-            return Response({
-                "detail": "Customer created successfully and credentials sent.",
-                "user_id": user.id,
-                "phone_number": user.phone_number
-            }, status=status.HTTP_201_CREATED)
-            
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        values = serializer.validated_data
+        user = customer_for_phone(values['phone_number'])
+        created = user is None
+        if created:
+            names = values['full_name'].split(' ', 1)
+            user = User(username='walkin_' + get_random_string(18), first_name=names[0],
+                last_name=names[1] if len(names) > 1 else '', phone_number=values['phone_number'],
+                email=values.get('email', ''), nationality=values['nationality'])
+            user.set_unusable_password()
+            user.save()
+            audit(request.user, None, 'customer_created', f'Created customer record #{user.pk}.')
+        return Response({'detail': 'Customer created.' if created else 'Existing customer selected.',
+            'user_id': user.pk, 'phone_number': user.phone_number, 'full_name': user.get_full_name()}, status=201 if created else 200)
 
 class WalkInBookingCreateView(APIView):
     permission_classes = [IsStaffOrSuperuser]
 
     def post(self, request):
         serializer = WalkInBookingSerializer(data=request.data)
-        if serializer.is_valid():
-            phone_number = serializer.validated_data['phone_number']
-            bike_id = serializer.validated_data['bike_id']
-            start_date = serializer.validated_data['start_date']
-            end_date = serializer.validated_data['end_date']
-
-            user = User.objects.filter(phone_number=phone_number).first()
-            if not user:
-                return Response({"detail": "Customer not found. Create customer first."}, status=status.HTTP_404_NOT_FOUND)
-
-            try:
-                bike = Bike.objects.get(id=bike_id)
-            except Bike.DoesNotExist:
-                return Response({"detail": "Bike not found."}, status=status.HTTP_404_NOT_FOUND)
-
-            from decimal import Decimal
-            from admin_panel.models import RentalContract
-            from payment.models import Payment, Invoice
-
-            # Calculate duration in days
-            duration_days = (end_date - start_date).days + 1
-            base_price = bike.price_per_day * Decimal(duration_days)
-
-            # Determine payment option and method
-            payment_method_input = serializer.validated_data.get('payment_method', 'cash')
-            if payment_method_input == 'qr':
-                db_payment_method = 'esewa'
-                db_payment_option = 'full_online'
-            else:
-                db_payment_method = 'cash_on_delivery'
-                db_payment_option = 'cash_on_delivery'
-
-            # Create Booking
-            booking = Booking.objects.create(
-                user=user,
-                bike=bike,
-                start_date=start_date,
-                end_date=end_date,
-                pickup_location="Office",
-                status='confirmed',
-                payment_status='unpaid',
-                payment_option=db_payment_option,
-                payment_method=db_payment_method
-            )
-
-            # Automatic discount (Base price - standard duration total)
-            auto_discount = base_price - booking.total_price
-            
-            # Manual discount
-            manual_discount = serializer.validated_data.get('manual_discount', Decimal('0.00'))
-            
-            # Recalculate total amount
-            total_amount = max(Decimal('0.00'), base_price - auto_discount - manual_discount)
-            booking.total_price = total_amount
-            
-            # Advance amount
-            advance_amount = serializer.validated_data.get('advance_amount', Decimal('0.00'))
-            
-            # Balance amount
-            balance_amount = max(Decimal('0.00'), total_amount - advance_amount)
-            
-            # Update payment status
-            if advance_amount >= total_amount and total_amount > 0:
-                booking.payment_status = 'paid'
-            elif advance_amount > 0:
-                booking.payment_status = 'partial'
-            else:
-                booking.payment_status = 'unpaid'
-            
-            booking.save(update_fields=['total_price', 'payment_status'])
-
-            # Save customer details to User profile for future bookings
-            license_val = serializer.validated_data.get('driving_license_no', '')
-            passport_val = serializer.validated_data.get('passport_no', '')
-            user_updated = False
-            if license_val and getattr(user, 'driving_license_no', '') != license_val:
-                user.driving_license_no = license_val
-                user_updated = True
-            if passport_val and getattr(user, 'passport_no', '') != passport_val:
-                user.passport_no = passport_val
-                user_updated = True
-            if user_updated:
-                user.save()
-
-            # Create RentalContract record
-            contract = RentalContract.objects.create(
-                booking=booking,
-                customer_name=user.get_full_name() or user.username,
-                customer_address=user.address or "Office Address",
-                customer_phone=user.phone_number or "N/A",
-                nationality=user.nationality or "Nepali",
-                driving_license_no=serializer.validated_data.get('driving_license_no', ''),
-                passport_no=serializer.validated_data.get('passport_no', ''),
-                vehicle_model=f"{bike.brand} {bike.name}",
-                vehicle_number=bike.vehicle_number or "N/A",
-                vehicle_color=bike.color or "",
-                chassis_no=bike.chassis_no or "",
-                engine_no=bike.engine_no or "",
-                guarantor_name=serializer.validated_data.get('guarantor_name', ''),
-                guarantor_phone=serializer.validated_data.get('guarantor_phone', ''),
-                guarantor_address=serializer.validated_data.get('guarantor_address', ''),
-                helmet=serializer.validated_data.get('helmet', True),
-                bungy_cord=serializer.validated_data.get('bungy_cord', False),
-                maps=serializer.validated_data.get('maps', False),
-                deposit_passport=serializer.validated_data.get('deposit_passport', False),
-                deposit_citizenship=serializer.validated_data.get('deposit_citizenship', False),
-                deposit_id_card=serializer.validated_data.get('deposit_id_card', False),
-                deposit_other=serializer.validated_data.get('deposit_other', ''),
-                rate_per_day=bike.price_per_day,
-                total_amount=total_amount,
-                discount_amount=auto_discount,
-                manual_discount=manual_discount,
-                advance_amount=advance_amount,
-                balance_amount=balance_amount,
-                remarks="Created via Mobile Admin App"
-            )
-
-            # Create Payment record if advance > 0
-            if advance_amount > 0:
-                Payment.objects.create(
-                    booking=booking,
-                    amount=advance_amount,
-                    payment_method=db_payment_method,
-                    status='completed' if booking.payment_status == 'paid' else 'partial'
-                )
-
-            # Create Invoice record
-            invoice, created = Invoice.objects.get_or_create(
-                booking=booking,
-                defaults={'invoice_number': f"INV-{booking.id}-{booking.created_at.strftime('%Y%m%d')}"}
-            )
-
-            # --- Email both PDFs to the customer ---
-            customer_email = user.email
-            # Only send if email is real (not the dummy placeholder)
-            if customer_email and '@example.com' not in customer_email:
-                try:
-                    payment_obj = None
-                    try:
-                        payment_obj = booking.payment
-                    except Exception:
-                        pass
-
-                    invoice_ctx = {
-                        'booking': booking,
-                        'invoice': invoice,
-                        'payment': payment_obj,
-                        'base_url': request.build_absolute_uri('/')
-                    }
-                    invoice_pdf_bytes = _generate_pdf_bytes('admin_panel/invoice_pdf.html', invoice_ctx)
-
-                    contract_ctx = {'contract': contract}
-                    contract_pdf_bytes = _generate_pdf_bytes('admin_panel/contract_pdf.html', contract_ctx)
-
-                    email = EmailMessage(
-                        subject=f'EasyMoto – Your Rental Invoice & Agreement ({invoice.invoice_number})',
-                        body=(
-                            f'Dear {user.get_full_name() or user.username},\n\n'
-                            f'Thank you for choosing EasyMoto Rental Service!\n\n'
-                            f'Please find your rental Invoice and Agreement attached to this email.\n'
-                            f'Invoice Number: {invoice.invoice_number}\n'
-                            f'Vehicle: {bike.brand} {bike.name}\n'
-                            f'Period: {start_date.date()} to {end_date.date()} ({duration_days} days)\n'
-                            f'Total Amount: Rs. {total_amount}\n'
-                            f'Advance Paid: Rs. {advance_amount}\n'
-                            f'Balance Due: Rs. {balance_amount}\n\n'
-                            f'We look forward to serving you.\n\n'
-                            f'EasyMoto Rental Service Pvt. Ltd.\n'
-                            f'Ph: 9860702780'
-                        ),
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        to=[customer_email],
-                    )
-                    if invoice_pdf_bytes:
-                        email.attach(f'Invoice_{invoice.invoice_number}.pdf', invoice_pdf_bytes, 'application/pdf')
-                    if contract_pdf_bytes:
-                        email.attach(f'Contract_{contract.contract_number}.pdf', contract_pdf_bytes, 'application/pdf')
-                    email.send(fail_silently=True)
-                except Exception as e:
-                    print(f'Email dispatch error: {e}')
-
-            # --- Staff Activity Log ---
-            # Record this booking with the staff member who created it
-            staff_user = request.user
-            staff_name = staff_user.get_full_name() or staff_user.username
-            customer_name = user.get_full_name() or user.username
-            bike_label = f"{bike.brand} {bike.name}"
-            StaffActivityLog.objects.create(
-                staff_user=staff_user,
-                action='walk_in_booking',
-                description=(
-                    f"{staff_name} created a walk-in booking for {customer_name} "
-                    f"({user.phone_number}) on {bike_label} "
-                    f"from {start_date.date()} to {end_date.date()} "
-                    f"(Rs. {total_amount})."
-                ),
-                booking=booking,
-                is_read=False,
-            )
-
-            return Response({
-                "detail": "Booking & Contract created successfully.",
-                "booking_id": booking.id,
-                "contract_id": contract.id,
-                "total_price": float(booking.total_price),
-                "advance_amount": float(advance_amount),
-                "balance_amount": float(balance_amount),
-                "invoice_number": invoice.invoice_number
-            }, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        from .rental_creation import create_walkin
+        return Response(create_walkin(request.user, serializer.validated_data), status=201)
 
 def _generate_pdf_bytes(template_name, context):
     """Render a Django template and return a BytesIO of the PDF, or None on error."""
@@ -498,13 +207,12 @@ class MarkBookingPaidView(APIView):
     permission_classes = [IsStaffOrSuperuser]
 
     def post(self, request, pk):
-        try:
-            booking = Booking.objects.get(id=pk)
-            booking.payment_status = 'paid'
-            booking.save()
-            return Response({"detail": "Booking marked as paid successfully."}, status=status.HTTP_200_OK)
-        except Booking.DoesNotExist:
-            return Response({"detail": "Booking not found."}, status=status.HTTP_404_NOT_FOUND)
+        from .operations import mark_fully_paid
+        from .rental_views import ReturnSerializer
+        version = ReturnSerializer(data=request.data)
+        version.is_valid(raise_exception=True)
+        booking = mark_fully_paid(pk, request.user, version.validated_data['expected_updated_at'])
+        return Response(BookingSerializer(booking).data)
 
 class AdminMaintenanceCreateView(APIView):
     permission_classes = [IsStaffOrSuperuser]
@@ -555,12 +263,13 @@ class UpcomingMaintenanceAlertsView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class AdminCustomerListView(generics.ListAPIView):
+    pagination_class = StaffPagination
     queryset = User.objects.filter(is_staff=False, is_superuser=False).prefetch_related('bookings', 'bookings__bike').order_by('-date_joined')
     serializer_class = CustomerDetailSerializer
     permission_classes = [IsStaffOrSuperuser]
 
 class AdminBookingInvoiceView(APIView):
-    authentication_classes = [QueryParamJWTAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsStaffOrSuperuser]
 
     def get(self, request, pk):
@@ -600,7 +309,7 @@ class AdminBookingInvoiceView(APIView):
 
 class AdminBookingContractPDFView(APIView):
     """Serve the full rental agreement (contract + bill) as a PDF for a given booking."""
-    authentication_classes = [QueryParamJWTAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsStaffOrSuperuser]
 
     def get(self, request, pk):

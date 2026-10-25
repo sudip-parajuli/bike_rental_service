@@ -115,14 +115,17 @@ class Payment(models.Model):
             if original.status != self.status:
                 if self.status == 'completed':
                     self.booking.payment_status = 'paid'
-                    self.booking.status = 'confirmed'
+                    if self.booking.status not in ('completed', 'cancelled'):
+                        self.booking.status = 'confirmed'
                 elif self.status == 'partial':
                     self.booking.payment_status = 'partial'
-                    self.booking.status = 'confirmed'
+                    if self.booking.status not in ('completed', 'cancelled'):
+                        self.booking.status = 'confirmed'
                 self.booking.save(update_fields=['payment_status', 'status'])
         elif self.status in ['completed', 'partial']:  # New instance
             self.booking.payment_status = 'paid' if self.status == 'completed' else 'partial'
-            self.booking.status = 'confirmed'
+            if self.booking.status not in ('completed', 'cancelled'):
+                self.booking.status = 'confirmed'
             self.booking.save(update_fields=['payment_status', 'status'])
         super().save(*args, **kwargs)
 

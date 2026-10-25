@@ -4,7 +4,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from rest_framework.exceptions import ValidationError
 from bikes.models import Bike
 from decimal import Decimal
-from django.utils.timezone import now
+from django.utils.timezone import now, localdate
+from zoneinfo import ZoneInfo
 
 User = get_user_model()
 
@@ -55,8 +56,7 @@ class Booking(models.Model):
     @property
     def duration_days(self):
         """Calculate duration in days."""
-        delta = self.end_date - self.start_date
-        return delta.days + 1
+        return (localdate(self.end_date, ZoneInfo('Asia/Kathmandu')) - localdate(self.start_date, ZoneInfo('Asia/Kathmandu'))).days + 1
 
 
     class Meta:
@@ -85,7 +85,7 @@ class Booking(models.Model):
 
     def calculate_total_price(self):
         """Calculate the total rental price based on the duration with discounts."""
-        duration_days = (self.end_date - self.start_date).days + 1
+        duration_days = self.duration_days
         if not self.bike or not self.bike.price_per_day:
             return Decimal(0)
 
@@ -107,7 +107,7 @@ class Booking(models.Model):
 
     def save(self, *args, **kwargs):
         """Automatically calculate the total price if not provided and sync payment status."""
-        if not self.total_price:
+        if self.total_price is None:
             self.total_price = self.calculate_total_price()
         
         # Check if this is an update (not a new instance)

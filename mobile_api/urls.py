@@ -1,6 +1,8 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from .auth import AdminTokenObtainPairView
+from .auth import AdminTokenObtainPairView, StaffTokenRefreshView, StaffLogoutView
+from .rental_views import (StaffMeView, RentalBookingDetailView, RentalReturnView,
+    RentalReminderDraftView, RentalBoardView, RentalBookingListView, RentalDeviceView, RentalReminderRunView)
 from .views import (
     AdminBikeListView,
     AdminBikeDetailView,
@@ -24,7 +26,16 @@ app_name = 'mobile_api'
 urlpatterns = [
     # Authentication
     path('auth/login/', AdminTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/refresh/', StaffTokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/logout/', StaffLogoutView.as_view(), name='staff_logout'),
+    path('me/', StaffMeView.as_view(), name='staff_me'),
+    path('rental-board/', RentalBoardView.as_view(), name='rental_board'),
+    path('devices/', RentalDeviceView.as_view(), name='rental_devices'),
+    path('reminders/run/', RentalReminderRunView.as_view(), name='rental_reminders_run'),
+    path('rentals/', RentalBookingListView.as_view(), name='rental_list'),
+    path('bookings/<int:pk>/', RentalBookingDetailView.as_view(), name='rental_detail'),
+    path('bookings/<int:pk>/return/', RentalReturnView.as_view(), name='rental_return'),
+    path('bookings/<int:pk>/whatsapp-reminder/', RentalReminderDraftView.as_view(), name='rental_whatsapp'),
 
     # Dashboard Stats
     path('dashboard/', AdminDashboardStatsView.as_view(), name='dashboard_stats'),

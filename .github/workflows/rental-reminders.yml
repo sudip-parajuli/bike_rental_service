@@ -1,0 +1,39 @@
+name: Rental return reminders
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: rental-return-reminders
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    if: vars.RENTAL_REMINDERS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      REMINDER_SECRET: ${{ secrets.RENTAL_CRON_SECRET }}
+    steps:
+      - name: Dispatch EasyMoto rental reminders
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.error
+          # Only the business website supplied by the project owner may receive this credential.
+          endpoint = 'https://www.easymoto.com.np/api/mobile/reminders/run/'
+          secret = os.environ['REMINDER_SECRET']
+          if len(secret) < 32:
+              raise SystemExit('Configure RENTAL_CRON_SECRET with at least 32 random characters.')
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, *args, **kwargs):
+                  return None
+          request = urllib.request.Request(endpoint, data=b'{}', method='POST', headers={
+              'Content-Type': 'application/json', 'X-Rental-Cron-Secret': secret})
+          try:
+              with urllib.request.build_opener(NoRedirect).open(request, timeout=120) as response:
+                  print(json.dumps(json.load(response)))
+          except urllib.error.HTTPError as error:
+              raise SystemExit(f'Reminder endpoint returned HTTP {error.code}.') from None
+          except urllib.error.URLError:
+              raise SystemExit('The EasyMoto reminder endpoint could not be reached.') from None
+          PY

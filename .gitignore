@@ -11,6 +11,8 @@
 *.keystore
 credentials*.json
 service-account*.json
+google-services.json
+GoogleService-Info.plist
 
 # Python environments and caches
 .venv/
@@ -40,6 +42,7 @@ media/
 # Node / Expo build output
 node_modules/
 .expo/
+.preview-build/
 dist/
 build/
 *.apk

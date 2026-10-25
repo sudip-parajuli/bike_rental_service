@@ -1,5 +1,12 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
 
@@ -39,8 +46,9 @@ class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         try:
             if '@' in login:
-                db_user = User.objects.get(email__iexact=login)
-                user = authenticate(username=db_user.username, password=password)
+                db_user = User.objects.filter(email__iexact=login).first()
+                if db_user:
+                    user = authenticate(username=db_user.username, password=password)
             else:
                 db_user = User.objects.filter(username__iexact=login).first()
                 if db_user:
@@ -83,3 +91,36 @@ class AdminTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class AdminTokenObtainPairView(TokenObtainPairView):
     serializer_class = AdminTokenObtainPairSerializer
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'login'
+
+
+class StaffTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        refresh = RefreshToken(attrs['refresh'])
+        user = User.objects.filter(pk=refresh['user_id'], is_active=True).first()
+        if not user or not (user.is_staff or user.is_superuser):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Staff access is no longer available for this account.')
+        access = str(refresh.access_token)
+        refresh.blacklist()
+        refresh.set_jti()
+        refresh.set_exp()
+        refresh.set_iat()
+        return {'access': access, 'refresh': str(refresh)}
+
+
+class StaffTokenRefreshView(TokenRefreshView):
+    serializer_class = StaffTokenRefreshSerializer
+
+
+class StaffLogoutView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        try:
+            RefreshToken(request.data.get('refresh', '')).blacklist()
+        except (TokenError, TypeError):
+            pass
+        return Response(status=204)

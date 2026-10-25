@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import api from '../../api';
+import api, { errorMessage } from '../../api';
+import { nepalDate } from '@/lib/rentals';
 
 export default function AddMaintenanceScreen() {
   const { bikeId } = useLocalSearchParams();
   const router = useRouter();
   
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(nepalDate());
   const [cost, setCost] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,8 +30,8 @@ export default function AddMaintenanceScreen() {
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error) {
-      console.log('Error adding maintenance:', error);
-      Alert.alert('Error', 'Failed to add maintenance record.');
+
+      Alert.alert('Error', errorMessage(error));
     } finally {
       setLoading(false);
     }

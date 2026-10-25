@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from decimal import Decimal
 from bikes.models import Bike, MaintenanceRecord
 from bookings.models import Booking
 from django.contrib.auth import get_user_model
@@ -43,6 +44,33 @@ class BookingSerializer(serializers.ModelSerializer):
     customer_email = serializers.CharField(source='user.email', read_only=True)
     customer_nationality = serializers.CharField(source='user.nationality', read_only=True)
     customer_address = serializers.CharField(source='user.address', read_only=True)
+    due_state = serializers.SerializerMethodField()
+    paid_amount = serializers.SerializerMethodField()
+    balance_due = serializers.SerializerMethodField()
+    operations = serializers.SerializerMethodField()
+
+    def get_due_state(self, obj):
+        from .operations import due_state
+        return due_state(obj)
+
+    def get_paid_amount(self, obj):
+        from .operations import amount_paid
+        return str(amount_paid(obj))
+
+    def get_balance_due(self, obj):
+        from decimal import Decimal
+        from .operations import amount_paid
+        return str(max(Decimal('0'), (obj.total_price or Decimal('0')) - amount_paid(obj)))
+
+    def get_operations(self, obj):
+        from .models import RentalState
+        try:
+            state = obj.rental_state
+            return {'notes': state.notes, 'deposit_amount': str(state.deposit_amount),
+                    'deposit_returned': state.deposit_returned,
+                    'returned_at': state.returned_at.isoformat() if state.returned_at else None}
+        except RentalState.DoesNotExist:
+            return {'notes': '', 'deposit_amount': '0.00', 'deposit_returned': False, 'returned_at': None}
     
     class Meta:
         model = Booking
@@ -53,6 +81,13 @@ class WalkInCustomerSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=20)
     email = serializers.EmailField(required=False, allow_blank=True)
     nationality = serializers.CharField(max_length=50, default='Nepali')
+
+    def validate_phone_number(self, value):
+        from .operations import reformat_phone
+        digits = reformat_phone(value)
+        if not digits:
+            raise serializers.ValidationError('Use a valid phone number with country code. Nepal mobile numbers may use 10 digits.')
+        return '+' + digits
     
 class WalkInBookingSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=20)
@@ -61,9 +96,16 @@ class WalkInBookingSerializer(serializers.Serializer):
     end_date = serializers.DateTimeField()
     
     # Financial overrides
-    manual_discount = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0.0)
-    advance_amount = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0.0)
-    payment_method = serializers.CharField(max_length=20, required=False, default='cash')
+    manual_discount = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=Decimal('0'), min_value=Decimal('0'))
+    advance_amount = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=Decimal('0'), min_value=Decimal('0'))
+    payment_method = serializers.ChoiceField(choices=['cash', 'qr'], required=False, default='cash')
+    deposit_amount = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=Decimal('0'), min_value=Decimal('0'))
+    notes = serializers.CharField(required=False, allow_blank=True, max_length=2000)
+
+    def validate(self, data):
+        from .operations import ensure_dates
+        ensure_dates(data['start_date'], data['end_date'])
+        return data
     
     # Customer Documents
     driving_license_no = serializers.CharField(max_length=50, required=True, allow_blank=False)

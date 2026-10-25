@@ -81,3 +81,9 @@ The homepage publishes document checklists including IDP for international custo
 The homepage now presents its bikes in a compact carousel. Desktop navigation floats at the bottom, while mobile keeps a top menu. Availability enquiries collect pickup/return dates before preparing a WhatsApp draft, with a regular-page fallback and server-side date validation. See [storefront interaction details](docs/STOREFRONT.md#fleet-carousel-navigation-and-dated-enquiries).
 
 The rental assistant now works for visitors without login. Common rental FAQs use no AI quota; other short questions use configurable `gemini-3.5-flash-lite` via a bounded Gemini REST request. Set `GEMINI_API_KEY` in Render using a Google AI Studio **Free tier** project, and optionally set `GEMINI_MODEL`. Run `python manage.py check_chatbot --check-provider` for a safe metadata check. See [assistant setup and troubleshooting](docs/DEPLOYMENT.md#rental-assistant-and-gemini-free-tier).
+
+## Staff rental operations app
+
+The Android/iPhone Expo app now provides a return queue (including unpaid/overdue rentals), date editing with collision/stale-edit protection, physical returns, separate deposits, payment balances and secure PDF downloads. Native credentials use SecureStore and access tokens refresh without discarding sessions on network errors.
+
+Customer WhatsApp reminders open a ready-to-send draft. Optional local/staff push and scheduled customer email reminders use the existing backend, with no WhatsApp Business dependency. Deploy the new migrations and configure delivery before enabling the included secret-gated reminder schedule. See [mobile setup](easymoto_admin_mobile/README.md) and the [operations/release guide](docs/MOBILE_OPERATIONS.md) for installation, free-tier limitations, verification and remaining device checks.

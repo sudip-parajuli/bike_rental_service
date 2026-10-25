@@ -26,6 +26,9 @@ class User(AbstractUser):
         help_text="User's phone number."
     )
     nationality = models.CharField(max_length=100, blank=True, null=True, help_text="User's nationality.")
+    # These columns already exist in migration 0003; keep the model aligned without dropping identity data.
+    driving_license_no = models.CharField(max_length=50, blank=True, null=True, help_text="User's driving license number.")
+    passport_no = models.CharField(max_length=50, blank=True, null=True, help_text="User's passport number.")
     address = models.TextField(blank=True, null=True, help_text="User's address (optional).")
     profile_picture = models.ImageField(
         upload_to='profile_pictures/',

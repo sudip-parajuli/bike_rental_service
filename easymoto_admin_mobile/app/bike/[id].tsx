@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, ActivityIndicator, ScrollView,
   Image, TouchableOpacity, RefreshControl,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import api, { BASE_MEDIA_URL } from '../../api';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useSession } from '@/providers/session';
+import api, { BASE_MEDIA_URL, errorMessage } from '../../api';
  
 export default function BikeDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -14,9 +14,12 @@ export default function BikeDetailScreen() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [isSuperuser, setIsSuperuser] = useState(false);
+  const { user } = useSession();
+  const isSuperuser = !!user?.is_superuser;
+  const [error, setError] = useState('');
  
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    setError('');
     try {
       const [bikeRes, bookingsRes] = await Promise.all([
         api.get(`/bikes/${id}/`),
@@ -26,24 +29,17 @@ export default function BikeDetailScreen() {
       const bData = bookingsRes.data?.results ?? bookingsRes.data;
       setBookings(Array.isArray(bData) ? bData : []);
     } catch (error) {
-      console.log('Error fetching bike details:', error);
+      setError(errorMessage(error));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
- 
-  useEffect(() => {
-    const checkRole = async () => {
-      const superuserVal = await AsyncStorage.getItem('is_superuser');
-      setIsSuperuser(superuserVal === 'true');
-    };
-    checkRole();
-    fetchData();
   }, [id]);
 
+  useFocusEffect(useCallback(() => { void fetchData(); }, [fetchData]));
+
   if (loading) return <View style={s.center}><ActivityIndicator size="large" color="#3b82f6" /></View>;
-  if (!bike) return <View style={s.center}><Text>Bike not found</Text></View>;
+  if (!bike) return <View style={s.center}><Text>{error || 'Vehicle not found'}</Text></View>;
 
   const imageUri = bike.image_url ||
     (bike.image?.startsWith('http') ? bike.image : `${BASE_MEDIA_URL}${bike.image}`);

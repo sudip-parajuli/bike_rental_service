@@ -12,6 +12,10 @@ GOOGLE_PLACES_API_KEY = config('GOOGLE_PLACES_API_KEY', default='')
 GOOGLE_PLACE_ID = config('GOOGLE_PLACE_ID', default='')
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-3.5-flash-lite')
+RENTAL_REMINDERS_ENABLED = config('RENTAL_REMINDERS_ENABLED', default=False, cast=bool)
+RENTAL_EMAIL_REMINDERS_ENABLED = config('RENTAL_EMAIL_REMINDERS_ENABLED', default=False, cast=bool)
+RENTAL_CRON_SECRET = config('RENTAL_CRON_SECRET', default='')
+EXPO_ACCESS_TOKEN = config('EXPO_ACCESS_TOKEN', default='')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -36,6 +40,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 # Application definition
 INSTALLED_APPS = [
+    'rest_framework_simplejwt.token_blacklist',
     'jazzmin', #template for custom dashboard
     'django.contrib.admin',
     'django.contrib.auth',
