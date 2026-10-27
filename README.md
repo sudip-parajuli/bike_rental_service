@@ -4,6 +4,19 @@ EasyMoto is a scooter and motorcycle rental service based in Budhanilkantha, Kat
 
 [Website](https://www.easymoto.com.np/) · [Facebook](https://www.facebook.com/Easymoto.np) · [Instagram](https://www.instagram.com/easymoto_np/) · [More links](https://easymoto.linkypot.com/)
 
+## Start here
+
+| Goal | Guide |
+| --- | --- |
+| Understand the customer product | [Public website](https://www.easymoto.com.np/) and the feature list below |
+| Run the Django application | [Development guide](docs/DEVELOPMENT.md) |
+| Explore staff mobile operations | [Mobile app setup](easymoto_admin_mobile/README.md) and [release/operations guide](docs/MOBILE_OPERATIONS.md) |
+| Review payment, booking and storage limitations | [Project review](PROJECT_REVIEW.md) and production status below |
+
+The web application, staff mobile app and reminder integrations have separate
+setup and verification steps. A live homepage does not establish that every
+payment or delivery integration is enabled.
+
 ## What the project includes
 
 - Public fleet browsing with model search, type filters, daily rates, and pagination.
